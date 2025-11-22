@@ -36,7 +36,7 @@ jobs:
             ~/.pub-cache
             frontend/.dart_tool/package_config.json
             backend/.dart_tool/package_config.json
-            packages/data_models/.dart_tool/package_config.json
+            data_models/.dart_tool/package_config.json
           # La chiave dipende da TUTTI i file pubspec.lock
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
@@ -46,7 +46,7 @@ jobs:
       # Questi passi ora riutilizzeranno la cache se disponibile
       - name: Pub Get - Data Models
         run: dart pub get
-        working-directory: packages/data_models
+        working-directory: data_models
 
       - name: Pub Get - Backend
         run: dart pub get
@@ -60,7 +60,7 @@ jobs:
       - name: 🔍 Check Formatting - Data Models
         id: format_models
         run: dart format --output=none --set-exit-if-changed .
-        working-directory: packages/data_models
+        working-directory: data_models
         continue-on-error: true
 
       - name: Mostra files da formattare - Data Models
@@ -69,7 +69,7 @@ jobs:
           echo "🚨🚨 I seguenti files nel modulo data_models devono essere formattati:"
           dart format --set-exit-if-changed . | tail -n +2
           exit 1
-        working-directory: packages/data_models
+        working-directory: data_models
 
       - name: 🔍 Check Formatting - Backend
         id: format_backend
@@ -128,7 +128,7 @@ jobs:
             ~/.pub-cache
             frontend/.dart_tool/package_config.json
             backend/.dart_tool/package_config.json
-            packages/data_models/.dart_tool/package_config.json
+            data_models/.dart_tool/package_config.json
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-pub-
@@ -142,7 +142,7 @@ jobs:
       # --- Analisi Statica per Moduli Dart Puri ---
       - name: Analyze Data Models
         run: dart analyze --fatal-warnings .
-        working-directory: packages/data_models
+        working-directory: data_models
 
       - name: Analyze Backend
         run: dart analyze --fatal-warnings .
