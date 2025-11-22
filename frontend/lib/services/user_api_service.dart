@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:data_models/user.dart';
 
 class UserApiService {
-
   // Sostituisci la variabile 'final String _baseUrl' con questo getter dinamico.
   // Questo codice viene eseguito ogni volta che richiami _baseUrl.
   String get _baseUrl {
