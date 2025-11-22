@@ -1,0 +1,154 @@
+name: CI Code Formatting & Analysis
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+
+jobs:
+  # -----------------------------------------------------
+  # 1. VERIFICA E INSTALLAZIONE: Controlla la formattazione e scarica le dipendenze
+  # -----------------------------------------------------
+  formatting_check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Dart SDK (Stabile)
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 'stable'
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.2'
+
+      # PASSO CHIAVE PER LA VELOCITÀ: Caching delle dipendenze
+      - name: Cache Dart Dependencies
+        uses: actions/cache@v4
+        with:
+          # Percorsi da salvare (dove Dart e Flutter salvano i pacchetti)
+          path: |
+            ~/.pub-cache
+            frontend/.dart_tool/package_config.json
+            backend/.dart_tool/package_config.json
+            data_models/.dart_tool/package_config.json
+          # La chiave dipende da TUTTI i file pubspec.lock
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      # --- Installazione Dipendenze (pub get) ---
+      # Questi passi ora riutilizzeranno la cache se disponibile
+      - name: Pub Get - Data Models
+        run: dart pub get
+        working-directory: data_models
+
+      - name: Pub Get - Backend
+        run: dart pub get
+        working-directory: backend
+
+      - name: Pub Get - Frontend (Flutter)
+        run: flutter pub get
+        working-directory: frontend
+
+      # --- Verifica Formattazione (rimane invariata) ---
+      - name: 🔍 Check Formatting - Data Models
+        id: format_models
+        run: dart format --output=none --set-exit-if-changed .
+        working-directory: data_models
+        continue-on-error: true
+
+      - name: Mostra files da formattare - Data Models
+        if: steps.format_models.outcome == 'failure'
+        run: |
+          echo "🚨🚨 I seguenti files nel modulo data_models devono essere formattati:"
+          dart format --set-exit-if-changed . | tail -n +2
+          exit 1
+        working-directory: data_models
+
+      - name: 🔍 Check Formatting - Backend
+        id: format_backend
+        run: dart format --output=none --set-exit-if-changed .
+        working-directory: backend
+        continue-on-error: true
+
+      - name: Mostra files da formattare - Backend
+        if: steps.format_backend.outcome == 'failure'
+        run: |
+          echo "🚨🚨 I seguenti files nel modulo backend devono essere formattati:"
+          dart format --set-exit-if-changed . | tail -n +2
+          exit 1
+        working-directory: backend
+
+      - name: 🔍 Check Formatting - Frontend
+        id: format_frontend
+        run: dart format --output=none --set-exit-if-changed .
+        working-directory: frontend
+        continue-on-error: true
+
+      - name: Mostra files da formattare - Frontend
+        if: steps.format_frontend.outcome == 'failure'
+        run: |
+          echo "🚨🚨 I seguenti files nel modulo frontend devono essere formattati:"
+          dart format --set-exit-if-changed . | tail -n +2
+          exit 1
+        working-directory: frontend
+
+  # -----------------------------------------------------
+  # 2. ANALISI STATICA (LINTING): Verifica le regole di stile e gli errori
+  # -----------------------------------------------------
+  static_analysis:
+    runs-on: ubuntu-latest
+    needs: formatting_check
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 'stable'
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.2'
+
+      # PASSO CHIAVE PER LA VELOCITÀ (ripetuto per l'isolamento del job)
+      - name: Cache Dart Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            frontend/.dart_tool/package_config.json
+            backend/.dart_tool/package_config.json
+            data_models/.dart_tool/package_config.json
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      # Dopo aver configurato gli SDK e ripristinato la cache, devi fare nuovamente il 'pub get'
+      # per garantire che gli ambienti siano isolati correttamente.
+      - name: Pub Get per Analisi
+        run: flutter pub get
+        working-directory: frontend
+
+      # --- Analisi Statica per Moduli Dart Puri ---
+      - name: Analyze Data Models
+        run: dart analyze --fatal-warnings .
+        working-directory: data_models
+
+      - name: Analyze Backend
+        run: dart analyze --fatal-warnings .
+        working-directory: backend
+
+      # --- Analisi Statica per Modulo Frontend ---
+      - name: Analyze Frontend (Flutter)
+        run: flutter analyze
+        working-directory: frontend
