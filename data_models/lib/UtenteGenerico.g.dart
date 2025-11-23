@@ -1,13 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'UtenteGenerico.dart';
+part of 'utenteGenerico.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-UtenteGenerico _$UtenteGenericoFromJson(Map<String, dynamic> json) =>
-    UtenteGenerico(
+utenteGenerico _$utenteGenericoFromJson(Map<String, dynamic> json) =>
+    utenteGenerico(
       email: json['email'] as String?,
       telefono: json['telefono'] as String?,
       nome: json['nome'] as String?,
@@ -19,7 +19,7 @@ UtenteGenerico _$UtenteGenericoFromJson(Map<String, dynamic> json) =>
       iconaProfilo: json['iconaProfilo'] as String?,
     );
 
-Map<String, dynamic> _$UtenteGenericoToJson(UtenteGenerico instance) =>
+Map<String, dynamic> _$utenteGenericoToJson(utenteGenerico instance) =>
     <String, dynamic>{
       'nome': instance.nome,
       'cognome': instance.cognome,

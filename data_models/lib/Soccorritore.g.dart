@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'Soccorritore.dart';
+part of 'soccorritore.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-Soccorritore _$SoccorritoreFromJson(Map<String, dynamic> json) => Soccorritore(
+soccorritore _$soccorritoreFromJson(Map<String, dynamic> json) => soccorritore(
   (json['id'] as num).toInt(),
   json['email'] as String,
   telefono: json['telefono'] as String?,
@@ -19,7 +19,7 @@ Soccorritore _$SoccorritoreFromJson(Map<String, dynamic> json) => Soccorritore(
   iconaProfilo: json['iconaProfilo'] as String?,
 );
 
-Map<String, dynamic> _$SoccorritoreToJson(Soccorritore instance) =>
+Map<String, dynamic> _$soccorritoreToJson(soccorritore instance) =>
     <String, dynamic>{
       'nome': instance.nome,
       'cognome': instance.cognome,
