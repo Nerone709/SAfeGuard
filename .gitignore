@@ -396,3 +396,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,intellij+iml,intellij,dart,flutter,windows,macos,linux
+
+# Custom
+/.idea/runConfigurations/
+**/pubspec_overrides.yaml
