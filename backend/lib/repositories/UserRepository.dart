@@ -15,6 +15,8 @@ final Map<String, Map<String, dynamic>> _simulatedDatabase = {
     'passwordHash': 'password123',
     'nome': 'Mario',
     'cognome': 'Rossi',
+    'isVerified': 'false',
+    'otp': 'xxxx'
   },
   // Utente Solo Telefono (Simulato, la chiave è ancora l'email per consistenza)
   'solo.telefono@gmail.com': {
@@ -25,6 +27,8 @@ final Map<String, Map<String, dynamic>> _simulatedDatabase = {
     'passwordHash': 'telefono_pass',
     'nome': 'Anna',
     'cognome': 'B.',
+    'isVerified': 'false',
+    'otp': 'xxxx'
   },
   // Soccorritore (Login tramite Email discriminante)
   'luca.verdi@soccorritore.gmail': {
@@ -33,6 +37,8 @@ final Map<String, Map<String, dynamic>> _simulatedDatabase = {
     'passwordHash': 'password456',
     'nome': 'Luca',
     'cognome': 'Verdi',
+    'isVerified': 'false',
+    'otp': 'xxxx'
   },
 };
 
@@ -50,6 +56,35 @@ class UserRepository {
       (user) => user['telefono'] == phone,
     );
   }
+
+  //Salva l'OTP nel DB (o in cache)
+  Future<void> saveOtp(String telefono, String otp) async {
+    // In un ambiente reale: questo salverebbe OTP e scadenza su Firebase o Redis.
+    print('OTP SALVATO IN CACHE per $telefono: $otp');
+    // Nella simulazione, possiamo usare una mappa temporanea in memoria:
+    _otpCache[telefono] = otp;
+    // Nota: La mappa _otpCache andrebbe dichiarata all'esterno del repository come statica.
+  }
+
+  // Verifica l'OTP
+  Future<bool> verifyOtp(String telefono, String otp) async {
+    // In un ambiente reale: controllerebbe OTP e scadenza.
+    final storedOtp = _otpCache[telefono];
+    _otpCache.remove(telefono); // L'OTP può essere usato solo una volta
+    return storedOtp == otp;
+  }
+
+  //Aggiorna lo stato di verifica dell'utente
+  Future<void> markUserAsVerified(String email) async {
+    // In un ambiente reale: aggiornerebbe il campo 'isVerified' nel DB a true.
+    if (_simulatedDatabase.containsKey(email.toLowerCase())) {
+      _simulatedDatabase[email.toLowerCase()]!['isVerified'] = true;
+      print('Utente $email marcato come VERIFICATO.');
+    }
+  }
+
+  // Mappa temporanea in memoria per la simulazione dell'OTP
+  static final Map<String, String> _otpCache = {};
 
   Future<UtenteGenerico> saveUser(UtenteGenerico newUser) async {
     if (newUser.email == null) {

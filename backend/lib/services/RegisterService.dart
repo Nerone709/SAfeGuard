@@ -2,13 +2,15 @@ import 'package:data_models/UtenteGenerico.dart';
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
 import '../repositories/UserRepository.dart';
+import 'VerificationService.dart';
 
 const String rescuerDomain = '@soccorritore.gmail';
 
 class RegisterService {
   final UserRepository _userRepository;
+  final VerificationService _verificationService;
 
-  RegisterService(this._userRepository);
+  RegisterService(this._userRepository, this._verificationService);
 
   Future<UtenteGenerico> register(
     Map<String, dynamic> requestData,
@@ -38,6 +40,7 @@ class RegisterService {
     final UtenteGenerico newUser;
 
     requestData['id'] = 0; // ID 0 temporaneo
+    requestData['isVerified'] = false;
 
     // 4. La determinazione del tipo deve usare l'email se disponibile,
     // altrimenti assume che un utente registrato solo con telefono sia standard.
@@ -57,6 +60,11 @@ class RegisterService {
 
     // 5. Salva l'utente nel Database
     final savedUser = await _userRepository.saveUser(newUser);
+
+    //Se si usa il telefono, avvia la verifica OTP
+    if (savedUser.telefono != null) {
+    await _verificationService.startPhoneVerification(savedUser.telefono!);
+    }
 
     return savedUser;
   }

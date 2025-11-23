@@ -1,11 +1,31 @@
 import 'dart:convert';
+import 'package:backend/services/VerificationService.dart';
+
 import '../services/RegisterService.dart';
 import '../repositories/UserRepository.dart';
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
+import '../services/VerificationService.dart';
+import '../services/VerificationService.dart';
+import '../services/SmsService.dart';
 
 class RegisterController {
-  final RegisterService _registerService = RegisterService(UserRepository());
+  // 1. Inizializzazione delle classi base (Repository e SmsService)
+  final UserRepository _userRepository = UserRepository();
+  final SmsService _smsService = SmsService();
+
+  // 2. Inizializzazione del VerificationService (richiede Repository e SmsService)
+  late final VerificationService _verificationService =
+  VerificationService(_userRepository, _smsService);
+
+  final RegisterService _registerService =
+  RegisterService(
+      UserRepository(), // Inietta UserRepository
+      VerificationService(
+          UserRepository(), // Inietta UserRepository (di nuovo)
+          SmsService()      // Inietta SmsService
+      ) // Inietta VerificationService
+  );
 
   // Simula la gestione di una richiesta HTTP POST /api/register
   Future<String> handleRegisterRequest(String requestBodyJson) async {
