@@ -1,5 +1,3 @@
-// ** File: lib/data_models/Soccorritore.dart ** (Corretto)
-
 import 'package:json_annotation/json_annotation.dart';
 import 'UtenteGenerico.dart';
 

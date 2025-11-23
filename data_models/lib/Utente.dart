@@ -1,5 +1,3 @@
-// ** File: lib/data_models/Utente.dart ** (Completo)
-
 import 'package:json_annotation/json_annotation.dart';
 import 'UtenteGenerico.dart';
 

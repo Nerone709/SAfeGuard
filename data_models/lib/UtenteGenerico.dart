@@ -35,7 +35,6 @@
 ///
 /// Reindirizzamento (Errori come "field initializer"):** I costruttori nominati utilizzati per l'inizializzazione specifica (es. `Utente.conEmail`) devono solo reindirizzare a un altro costruttore (`: this(...)`) e **non possono** usare inizializzatori di campo (`this.campo`).
 ///
-
 import 'package:json_annotation/json_annotation.dart';
 
 part 'UtenteGenerico.g.dart';
