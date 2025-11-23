@@ -34,7 +34,7 @@ class UserApiService {
     final String portPart = _envPort == '-1' ? '' : ':$_envPort';
 
     // 3. Costruisci l'URL finale
-    return '$host:$portPart$_envPrefix/user';
+    return '$host$portPart$_envPrefix/user';
   }
 
   Future<User> fetchUser(int userId) async {
