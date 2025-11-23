@@ -1,0 +1,52 @@
+name: Build Dev APK
+
+on:
+  workflow_run:
+    workflows: ["CI Code Formatting & Analysis"] # DEVE essere il nome esatto (name:) dell'altro action
+    types: [completed]
+    branches: [dev]
+
+jobs:
+  build_apk:
+    # Esegui solo se l'altro workflow è finito con SUCCESSO
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.2' # Assicurati che questa versione esista, altrimenti usa 'stable'
+
+      # --- Gestione Dipendenze (Monorepo) ---
+      # Risolviamo prima il pacchetto condiviso per evitare errori nel frontend
+      - name: Pub Get - Data Models
+        run: dart pub get
+        working-directory: data_models
+
+      - name: Pub Get - Frontend
+        run: flutter pub get
+        working-directory: frontend
+
+      # --- Build con Variabili d'Ambiente ---
+      # Qui iniettiamo i segreti definiti su GitHub (Settings -> Secrets -> Actions)
+      - name: Build Release APK (Dev Config)
+        working-directory: frontend
+        run: |
+          flutter build apk --release \
+            --dart-define=SERVER_HOST=${{ secrets.DEV_SERVER_HOST }} \
+            --dart-define=SERVER_PORT=${{ secrets.DEV_SERVER_PORT }} \
+            --dart-define=API_PREFIX=${{ secrets.DEV_API_PREFIX }}
+
+      # --- Upload Artefatto ---
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-dev-release
+          path: frontend/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 5 # Tempo per il download
