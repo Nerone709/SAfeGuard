@@ -5,8 +5,10 @@ import '../services/SmsService.dart';
 
 class VerificationController {
   // Inizializzazione delle dipendenze
-  final VerificationService _verificationService =
-  VerificationService(UserRepository(), SmsService());
+  final VerificationService _verificationService = VerificationService(
+    UserRepository(),
+    SmsService(),
+  );
 
   // Simula la gestione di una richiesta HTTP POST /api/verify/otp
   Future<String> handleVerificationRequest(String requestBodyJson) async {
@@ -15,7 +17,10 @@ class VerificationController {
       final telefono = requestData['telefono'] as String;
       final otp = requestData['otp'] as String;
 
-      final isVerified = await _verificationService.completePhoneVerification(telefono, otp);
+      final isVerified = await _verificationService.completePhoneVerification(
+        telefono,
+        otp,
+      );
 
       if (isVerified) {
         final responseBody = {

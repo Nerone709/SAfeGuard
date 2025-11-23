@@ -63,7 +63,7 @@ class RegisterService {
 
     //Se si usa il telefono, avvia la verifica OTP
     if (savedUser.telefono != null) {
-    await _verificationService.startPhoneVerification(savedUser.telefono!);
+      await _verificationService.startPhoneVerification(savedUser.telefono!);
     }
 
     return savedUser;

@@ -16,7 +16,7 @@ final Map<String, Map<String, dynamic>> _simulatedDatabase = {
     'nome': 'Mario',
     'cognome': 'Rossi',
     'isVerified': 'false',
-    'otp': 'xxxx'
+    'otp': 'xxxx',
   },
   // Utente Solo Telefono (Simulato, la chiave è ancora l'email per consistenza)
   'solo.telefono@gmail.com': {
@@ -28,7 +28,7 @@ final Map<String, Map<String, dynamic>> _simulatedDatabase = {
     'nome': 'Anna',
     'cognome': 'B.',
     'isVerified': 'false',
-    'otp': 'xxxx'
+    'otp': 'xxxx',
   },
   // Soccorritore (Login tramite Email discriminante)
   'luca.verdi@soccorritore.gmail': {
@@ -38,7 +38,7 @@ final Map<String, Map<String, dynamic>> _simulatedDatabase = {
     'nome': 'Luca',
     'cognome': 'Verdi',
     'isVerified': 'false',
-    'otp': 'xxxx'
+    'otp': 'xxxx',
   },
 };
 
