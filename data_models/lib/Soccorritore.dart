@@ -9,54 +9,51 @@ class Soccorritore extends UtenteGenerico {
 
   // Costruttore principale NON NOMINATO per json_serializable.
   Soccorritore(
-      this.id,
-      String email, // Email obbligatoria (posizionale)
-          {
-        String? passwordHash,
-        String? telefono,
-        String? nome,
-        String? cognome,
-        DateTime? dataDiNascita,
-        String? cittaDiNascita,
-        String? iconaProfilo,
-      }
-      ) : super(
-    passwordHash: passwordHash,
-    email: email,
-    telefono: telefono,
-    nome: nome,
-    cognome: cognome,
-    dataDiNascita: dataDiNascita,
-    cittaDiNascita: cittaDiNascita,
-    iconaProfilo: iconaProfilo,
-  );
+    this.id,
+    String email, { // Email obbligatoria (posizionale)
+    String? passwordHash,
+    String? telefono,
+    String? nome,
+    String? cognome,
+    DateTime? dataDiNascita,
+    String? cittaDiNascita,
+    String? iconaProfilo,
+  }) : super(
+         passwordHash: passwordHash,
+         email: email,
+         telefono: telefono,
+         nome: nome,
+         cognome: cognome,
+         dataDiNascita: dataDiNascita,
+         cittaDiNascita: cittaDiNascita,
+         iconaProfilo: iconaProfilo,
+       );
 
   // Costruttore effettivo adattato per chiamare il costruttore principale
   Soccorritore.conTuttiICampi(
-      id,
-      String email,
-      String passwordHash,
-      {
-        String? telefono,
-        String? nome,
-        String? cognome,
-        DateTime? dataDiNascita,
-        String? cittaDiNascita,
-        String? iconaProfilo,
-      }
-      ) : this(
-    id,
-    email,
-    passwordHash: passwordHash,
-    telefono: telefono,
-    nome: nome,
-    cognome: cognome,
-    dataDiNascita: dataDiNascita,
-    cittaDiNascita: cittaDiNascita,
-    iconaProfilo: iconaProfilo,
-  );
+    int id,
+    String email,
+    String passwordHash, {
+    String? telefono,
+    String? nome,
+    String? cognome,
+    DateTime? dataDiNascita,
+    String? cittaDiNascita,
+    String? iconaProfilo,
+  }) : this(
+         id,
+         email,
+         passwordHash: passwordHash,
+         telefono: telefono,
+         nome: nome,
+         cognome: cognome,
+         dataDiNascita: dataDiNascita,
+         cittaDiNascita: cittaDiNascita,
+         iconaProfilo: iconaProfilo,
+       );
 
-  factory Soccorritore.fromJson(Map<String, dynamic> json) => _$SoccorritoreFromJson(json);
+  factory Soccorritore.fromJson(Map<String, dynamic> json) =>
+      _$SoccorritoreFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$SoccorritoreToJson(this);

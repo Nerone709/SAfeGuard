@@ -62,53 +62,55 @@ class UtenteGenerico {
     this.dataDiNascita,
     this.cittaDiNascita,
     this.iconaProfilo,
-  }) :
-        _passwordHash = passwordHash,
-        _email = email,
-        _telefono = telefono,
-        assert(email != null || telefono != null, 'Devi fornire almeno email o telefono per UtenteGenerico');
+  }) : _passwordHash = passwordHash,
+       _email = email,
+       _telefono = telefono,
+       assert(
+         email != null || telefono != null,
+         'Devi fornire almeno email o telefono per UtenteGenerico',
+       );
 
   // Costruttore 1: Autenticazione tramite Email
   UtenteGenerico.conEmail(
-      String email,
-      String passwordHash, {
-        String? telefono,
-        String? nome,
-        String? cognome,
-        DateTime? dataDiNascita,
-        String? cittaDiNascita,
-        String? iconaProfilo,
-      }) : this(
-    passwordHash: passwordHash,
-    email: email,
-    telefono: telefono,
-    nome: nome,
-    cognome: cognome,
-    dataDiNascita: dataDiNascita,
-    cittaDiNascita: cittaDiNascita,
-    iconaProfilo: iconaProfilo,
-  );
+    String email,
+    String passwordHash, {
+    String? telefono,
+    String? nome,
+    String? cognome,
+    DateTime? dataDiNascita,
+    String? cittaDiNascita,
+    String? iconaProfilo,
+  }) : this(
+         passwordHash: passwordHash,
+         email: email,
+         telefono: telefono,
+         nome: nome,
+         cognome: cognome,
+         dataDiNascita: dataDiNascita,
+         cittaDiNascita: cittaDiNascita,
+         iconaProfilo: iconaProfilo,
+       );
 
   // Costruttore 2: Autenticazione tramite Telefono
   UtenteGenerico.conTelefono(
-      String telefono,
-      String passwordHash, {
-        String? email,
-        String? nome,
-        String? cognome,
-        DateTime? dataDiNascita,
-        String? cittaDiNascita,
-        String? iconaProfilo,
-      }) : this(
-    passwordHash: passwordHash,
-    email: email,
-    telefono: telefono,
-    nome: nome,
-    cognome: cognome,
-    dataDiNascita: dataDiNascita,
-    cittaDiNascita: cittaDiNascita,
-    iconaProfilo: iconaProfilo,
-  );
+    String telefono,
+    String passwordHash, {
+    String? email,
+    String? nome,
+    String? cognome,
+    DateTime? dataDiNascita,
+    String? cittaDiNascita,
+    String? iconaProfilo,
+  }) : this(
+         passwordHash: passwordHash,
+         email: email,
+         telefono: telefono,
+         nome: nome,
+         cognome: cognome,
+         dataDiNascita: dataDiNascita,
+         cittaDiNascita: cittaDiNascita,
+         iconaProfilo: iconaProfilo,
+       );
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   String? get passwordHash => _passwordHash;
