@@ -1,60 +1,85 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'utenteGenerico.dart';
+// ** File: lib/data_models/Soccorritore.dart ** (Manuale)
 
-part 'soccorritore.g.dart';
+import 'UtenteGenerico.dart';
 
-@JsonSerializable(explicitToJson: true)
+// Rimosse le importazioni e le annotazioni di json_serializable
+
 class Soccorritore extends UtenteGenerico {
   final int id;
 
-  // Costruttore principale NON NOMINATO per json_serializable.
+  // Costruttore principale NON NOMINATO
   Soccorritore(
-    this.id,
-    String email, { // Email obbligatoria (posizionale)
-    String? passwordHash,
-    String? telefono,
-    String? nome,
-    String? cognome,
-    DateTime? dataDiNascita,
-    String? cittaDiNascita,
-    String? iconaProfilo,
-  }) : super(
-         passwordHash: passwordHash,
-         email: email,
-         telefono: telefono,
-         nome: nome,
-         cognome: cognome,
-         dataDiNascita: dataDiNascita,
-         cittaDiNascita: cittaDiNascita,
-         iconaProfilo: iconaProfilo,
-       );
+      {
+        required this.id,
+        required String email,
+        String? passwordHash,
+        String? telefono,
+        String? nome,
+        String? cognome,
+        DateTime? dataDiNascita,
+        String? cittaDiNascita,
+        String? iconaProfilo,
+      }
+      ) : super(
+    email: email,
+    passwordHash: passwordHash,
+    telefono: telefono,
+    nome: nome,
+    cognome: cognome,
+    dataDiNascita: dataDiNascita,
+    cittaDiNascita: cittaDiNascita,
+    iconaProfilo: iconaProfilo,
+  );
 
-  // Costruttore effettivo adattato per chiamare il costruttore principale
+  // Costruttore nominato: più facile da usare dal codice
   Soccorritore.conTuttiICampi(
-    int id,
-    String email,
-    String passwordHash, {
-    String? telefono,
-    String? nome,
-    String? cognome,
-    DateTime? dataDiNascita,
-    String? cittaDiNascita,
-    String? iconaProfilo,
-  }) : this(
-         id,
-         email,
-         passwordHash: passwordHash,
-         telefono: telefono,
-         nome: nome,
-         cognome: cognome,
-         dataDiNascita: dataDiNascita,
-         cittaDiNascita: cittaDiNascita,
-         iconaProfilo: iconaProfilo,
-       );
+      int id,
+      String email,
+      String passwordHash,
+      {
+        String? telefono,
+        String? nome,
+        String? cognome,
+        DateTime? dataDiNascita,
+        String? cittaDiNascita,
+        String? iconaProfilo,
+      }
+      ) : this(
+    id: id,
+    email: email,
+    passwordHash: passwordHash,
+    telefono: telefono,
+    nome: nome,
+    cognome: cognome,
+    dataDiNascita: dataDiNascita,
+    cittaDiNascita: cittaDiNascita,
+    iconaProfilo: iconaProfilo,
+  );
 
-  factory Soccorritore.fromJson(Map<String, dynamic> json) =>
-      _$SoccorritoreFromJson(json);
+  // ⭐️ DESERIALIZZAZIONE MANUALE (Gestisce il Super)
+  factory Soccorritore.fromJson(Map<String, dynamic> json) {
+    // Chiama il fromJson del Super (UtenteGenerico) per popolare i campi ereditati
+    final utenteGenerico = UtenteGenerico.fromJson(json);
 
+    return Soccorritore(
+      id: json['id'] as int,
+      email: utenteGenerico.email!, // Email è obbligatoria per Soccorritore
+      passwordHash: utenteGenerico.passwordHash,
+      telefono: utenteGenerico.telefono,
+      nome: utenteGenerico.nome,
+      cognome: utenteGenerico.cognome,
+      dataDiNascita: utenteGenerico.dataDiNascita,
+      cittaDiNascita: utenteGenerico.cittaDiNascita,
+      iconaProfilo: utenteGenerico.iconaProfilo,
+    );
+  }
+
+  // ⭐️ SERIALIZZAZIONE MANUALE (Gestisce il Super)
   @override
-  Map<String, dynamic> toJson() => _$SoccorritoreToJson(this);
+  Map<String, dynamic> toJson() {
+    // Unisce la mappa del Super con i campi propri di Soccorritore
+    return super.toJson()..addAll({
+      'id': id,
+    });
+  }
 }
