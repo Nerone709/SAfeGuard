@@ -12,6 +12,7 @@ dependencies:
   shelf_router: ^1.1.2
   shelf_cors_headers: ^0.1.5
   dotenv: ^4.2.0
+  collection: ^1.18.0
 
   # dipendenza comune
   data_models:

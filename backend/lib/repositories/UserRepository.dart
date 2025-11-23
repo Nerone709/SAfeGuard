@@ -17,7 +17,8 @@ final Map<String, Map<String, dynamic>> _simulatedDatabase = {
     'cognome': 'Rossi',
   },
   // Utente Solo Telefono (Simulato, la chiave è ancora l'email per consistenza)
-  'solo.telefono@gmail.com': { // Email placeholder, non usata per il login
+  'solo.telefono@gmail.com': {
+    // Email placeholder, non usata per il login
     'id': 103,
     'email': 'solo.telefono@gmail.com',
     'telefono': '+393457654321', // Numero di telefono usato per il login
@@ -46,7 +47,7 @@ class UserRepository {
   Future<Map<String, dynamic>?> findUserByPhone(String phone) async {
     // Restituisce il primo elemento o null se nessun elemento soddisfa la condizione.
     return _simulatedDatabase.values.firstWhereOrNull(
-          (user) => user['telefono'] == phone,
+      (user) => user['telefono'] == phone,
     );
   }
 
@@ -64,7 +65,9 @@ class UserRepository {
 
     // Crea una nuova istanza con l'ID assegnato
     final UtenteGenerico userWithId;
-    if (userData['email'].toString().toLowerCase().endsWith('@soccorritore.gmail')) {
+    if (userData['email'].toString().toLowerCase().endsWith(
+      '@soccorritore.gmail',
+    )) {
       // Uso fromJson per ricreare il modello con l'ID
       userWithId = Soccorritore.fromJson(userData);
     } else {

@@ -3,16 +3,20 @@ import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
 import '../repositories/UserRepository.dart';
 
-const String _RESCUER_DOMAIN = '@soccorritore.gmail';
+const String rescuerDomain = '@soccorritore.gmail';
 
 class RegisterService {
   final UserRepository _userRepository;
 
   RegisterService(this._userRepository);
 
-  Future<UtenteGenerico> register(Map<String, dynamic> requestData, String password) async {
+  Future<UtenteGenerico> register(
+    Map<String, dynamic> requestData,
+    String password,
+  ) async {
     final email = requestData['email'] as String?;
-    final telefono = requestData['telefono'] as String?; // Estrae anche il telefono
+    final telefono =
+        requestData['telefono'] as String?; // Estrae anche il telefono
 
     // 1. Validazione Iniziale: Almeno email o telefono deve essere fornito
     if (password.isEmpty || (email == null && telefono == null)) {
@@ -23,7 +27,8 @@ class RegisterService {
     if (email != null && await _userRepository.findUserByEmail(email) != null) {
       throw Exception('Utente con questa email è già registrato.');
     }
-    if (telefono != null && await _userRepository.findUserByPhone(telefono) != null) {
+    if (telefono != null &&
+        await _userRepository.findUserByPhone(telefono) != null) {
       throw Exception('Utente con questo telefono è già registrato.');
     }
 
@@ -38,7 +43,7 @@ class RegisterService {
     // altrimenti assume che un utente registrato solo con telefono sia standard.
     bool isSoccorritore = false;
     if (email != null) {
-      isSoccorritore = email.toLowerCase().endsWith(_RESCUER_DOMAIN);
+      isSoccorritore = email.toLowerCase().endsWith(rescuerDomain);
     }
     // NOTA: Se si registra solo con telefono, non è possibile discriminare il tipo,
     // quindi verrà trattato come Utente standard a meno che non ci sia un campo discriminante nel requestData.

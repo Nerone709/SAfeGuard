@@ -4,7 +4,7 @@ import 'package:data_models/UtenteGenerico.dart';
 import '../repositories/UserRepository.dart';
 
 // Dominio speciale per i soccorritori da modificare poi
-const String _RESCUER_DOMAIN = '@soccorritore.com';
+const String rescuerDomain = '@soccorritore.com';
 
 class LoginService {
   final UserRepository _userRepository = UserRepository();
@@ -17,7 +17,11 @@ class LoginService {
   }
 
   // Logica principale del Login
-  Future<UtenteGenerico?> login({String? email, String? telefono, required String password}) async {
+  Future<UtenteGenerico?> login({
+    String? email,
+    String? telefono,
+    required String password,
+  }) async {
     // Pre-validazione
     if (email == null && telefono == null) {
       throw ArgumentError('Devi fornire email o telefono per il login.');
@@ -57,7 +61,7 @@ class LoginService {
     // 4. Determina il tipo di Utente e deserializza
     userData.remove('passwordHash');
 
-    if (finalEmail.toLowerCase().endsWith(_RESCUER_DOMAIN)) {
+    if (finalEmail.toLowerCase().endsWith(rescuerDomain)) {
       return Soccorritore.fromJson(userData);
     } else {
       return Utente.fromJson(userData);

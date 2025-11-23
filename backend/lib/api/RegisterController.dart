@@ -35,11 +35,11 @@ class RegisterController {
 
       final responseBody = {
         'success': true,
-        'message': 'Registrazione avvenuta con successo. Tipo: $tipoUtente, ID assegnato: $assegnatoId',
+        'message':
+            'Registrazione avvenuta con successo. Tipo: $tipoUtente, ID assegnato: $assegnatoId',
         'user': user.toJson()..remove('passwordHash'),
       };
       return jsonEncode(responseBody);
-
     } on Exception catch (e) {
       final responseBody = {
         'success': false,

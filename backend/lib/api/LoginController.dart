@@ -15,9 +15,9 @@ class LoginController {
 
       // Chiama il service con i parametri opzionali
       final user = await _loginService.login(
-          email: email,
-          telefono: telefono,
-          password: password
+        email: email,
+        telefono: telefono,
+        password: password,
       );
 
       if (user != null) {
@@ -30,7 +30,8 @@ class LoginController {
       } else {
         final responseBody = {
           'success': false,
-          'message': 'Credenziali non valide (combinazione errata o utente non trovato)',
+          'message':
+              'Credenziali non valide (combinazione errata o utente non trovato)',
         };
         return jsonEncode(responseBody);
       }
