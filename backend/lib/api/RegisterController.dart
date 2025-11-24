@@ -9,11 +9,8 @@ import 'package:data_models/Soccorritore.dart';
 
 class RegisterController {
   final RegisterService _registerService = RegisterService(
-    UserRepository(), // Inietta UserRepository per RegisterService
-    VerificationService(
-      UserRepository(), // Inietta UserRepository per VerificationService
-      SmsService(), // Inietta SmsService per VerificationService
-    ),
+    UserRepository(),
+    VerificationService(UserRepository(), SmsService()),
   );
 
   // Simula la gestione di una richiesta HTTP POST /api/register
@@ -21,13 +18,25 @@ class RegisterController {
     try {
       final Map<String, dynamic> requestData = jsonDecode(requestBodyJson);
 
-      // La password è necessaria
+      // 1. Recupero la password
       final password = requestData.remove('password') as String;
+
+      // 2. RECUPERO E CONTROLLO LA CONFERMA PASSWORD (NUOVO CODICE)
+      // Uso .remove così pulisco i dati prima di inviarli al service
+      final confermaPassword = requestData.remove('confermaPassword');
+
+      if (confermaPassword == null) {
+        throw Exception('Il campo confermaPassword è obbligatorio');
+      }
+
+      if (password != confermaPassword) {
+        throw Exception('Le password non coincidono');
+      }
 
       // Il resto dei dati (inclusi email e telefono opzionali) va al service
       final user = await _registerService.register(requestData, password);
 
-      // Controllo del tipo e recupero ID (richiede che id sia in UtenteGenerico)
+      // Controllo del tipo e recupero ID
       String tipoUtente;
       final int assegnatoId = user.id!;
 
@@ -37,7 +46,6 @@ class RegisterController {
         tipoUtente = 'Utente Standard';
       } else {
         tipoUtente = 'Generico';
-        // Questo non dovrebbe accadere se la logica di deserializzazione è corretta
       }
 
       final responseBody = {
