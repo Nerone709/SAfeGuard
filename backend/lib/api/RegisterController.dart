@@ -21,17 +21,49 @@ class RegisterController {
       // 1. Recupero la password
       final password = requestData.remove('password') as String;
 
-      // 2. RECUPERO E CONTROLLO LA CONFERMA PASSWORD (NUOVO CODICE)
-      // Uso .remove così pulisco i dati prima di inviarli al service
+      // 2. Recupero la conferma password
+      // Uso remove per pulire i dati prima di inviarli al service
       final confermaPassword = requestData.remove('confermaPassword');
 
       if (confermaPassword == null) {
         throw Exception('Il campo confermaPassword è obbligatorio');
       }
 
+      // --- VALIDAZIONE PASSWORD ---
+
+      // A. Controllo uguaglianza
       if (password != confermaPassword) {
         throw Exception('Le password non coincidono');
       }
+
+      // B. Controllo Lunghezza (min 8, max 64)
+      if (password.length < 8 || password.length > 12) {
+        throw Exception(
+          'La password deve essere lunga almeno 8 caratteri e non più di 12',
+        );
+      }
+
+      // C. Controllo Lettera Maiuscola
+      if (!password.contains(RegExp(r'[A-Z]'))) {
+        throw Exception(
+          'La password deve contenere almeno una lettera maiuscola',
+        );
+      }
+
+      // D. Controllo Numero
+      if (!password.contains(RegExp(r'[0-9]'))) {
+        throw Exception('La password deve contenere almeno un numero');
+      }
+
+      // E. Controllo Carattere Speciale
+      // Verifica la presenza di almeno un simbolo tra quelli elencati
+      if (!password.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>]'))) {
+        throw Exception(
+          'La password deve contenere almeno un carattere speciale (es. !, @, #, \$, ecc.)',
+        );
+      }
+
+      // --- FINE VALIDAZIONE ---
 
       // Il resto dei dati (inclusi email e telefono opzionali) va al service
       final user = await _registerService.register(requestData, password);
