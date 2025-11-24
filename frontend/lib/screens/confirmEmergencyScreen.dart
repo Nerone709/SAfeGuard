@@ -1,71 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-class ConfirmEmergencyScreen extends StatelessWidget{
+class ConfirmEmergencyScreen extends StatelessWidget {
   const ConfirmEmergencyScreen({super.key});
 
-  static const brightRed= Color(0xFFE53935);
+  static const brightRed = Color(0xFFE53935);
 
   @override
   Widget build(BuildContext context) {
     // Il Container principale avvolge tutto il corpo per impostare il colore di sfondo
     return Container(
       color: brightRed,
-        child: Scaffold(
-          backgroundColor: Colors.transparent, // Rende trasparente lo Scaffold per mostrare il Container scuro
-
-          // --- BODY: Il contenuto centrale della pagina ---
-          body: SafeArea(
-            child: SingleChildScrollView( // Permette lo scroll se lo schermo è piccolo
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    //Separatore
-                    const SizedBox(height: 25),
-                    //Immagine SOS
-                    _buildSosImage(),
-                    const SizedBox(height: 25),
-                    //Scritta CONFERMA SOS
-                    _buildConfirmText(),
-                    const SizedBox(height: 45),
-                    //Scritta SWIPE PER MANDARE LA TUA POSIZIONE
-                    _buildSwipeToText(),
-                    const SizedBox(height: 40),
-                    //Slider
-                    _buildSwipe(context),
-                    const SizedBox(height: 70),
-                    //Scritta ricorda che il procurato allarme è reato
-                    _buildReminderText(),
-                    const SizedBox(height: 40),
-                    _buildGoBackButton(context)
-                  ],
-                ),
+      child: Scaffold(
+        backgroundColor: Colors
+            .transparent, // Rende trasparente lo Scaffold per mostrare il Container scuro
+        // --- BODY: Il contenuto centrale della pagina ---
+        body: SafeArea(
+          child: SingleChildScrollView(
+            // Permette lo scroll se lo schermo è piccolo
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  //Separatore
+                  const SizedBox(height: 25),
+                  //Immagine SOS
+                  _buildSosImage(),
+                  const SizedBox(height: 25),
+                  //Scritta CONFERMA SOS
+                  _buildConfirmText(),
+                  const SizedBox(height: 45),
+                  //Scritta SWIPE PER MANDARE LA TUA POSIZIONE
+                  _buildSwipeToText(),
+                  const SizedBox(height: 40),
+                  //Slider
+                  _buildSwipe(context),
+                  const SizedBox(height: 70),
+                  //Scritta ricorda che il procurato allarme è reato
+                  _buildReminderText(),
+                  const SizedBox(height: 40),
+                  _buildGoBackButton(context),
+                ],
               ),
             ),
           ),
+        ),
 
-          //Fine della parte centrale della pagina
-        )
+        //Fine della parte centrale della pagina
+      ),
     );
   } //Fine del widget build, ora partono le dichiarazioni dei metodi per i widget
 
-  Widget _buildSosImage(){
+  Widget _buildSosImage() {
     return Container(
-        width: 250,
-        height: 250,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          image: const DecorationImage(
-            image: AssetImage('assets/sosbutton.png'),
-            fit: BoxFit.cover,
-          ),
-        )
+      width: 250,
+      height: 250,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        image: const DecorationImage(
+          image: AssetImage('assets/sosbutton.png'),
+          fit: BoxFit.cover,
+        ),
+      ),
     );
   }
 
-  Widget _buildConfirmText(){
+  Widget _buildConfirmText() {
     return Text(
       "Conferma SOS",
       textAlign: TextAlign.center,
@@ -77,7 +78,7 @@ class ConfirmEmergencyScreen extends StatelessWidget{
     );
   }
 
-  Widget _buildSwipeToText(){
+  Widget _buildSwipeToText() {
     return Text(
       "Swipe per mandare la tua \nposizione e allertare i soccorritori",
       textAlign: TextAlign.center,
@@ -89,7 +90,7 @@ class ConfirmEmergencyScreen extends StatelessWidget{
     );
   }
 
-  Widget _buildSwipe(BuildContext context){
+  Widget _buildSwipe(BuildContext context) {
     return Center(
       child: SwipeToConfirm(
         width: MediaQuery.of(context).size.width * 0.8,
@@ -113,7 +114,7 @@ class ConfirmEmergencyScreen extends StatelessWidget{
             color: Colors.red,
           ),
           child: Image.asset(
-            'assets/arrow.png',   // qui il tuo PNG
+            'assets/arrow.png', // qui il tuo PNG
             scale: 4,
           ),
         ),
@@ -128,7 +129,10 @@ class ConfirmEmergencyScreen extends StatelessWidget{
             child: Text(
               "Slide per confermare",
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
@@ -136,7 +140,7 @@ class ConfirmEmergencyScreen extends StatelessWidget{
     );
   }
 
-  Widget _buildReminderText(){
+  Widget _buildReminderText() {
     return Text(
       "Ricorda che il procurato allarme verso le autorità è\nperseguibile per legge ai sensi dell'art. 658 del c.p.",
       textAlign: TextAlign.center,
@@ -149,28 +153,27 @@ class ConfirmEmergencyScreen extends StatelessWidget{
     );
   }
 
-  Widget _buildGoBackButton(BuildContext context){
+  Widget _buildGoBackButton(BuildContext context) {
     return TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("SOS annullato!"),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
-            child:
-              const Text(
-                  "Annulla",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24
-                  )
-              ),
-          );
+      onPressed: () {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("SOS annullato!"),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      },
+      child: const Text(
+        "Annulla",
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 24,
+        ),
+      ),
+    );
   }
 }
 
@@ -180,7 +183,7 @@ class SwipeToConfirm extends StatefulWidget {
   final double height;
   final double width;
   final VoidCallback onConfirm;
-  final Widget thumb;    // la freccia
+  final Widget thumb; // la freccia
   final Widget background; // la barra rossa
 
   const SwipeToConfirm({

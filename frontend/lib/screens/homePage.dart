@@ -17,11 +17,12 @@ class HomePage extends StatelessWidget {
     return Container(
       color: darkBlue,
       child: Scaffold(
-        backgroundColor: Colors.transparent, // Rende trasparente lo Scaffold per mostrare il Container scuro
-
+        backgroundColor: Colors
+            .transparent, // Rende trasparente lo Scaffold per mostrare il Container scuro
         // --- BODY: Il contenuto centrale della pagina ---
         body: SafeArea(
-          child: SingleChildScrollView( // Permette lo scroll se lo schermo è piccolo
+          child: SingleChildScrollView(
+            // Permette lo scroll se lo schermo è piccolo
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
@@ -46,7 +47,9 @@ class HomePage extends StatelessWidget {
                   // 4. BOTTONE SOS GRANDE
                   _buildSosButton(context),
 
-                  const SizedBox(height: 30), // Spazio extra prima della Bottom Nav Bar
+                  const SizedBox(
+                    height: 30,
+                  ), // Spazio extra prima della Bottom Nav Bar
                 ],
               ),
             ),
@@ -95,10 +98,7 @@ class HomePage extends StatelessWidget {
               ),
               Text(
                 "Incendio in Via Roma, 14",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 14),
               ),
             ],
           ),
@@ -156,9 +156,7 @@ class HomePage extends StatelessWidget {
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: amberOrange, // Arancione
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
         elevation: 5,
       ),
@@ -180,13 +178,11 @@ class HomePage extends StatelessWidget {
     );
   }
 
-
   // --- WIDGET PER IL BOTTONE SOS GRANDE ---
   SosButton _buildSosButton(context) {
     final double buttonSize = MediaQuery.of(context).size.width * 0.60;
     return SosButton(size: buttonSize);
   }
-
 
   // --- WIDGET PER LA NAV BAR INFERIORE ---
   Widget _buildBottomNavBar(BuildContext context) {
@@ -261,12 +257,10 @@ class SosButton extends StatefulWidget {
   State<SosButton> createState() => _SosButtonState();
 }
 
-
 //Questa classe è per costruire il bottone di SOS come oggetto stateful, così da
 //lasciare la home stateless e creare l'effetto di caricamento
 class _SosButtonState extends State<SosButton>
     with SingleTickerProviderStateMixin {
-
   late AnimationController _controller;
 
   @override
@@ -287,69 +281,67 @@ class _SosButtonState extends State<SosButton>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-        onLongPressStart: (_) {
-          _controller.forward(from: 0); // Avvia animazione
-        },
-        onLongPressEnd: (_) {
-          if (_controller.value == 1.0) {
-            //Qui andrà il ridirezionamento alla schermata di sos effettiva
-            //Il push() sovrappone una pagina allo stack navigazionale, nella
-            //prossima schermata, il pop() lo farà tornare a questa
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const ConfirmEmergencyScreen(),
-              ),
-            );
-          }
-          else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Tieni premuto più a lungo per attivare l'SOS!"),
-                duration: Duration(seconds: 1),
-              ),
-            );
-          }
-          _controller.reset();
-        },
-        onTap: () {
+      onLongPressStart: (_) {
+        _controller.forward(from: 0); // Avvia animazione
+      },
+      onLongPressEnd: (_) {
+        if (_controller.value == 1.0) {
+          //Qui andrà il ridirezionamento alla schermata di sos effettiva
+          //Il push() sovrappone una pagina allo stack navigazionale, nella
+          //prossima schermata, il pop() lo farà tornare a questa
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const ConfirmEmergencyScreen(),
+            ),
+          );
+        } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Tieni premuto per attivare l'SOS!"),
+              content: Text("Tieni premuto più a lungo per attivare l'SOS!"),
               duration: Duration(seconds: 1),
             ),
           );
-        },
-        child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // --- ANELLO ANIMATO ---
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, _) {
-                  return CustomPaint(
-                    size: Size(widget.size + 10, widget.size + 10),
-                    painter: RingPainter(progress: _controller.value),
-                  );
-                },
+        }
+        _controller.reset();
+      },
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Tieni premuto per attivare l'SOS!"),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      },
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // --- ANELLO ANIMATO ---
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) {
+              return CustomPaint(
+                size: Size(widget.size + 10, widget.size + 10),
+                painter: RingPainter(progress: _controller.value),
+              );
+            },
+          ),
+          Container(
+            width: widget.size,
+            height: widget.size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              image: const DecorationImage(
+                image: AssetImage('assets/sosbutton.png'),
+                fit: BoxFit.cover,
               ),
-              Container(
-                width: widget.size,
-                height: widget.size,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: const DecorationImage(
-                    image: AssetImage('assets/sosbutton.png'),
-                    fit: BoxFit.cover,
-                  ),
-                  border: Border.all(color: Colors.white, width: 1),
-                ),
-              )
-            ]
-        )
+              border: Border.all(color: Colors.white, width: 1),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
-
 
 //Questa è la classe per il caricamento dell'SOS
 //import 'dart:math'; fa funzionare questa classe (definizione di pi)

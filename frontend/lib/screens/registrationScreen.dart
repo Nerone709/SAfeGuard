@@ -18,9 +18,11 @@ class RegistrationScreen extends StatelessWidget {
         centerTitle: true,
 
         // --- MODIFICA PER LA PARTE SINISTRA (Back + Registrati) ---
-        leadingWidth: 120, // Allarghiamo lo spazio a sinistra per far entrare il testo
+        leadingWidth:
+            120, // Allarghiamo lo spazio a sinistra per far entrare il testo
         leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(), // Rende cliccabile tutta l'area
+          onTap: () =>
+              Navigator.of(context).pop(), // Rende cliccabile tutta l'area
           child: Row(
             children: [
               const SizedBox(width: 10),
@@ -38,7 +40,8 @@ class RegistrationScreen extends StatelessWidget {
         title: Image.asset(
           'assets/logo.png',
           height: 40,
-          errorBuilder: (c,e,s) => const Icon(Icons.shield, color: Colors.white),
+          errorBuilder: (c, e, s) =>
+              const Icon(Icons.shield, color: Colors.white),
         ),
 
         // Tasto Skip (Destra)
@@ -46,13 +49,17 @@ class RegistrationScreen extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const HomePage(),
-                ),
+                MaterialPageRoute(builder: (context) => const HomePage()),
               );
             },
-            child: const Text("Skip", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          )
+            child: const Text(
+              "Skip",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ],
       ),
 
@@ -85,7 +92,8 @@ class RegistrationScreen extends StatelessWidget {
                         'assets/stylizedMascot.png',
                         width: 100,
                         color: darkBlue,
-                        errorBuilder: (c,e,s) => Icon(Icons.shield, size: 80, color: darkBlue),
+                        errorBuilder: (c, e, s) =>
+                            Icon(Icons.shield, size: 80, color: darkBlue),
                       ),
                       const SizedBox(width: 20),
                       Expanded(
@@ -123,16 +131,33 @@ class RegistrationScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        _buildSocialButton(text: "Continua con Apple", icon: Icons.apple, backgroundColor: Colors.black, textColor: Colors.white),
+                        _buildSocialButton(
+                          text: "Continua con Apple",
+                          icon: Icons.apple,
+                          backgroundColor: Colors.black,
+                          textColor: Colors.white,
+                        ),
                         const SizedBox(height: 15),
-                        _buildSocialButton(text: "Continua con Google", imagePath: 'assets/googleIcon.png', backgroundColor: Colors.white, textColor: Colors.black, iconColor: Colors.red),
+                        _buildSocialButton(
+                          text: "Continua con Google",
+                          imagePath: 'assets/googleIcon.png',
+                          backgroundColor: Colors.white,
+                          textColor: Colors.black,
+                          iconColor: Colors.red,
+                        ),
                         const SizedBox(height: 15),
 
                         _buildSocialButton(
-                          text: "Continua con Email", icon: Icons.alternate_email, backgroundColor: Colors.white, textColor: Colors.black, iconColor: darkBlue,
+                          text: "Continua con Email",
+                          icon: Icons.alternate_email,
+                          backgroundColor: Colors.white,
+                          textColor: Colors.black,
+                          iconColor: darkBlue,
                           onTap: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const EmailRegister()),
+                              MaterialPageRoute(
+                                builder: (context) => const EmailRegister(),
+                              ),
                             );
                           },
                         ),
@@ -140,12 +165,18 @@ class RegistrationScreen extends StatelessWidget {
                         const SizedBox(height: 15),
 
                         _buildSocialButton(
-                            text: "Continua con Telefono", icon: Icons.phone, backgroundColor: Colors.white, textColor: Colors.black, iconColor: darkBlue,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context) => const PhoneRegister()),
-                              );
-                            },
+                          text: "Continua con Telefono",
+                          icon: Icons.phone,
+                          backgroundColor: Colors.white,
+                          textColor: Colors.black,
+                          iconColor: darkBlue,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const PhoneRegister(),
+                              ),
+                            );
+                          },
                         ),
 
                         const SizedBox(height: 80),
@@ -154,14 +185,25 @@ class RegistrationScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text("Hai già un account? ", style: TextStyle(color: Colors.white)),
+                            const Text(
+                              "Hai già un account? ",
+                              style: TextStyle(color: Colors.white),
+                            ),
                             GestureDetector(
                               onTap: () {
                                 Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                                  MaterialPageRoute(
+                                    builder: (context) => const LoginScreen(),
+                                  ),
                                 );
                               },
-                              child: const Text("Login", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              child: const Text(
+                                "Login",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -214,7 +256,10 @@ class RegistrationScreen extends StatelessWidget {
               child: Center(
                 child: Text(
                   text,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),

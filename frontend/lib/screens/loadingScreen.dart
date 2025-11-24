@@ -26,7 +26,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
               // TITOLO
               const Text(
                 'SAfeGuard',
-                style: TextStyle(color: Colors.white, fontSize: 35, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 35,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
 
               const Spacer(),
@@ -35,7 +39,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
               Image.asset(
                 'assets/logo.png',
                 width: 200,
-                errorBuilder: (c, e, s) => const Icon(Icons.security, size: 150, color: Colors.orange),
+                errorBuilder: (c, e, s) =>
+                    const Icon(Icons.security, size: 150, color: Colors.orange),
               ),
 
               const Spacer(),
@@ -44,7 +49,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
               const Text(
                 'Preparazione del\nsistema in corso...',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
 
               // SCRITTE SECONDARIE
@@ -85,7 +94,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
                   // Navigazione alla pagina di Registrazione
                   Navigator.of(context).pushReplacement(
                     // CORREZIONE QUI: La classe si chiama RegistrationScreen, non Registration
-                    MaterialPageRoute(builder: (context) => const RegistrationScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const RegistrationScreen(),
+                    ),
                   );
                 },
               ),

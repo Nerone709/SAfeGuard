@@ -61,7 +61,6 @@ class EmailRegister extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 150), // Spazio prima dei campi
-
                   // CAMPO EMAIL
                   _buildTextField("Email"),
                   const SizedBox(height: 20),
@@ -74,7 +73,6 @@ class EmailRegister extends StatelessWidget {
                   _buildTextField("Ripeti Password", isPassword: true),
 
                   const Spacer(), // Spinge il bottone in fondo
-
                   // BOTTONE CONTINUA
                   SizedBox(
                     height: 55,
@@ -122,7 +120,10 @@ class EmailRegister extends StatelessWidget {
         fillColor: Colors.white, // Sfondo bianco
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.grey),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 25,
+          vertical: 20,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30), // Bordi molto arrotondati
           borderSide: BorderSide.none, // Nessun bordo nero

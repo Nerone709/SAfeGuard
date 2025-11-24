@@ -61,7 +61,6 @@ class PhoneRegister extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 100), // Spazio prima dei campi
-
                   // CAMPO EMAIL
                   _buildTextField("+39 333 1234567"),
                   const SizedBox(height: 20),
@@ -74,7 +73,6 @@ class PhoneRegister extends StatelessWidget {
                   _buildTextField("Ripeti Password", isPassword: true),
 
                   const Spacer(), // Spinge il bottone in fondo
-
                   // BOTTONE CONTINUA
                   SizedBox(
                     height: 55,
@@ -122,7 +120,10 @@ class PhoneRegister extends StatelessWidget {
         fillColor: Colors.white, // Sfondo bianco
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.grey),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 25,
+          vertical: 20,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30), // Bordi molto arrotondati
           borderSide: BorderSide.none, // Nessun bordo nero
