@@ -74,6 +74,9 @@ flutter:
     - assets/backgroundBubbles3.png
     - assets/stylizedMascot.png
     - assets/googleIcon.png
+    - assets/salerno_map_placeholder.png
+    - assets/sosbutton.png
+    - assets/arrow.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

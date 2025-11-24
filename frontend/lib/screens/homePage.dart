@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:prova2/screens/confirmEmergencyScreen.dart';
+import 'dart:math';
 
 // Definiamo una HomePage (Stateless, visto che è una schermata statica)
 class HomePage extends StatelessWidget {
@@ -25,21 +27,21 @@ class HomePage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // 1. NOTIFICA DI EMERGENZA (IN ALTO)
+                  //Separatore
                   const SizedBox(height: 20),
+                  // 1. NOTIFICA DI EMERGENZA (IN ALTO)
                   _buildEmergencyNotification(),
-
+                  //Separatore
                   const SizedBox(height: 25),
-
                   // 2. MAPPA
                   _buildMapContainer(),
-
+                  //Altro separatore
                   const SizedBox(height: 25),
 
                   // 3. BOTTONE "CONTATTI DI EMERGENZA"
                   _buildEmergencyContactsButton(),
 
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 10),
 
                   // 4. BOTTONE SOS GRANDE
                   _buildSosButton(context),
@@ -110,7 +112,7 @@ class HomePage extends StatelessWidget {
     // Ho usato un Container decorato con un gradiente e un'immagine placeholder
     // per simulare l'aspetto della mappa centrata su Salerno.
     return Container(
-      height: 200,
+      height: 300,
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
@@ -178,60 +180,13 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // --- WIDGET PER IL BOTTONE SOS GRANDE ---
-  Widget _buildSosButton(BuildContext context) {
-    // Otteniamo la larghezza dello schermo per dimensionare il pulsante
-    final double buttonSize = MediaQuery.of(context).size.width * 0.55;
 
-    return GestureDetector(
-      onLongPress: () {
-        // Implementa la logica di attivazione dell'SOS (es. tieni premuto)
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("SOS attivato!"), duration: Duration(seconds: 1)),
-        );
-      },
-      onTap: () {
-        // Potresti usare un popup per la conferma prima di chiamare l'emergenza
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Tieni premuto per attivare l'SOS!"), duration: Duration(seconds: 1)),
-        );
-      },
-      child: Container(
-        width: buttonSize,
-        height: buttonSize,
-        decoration: BoxDecoration(
-          // Bordo esterno bianco
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 4),
-          // Bordo interno rosso chiaro/grigio
-          boxShadow: [
-            BoxShadow(
-              color: Colors.white.withOpacity(0.3),
-              spreadRadius: 8,
-              blurRadius: 15,
-            ),
-          ],
-        ),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: primaryRed, // Rosso
-            shape: BoxShape.circle,
-          ),
-          child: const Center(
-            child: Text(
-              "SOS",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 60,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 3,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+  // --- WIDGET PER IL BOTTONE SOS GRANDE ---
+  SosButton _buildSosButton(context) {
+    final double buttonSize = MediaQuery.of(context).size.width * 0.60;
+    return SosButton(size: buttonSize);
   }
+
 
   // --- WIDGET PER LA NAV BAR INFERIORE ---
   Widget _buildBottomNavBar(BuildContext context) {
@@ -296,3 +251,138 @@ class MyApp extends StatelessWidget {
   }
 }
 */
+
+class SosButton extends StatefulWidget {
+  final double size;
+
+  const SosButton({super.key, required this.size});
+
+  @override
+  State<SosButton> createState() => _SosButtonState();
+}
+
+
+//Questa classe è per costruire il bottone di SOS come oggetto stateful, così da
+//lasciare la home stateless e creare l'effetto di caricamento
+class _SosButtonState extends State<SosButton>
+    with SingleTickerProviderStateMixin {
+
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2), // tempo necessario per SOS
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+        onLongPressStart: (_) {
+          _controller.forward(from: 0); // Avvia animazione
+        },
+        onLongPressEnd: (_) {
+          if (_controller.value == 1.0) {
+            //Qui andrà il ridirezionamento alla schermata di sos effettiva
+            //Il push() sovrappone una pagina allo stack navigazionale, nella
+            //prossima schermata, il pop() lo farà tornare a questa
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const ConfirmEmergencyScreen(),
+              ),
+            );
+          }
+          else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Tieni premuto più a lungo per attivare l'SOS!"),
+                duration: Duration(seconds: 1),
+              ),
+            );
+          }
+          _controller.reset();
+        },
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Tieni premuto per attivare l'SOS!"),
+              duration: Duration(seconds: 1),
+            ),
+          );
+        },
+        child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // --- ANELLO ANIMATO ---
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (context, _) {
+                  return CustomPaint(
+                    size: Size(widget.size + 10, widget.size + 10),
+                    painter: RingPainter(progress: _controller.value),
+                  );
+                },
+              ),
+              Container(
+                width: widget.size,
+                height: widget.size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: const DecorationImage(
+                    image: AssetImage('assets/sosbutton.png'),
+                    fit: BoxFit.cover,
+                  ),
+                  border: Border.all(color: Colors.white, width: 1),
+                ),
+              )
+            ]
+        )
+    );
+  }
+}
+
+
+//Questa è la classe per il caricamento dell'SOS
+//import 'dart:math'; fa funzionare questa classe (definizione di pi)
+class RingPainter extends CustomPainter {
+  final double progress;
+
+  RingPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final strokeWidth = 12.0;
+
+    final rect = Offset.zero & size;
+    final startAngle = -pi / 2;
+    final sweepAngle = 2 * pi * progress;
+
+    final paint = Paint()
+      ..color = Colors.red
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawArc(
+      rect.deflate(strokeWidth),
+      startAngle,
+      sweepAngle,
+      false,
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant RingPainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
+}
