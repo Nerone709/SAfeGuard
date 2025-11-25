@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/navigationBarSoccorritore.dart';
+// import 'package:frontend/navigationBarSoccorritore.dart'; // Scommenta se necessario
 
 // Funzione per convertire la stringa Hex (senza alpha) in un oggetto Color.
 Color hexToColor(String code) {
@@ -10,74 +10,28 @@ Color hexToColor(String code) {
   return Color(int.parse(hexCode, radix: 16));
 }
 
-// --- WIDGET PRINCIPALI (MyApp e MyHomePage) ---
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // colore di sfondo
-    final Color mainBackgroundColor = hexToColor("ef923d");
-
-    return MaterialApp(
-      title: 'Gestione Notifiche',
-      debugShowCheckedModeBanner: false,
-
-      theme: ThemeData(
-        fontFamily: 'Rubik',
-
-        colorScheme: ColorScheme.fromSeed(seedColor: mainBackgroundColor),
-
-        // tema dei testi
-        textTheme: const TextTheme(
-          // tema del titolo
-          titleLarge: TextStyle(
-            color: Colors.white,
-            fontSize: 30,
-            fontWeight: FontWeight.w900,
-          ),
-          // tema testi "normali"
-          titleMedium: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-      // Passiamo il colore dello sfondo principale alla Home Page
-      home: MyHomePage(
-        title: 'Gestione\nNotifiche',
-        backgroundColor: mainBackgroundColor,
-      ),
-    );
-  }
-}
-
-// --- CLASSE DELLA PAGINA PRINCIPALE ---
-
-class MyHomePage extends StatelessWidget {
+// --- CLASSE RINOMINATA CORRETTAMENTE ---
+class GestioneNotificheSoccorritore extends StatelessWidget {
   final String title;
-  final Color backgroundColor;
+  final Color? backgroundColor;
 
-  const MyHomePage({
+  // Costruttore con valori di default
+  const GestioneNotificheSoccorritore({
     super.key,
-    required this.title,
-    required this.backgroundColor,
+    this.title = 'Gestione\nNotifiche',
+    this.backgroundColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Colore del blocco centrale
+    // Colore di sfondo default: Arancione Soccorritore (ef923d)
+    final Color effectiveBgColor = backgroundColor ?? hexToColor("ef923d");
+    // Colore del blocco centrale: Arancione Scuro (D65D01)
     final Color cardColor = hexToColor("D65D01");
 
     return Scaffold(
       // Colore di sfondo preso da MyApp
-      backgroundColor: backgroundColor,
+      backgroundColor: effectiveBgColor,
 
       // La BottomNavigationBar e la parte superiore
       body: SafeArea(
@@ -94,7 +48,6 @@ class MyHomePage extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    //const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 30),
                     // implementazione del pulsante indietro
                     InkWell(
                       onTap: () {
@@ -111,7 +64,6 @@ class MyHomePage extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(width: 40),
 
                     // Icona e Titolo
@@ -120,17 +72,27 @@ class MyHomePage extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            // Mettere icona che era nei mockup
+                            // Icona
                             Icon(
                               Icons.notifications,
+                              // Contrasto Blu scuro su arancione, o giallo/oro come preferisci.
+                              // Nel codice originale era giallo (e3c63d), ma su arancione potrebbe vedersi poco.
+                              // Qui lascio quello che avevi, o puoi mettere Colors.white o BlueAccent.
                               color: hexToColor('e3c63d'),
                               size: 40,
                             ),
                             const SizedBox(width: 10),
                             Text(
-                              // metto il titolo e gli assegno lo stile
                               title,
-                              style: Theme.of(context).textTheme.titleLarge,
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.w900,
+                              ) ?? const TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                           ],
                         ),
@@ -140,15 +102,13 @@ class MyHomePage extends StatelessWidget {
                 ),
               ),
 
-              // 2. SEZIONE PERMESSI (La "Card" Arancione Scuro)
+              // 2. SEZIONE IMPOSTAZIONI (La "Card" Arancione Scuro)
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Container(
                   decoration: BoxDecoration(
                     color: cardColor, // Colore del blocco
-                    borderRadius: BorderRadius.circular(
-                      25.0,
-                    ), // Bordo arrotondato
+                    borderRadius: BorderRadius.circular(25.0),
                   ),
 
                   child: const Column(
@@ -156,23 +116,19 @@ class MyHomePage extends StatelessWidget {
                       PermissionRow(
                         title: 'Notifiche push',
                         initialValue: false,
-                      ), // Funzione che ritorna nome e switch del permesso
-
+                      ),
                       PermissionRow(
                         title: 'Notifiche SMS',
                         initialValue: false,
                       ),
-
                       PermissionRow(
                         title: 'Notifiche e-mail',
                         initialValue: false,
                       ),
-
                       PermissionRow(
                         title: 'Aggiornamenti',
                         initialValue: false,
                       ),
-
                       PermissionRow(
                         title: 'Silenzia notifiche',
                         initialValue: false,
@@ -185,14 +141,12 @@ class MyHomePage extends StatelessWidget {
           ),
         ),
       ),
-
-      bottomNavigationBar: CustomBottomNavBar(),
+      // bottomNavigationBar: CustomBottomNavBar(), // Scommenta se necessario
     );
   }
 }
 
-// --- INIZIO RIGHE DI PERMESSO (QUESTA PARTE DI CODIDE E' RIUTILIZZABILE) ---
-
+// --- WIDGET RIGA (RIUTILIZZABILE) ---
 class PermissionRow extends StatefulWidget {
   final String title;
   final bool initialValue;
@@ -216,65 +170,49 @@ class _PermissionRowState extends State<PermissionRow> {
     _isEnabled = widget.initialValue;
   }
 
-  // creo gli switch
   @override
   Widget build(BuildContext context) {
-    // metto il padding tra di loro
     return Padding(
-      // setto il padding tra di loro
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
-      // creo una riga
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Testo del permesso
           Flexible(
             child: Text(
-              widget
-                  .title, // gli assegno il titolo, che è stato passato alla funzione e quindi ogni switch avrà il suo titolo
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium, // assegno il tema del testo "normale"
-              softWrap: true, // per mandare a capo se non c'è spazio
+              widget.title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ) ?? const TextStyle(color: Colors.white, fontSize: 18),
+              softWrap: true,
             ),
           ),
 
           // Interruttore (Switch)
           Transform.scale(
-            // per ridurre le dimensioni dello switch
             scale: 0.9,
-
             child: Switch(
               value: _isEnabled,
-
               onChanged: (bool newValue) {
-                // cambio dello stato
                 setState(() {
                   _isEnabled = newValue;
                 });
 
-                // ci salviamo lo stato
                 final String statusText = newValue ? 'attivato' : 'disattivato';
-
-                // creo uno snackBar (widget della notifica)
-                final snackBar = SnackBar(
-                  // dò il titolo del permesso e il suo stato
-                  content: Text('"${widget.title}" $statusText.'),
-                  // durata dell'animazione
-                  duration: Duration(milliseconds: 750),
-                  //action: SnackBarAction(label: 'Chiudi', onPressed: () {ScaffoldMessenger.of(context).hideCurrentSnackBar();}),
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('"${widget.title}" $statusText.'),
+                    duration: const Duration(milliseconds: 750),
+                  ),
                 );
-
-                ScaffoldMessenger.of(context).showSnackBar(snackBar);
               },
 
-              // Colori dello switch
-              activeTrackColor: hexToColor(
-                "12345a",
-              ), // Blu per la traccia attiva
-              inactiveThumbColor: Colors.white, // colore del pallino
-              inactiveTrackColor:
-                  Colors.grey.shade400, // Grigio chiaro per la traccia inattiva
+              // Colori dello switch (Versione Soccorritore: Blu scuro su Arancione)
+              activeTrackColor: hexToColor("12345a"),
+              inactiveThumbColor: Colors.white,
+              inactiveTrackColor: Colors.grey.shade400,
             ),
           ),
         ],
