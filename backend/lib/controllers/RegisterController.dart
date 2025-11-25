@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:shelf/shelf.dart'; // Import fondamentale
 import '../services/RegisterService.dart';
 import '../services/VerificationService.dart';
 import '../services/SmsService.dart';
@@ -6,71 +7,80 @@ import '../repositories/UserRepository.dart';
 
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
+import 'package:data_models/UtenteGenerico.dart'; // Aggiunto per cast sicuri
 
 class RegisterController {
+  // Iniezione delle dipendenze (come nel tuo codice originale)
   final RegisterService _registerService = RegisterService(
     UserRepository(),
     VerificationService(UserRepository(), SmsService()),
   );
 
-  // Simula la gestione di una richiesta HTTP POST /api/register
-  Future<String> handleRegisterRequest(String requestBodyJson) async {
+  // Headers standard
+  final Map<String, String> _headers = {'content-type': 'application/json'};
+
+  // Metodo aggiornato per Shelf
+  Future<Response> handleRegisterRequest(Request request) async {
     try {
-      final Map<String, dynamic> requestData = jsonDecode(requestBodyJson);
-
-      // 1. Recupero la password
-      final password = requestData.remove('password') as String;
-
-      // 2. Recupero la conferma password
-      // Uso remove per pulire i dati prima di inviarli al service
-      final confermaPassword = requestData.remove('confermaPassword');
-
-      if (confermaPassword == null) {
-        throw Exception('Il campo confermaPassword è obbligatorio');
+      // 1. Lettura Body
+      final String body = await request.readAsString();
+      if (body.isEmpty) {
+        return Response.badRequest(
+          body: jsonEncode({'success': false, 'message': 'Nessun dato inviato'}),
+          headers: _headers,
+        );
       }
 
-      // --- VALIDAZIONE PASSWORD ---
+      final Map<String, dynamic> requestData = jsonDecode(body);
+
+      // 2. Estrazione e Pulizia Password
+      final password = requestData['password'] as String?;
+      final confermaPassword = requestData['confermaPassword'] as String?;
+
+      // Rimuoviamo i campi password dalla mappa prima di passarla al service
+      requestData.remove('password');
+      requestData.remove('confermaPassword');
+
+      // --- VALIDAZIONE ---
+
+      if (password == null || confermaPassword == null) {
+        return _badRequest('Password e Conferma Password sono obbligatorie');
+      }
 
       // A. Controllo uguaglianza
       if (password != confermaPassword) {
-        throw Exception('Le password non coincidono');
+        return _badRequest('Le password non coincidono');
       }
 
-      // B. Controllo Lunghezza (min 8, max 64)
+      // B. Controllo Lunghezza (min 8, max 12 come da tua richiesta)
       if (password.length < 8 || password.length > 12) {
-        throw Exception(
-          'La password deve essere lunga almeno 8 caratteri e non più di 12',
-        );
+        return _badRequest('La password deve essere tra 8 e 12 caratteri');
       }
 
       // C. Controllo Lettera Maiuscola
       if (!password.contains(RegExp(r'[A-Z]'))) {
-        throw Exception(
-          'La password deve contenere almeno una lettera maiuscola',
-        );
+        return _badRequest('La password deve contenere almeno una lettera maiuscola');
       }
 
       // D. Controllo Numero
       if (!password.contains(RegExp(r'[0-9]'))) {
-        throw Exception('La password deve contenere almeno un numero');
+        return _badRequest('La password deve contenere almeno un numero');
       }
 
       // E. Controllo Carattere Speciale
-      // Verifica la presenza di almeno un simbolo tra quelli elencati
-      if (!password.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>]'))) {
-        throw Exception(
-          'La password deve contenere almeno un carattere speciale (es. !, @, #, \$, ecc.)',
-        );
+      if (!password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+        return _badRequest('La password deve contenere almeno un carattere speciale');
       }
 
       // --- FINE VALIDAZIONE ---
 
-      // Il resto dei dati (inclusi email e telefono opzionali) va al service
-      final user = await _registerService.register(requestData, password);
+      // 3. Chiamata al Service
+      final UtenteGenerico user = await _registerService.register(requestData, password);
 
-      // Controllo del tipo e recupero ID
+      // 4. Costruzione Risposta
       String tipoUtente;
-      final int assegnatoId = user.id!;
+      // Gestione sicura dell'ID (default a 0 se null per evitare crash)
+      final int assegnatoId = user.id ?? 0;
 
       if (user is Soccorritore) {
         tipoUtente = 'Soccorritore';
@@ -82,23 +92,35 @@ class RegisterController {
 
       final responseBody = {
         'success': true,
-        'message':
-            'Registrazione avvenuta con successo. Tipo: $tipoUtente, ID assegnato: $assegnatoId',
+        'message': 'Registrazione avvenuta con successo. Tipo: $tipoUtente, ID: $assegnatoId',
         'user': user.toJson()..remove('passwordHash'),
       };
-      return jsonEncode(responseBody);
+
+      return Response.ok(jsonEncode(responseBody), headers: _headers);
+
+    } on FormatException {
+      // Errore nel JSON in ingresso
+      return _badRequest('Formato JSON non valido');
     } on Exception catch (e) {
-      final responseBody = {
-        'success': false,
-        'message': e.toString().replaceFirst('Exception: ', ''),
-      };
-      return jsonEncode(responseBody);
+      // Eccezioni di business lanciate dal Service (es. Email già in uso)
+      // Rimuoviamo il prefisso "Exception: " se presente
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      return _badRequest(msg);
     } catch (e) {
-      final responseBody = {
-        'success': false,
-        'message': 'Errore interno del server durante la registrazione.',
-      };
-      return jsonEncode(responseBody);
+      // Errori imprevisti
+      print('Errore RegisterController: $e');
+      return Response.internalServerError(
+        body: jsonEncode({'success': false, 'message': 'Errore interno del server'}),
+        headers: _headers,
+      );
     }
+  }
+
+  // Helper per risposte 400 Bad Request
+  Response _badRequest(String message) {
+    return Response.badRequest(
+      body: jsonEncode({'success': false, 'message': message}),
+      headers: _headers,
+    );
   }
 }

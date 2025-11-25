@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:shelf/shelf.dart'; // Import necessario per Request/Response
 import '../services/VerificationService.dart';
 import '../repositories/UserRepository.dart';
 import '../services/SmsService.dart';
@@ -10,37 +11,76 @@ class VerificationController {
     SmsService(),
   );
 
-  // Simula la gestione di una richiesta HTTP POST /api/verify/otp
-  Future<String> handleVerificationRequest(String requestBodyJson) async {
-    try {
-      final Map<String, dynamic> requestData = jsonDecode(requestBodyJson);
-      final telefono = requestData['telefono'] as String;
-      final otp = requestData['otp'] as String;
+  // Headers standard per le risposte JSON
+  final Map<String, String> _headers = {'content-type': 'application/json'};
 
+  // Metodo aggiornato per accettare Request e ritornare Response
+  Future<Response> handleVerificationRequest(Request request) async {
+    try {
+      // 1. Lettura del Body
+      final String body = await request.readAsString();
+      if (body.isEmpty) {
+        return Response.badRequest(
+          body: jsonEncode({'success': false, 'message': 'Body vuoto'}),
+          headers: _headers,
+        );
+      }
+
+      // 2. Parsing e Validazione Input
+      final Map<String, dynamic> requestData = jsonDecode(body);
+      final String? telefono = requestData['telefono'];
+      final String? otp = requestData['otp'];
+
+      if (telefono == null || otp == null) {
+        return Response.badRequest(
+          body: jsonEncode({
+            'success': false,
+            'message': 'Telefono e OTP sono campi obbligatori.'
+          }),
+          headers: _headers,
+        );
+      }
+
+      // 3. Chiamata al Service
       final isVerified = await _verificationService.completePhoneVerification(
         telefono,
         otp,
       );
 
+      // 4. Gestione Risposta
       if (isVerified) {
-        final responseBody = {
-          'success': true,
-          'message': 'Verifica OTP riuscita. L\'utente è ora attivo.',
-        };
-        return jsonEncode(responseBody);
+        // 200 OK
+        return Response.ok(
+          jsonEncode({
+            'success': true,
+            'message': 'Verifica OTP riuscita. L\'utente è ora attivo.',
+          }),
+          headers: _headers,
+        );
       } else {
-        final responseBody = {
-          'success': false,
-          'message': 'Codice OTP non valido o scaduto.',
-        };
-        return jsonEncode(responseBody);
+        // 400 Bad Request (o 401) se l'OTP è errato
+        return Response.badRequest(
+          body: jsonEncode({
+            'success': false,
+            'message': 'Codice OTP non valido o scaduto.',
+          }),
+          headers: _headers,
+        );
       }
+
+    } on FormatException {
+      // JSON malformato
+      return Response.badRequest(
+        body: jsonEncode({'success': false, 'message': 'Formato JSON non valido'}),
+        headers: _headers,
+      );
     } catch (e) {
-      final responseBody = {
-        'success': false,
-        'message': 'Errore durante la verifica: $e',
-      };
-      return jsonEncode(responseBody);
+      // Errore generico server
+      print('Errore VerificationController: $e');
+      return Response.internalServerError(
+        body: jsonEncode({'success': false, 'message': 'Errore interno del server: $e'}),
+        headers: _headers,
+      );
     }
   }
 }

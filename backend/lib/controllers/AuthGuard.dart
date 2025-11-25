@@ -1,77 +1,58 @@
 import 'dart:convert';
-import 'dart:io'; // Per gestire la richiesta/risposta HTTP (simulazione)
+import 'package:shelf/shelf.dart';
 import '../services/JWTService.dart';
 
 class AuthGuard {
   final JWTService _jwtService = JWTService();
 
-  // La funzione middleware: prende l'handler e ne restituisce uno nuovo "protetto"
-  Future<String> protect(
-    HttpRequest request,
-    Future<String> Function(HttpRequest) nextHandler,
-  ) async {
-    // 1. Estrai il Token dall'header
-    final authHeader = request.headers.value('authorization');
+  /// Il middleware di Shelf
+  Middleware get middleware => (Handler innerHandler) {
+    return (Request request) async {
+      // 1. Gestione pre-flight CORS (Opzionale, ma utile per frontend web)
+      if (request.method == 'OPTIONS') {
+        return await innerHandler(request);
+      }
 
-    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-      // 401 Unauthorized: Header mancante o malformato
-      return _unauthorizedResponse('Token di autorizzazione mancante.');
-    }
+      // 2. Controllo Header Authorization
+      final authHeader = request.headers['authorization'];
 
-    // Rimuovi il prefisso 'Bearer '
-    final token = authHeader.substring(7);
+      if (authHeader == null || !authHeader.startsWith('Bearer ')) {
+        return _unauthorizedResponse('Token di autorizzazione mancante o malformato.');
+      }
 
-    // 2. Verifica e Decodifica il Token
-    final payload = _jwtService.verifyToken(token);
+      // 3. Estrazione e Verifica Token
+      final token = authHeader.substring(7); // Rimuove 'Bearer '
+      final payload = _jwtService.verifyToken(token);
 
-    if (payload == null) {
-      // 401 Unauthorized: Token non valido o scaduto
-      return _unauthorizedResponse(
-        'Token non valido o scaduto. Effettuare nuovamente il login.',
-      );
-    }
+      if (payload == null) {
+        return _unauthorizedResponse('Token non valido o scaduto. Effettuare nuovamente il login.');
+      }
 
-    // 3. Inietta i dati dell'utente nella richiesta per l'handler successivo
-    // (In un server Dart reale, i dati verrebbero iniettati in un oggetto RequestContext)
-    // Per la nostra simulazione, assumeremo che l'ID sia passato implicitamente:
+      // 4. Context Injection (Thread-Safe)
+      // Creiamo una nuova richiesta "arricchita" con i dati dell'utente.
+      // I controller successivi potranno accedere a questi dati tramite request.context['user']
+      final updatedRequest = request.change(context: {
+        'user': {
+          'id': payload['id'],
+          'type': payload['type'],
+          // Puoi aggiungere qui altri campi presenti nel payload del token
+        }
+      });
 
-    // L'ID utente è ora disponibile per i servizi successivi:
-    final userId = payload['id'] as int;
-    final userType = payload['type'] as String;
+      // 5. Passa il controllo all'handler successivo con la richiesta aggiornata
+      return await innerHandler(updatedRequest);
+    };
+  };
 
-    print('Autenticazione Riuscita: Utente ID $userId ($userType) ha accesso.');
-
-    // 4. Se la verifica ha successo, esegui l'handler originale
-    // Potresti voler passare i dati dell'utente come argomento all'handler se possibile.
-    // Per semplicità, richiamiamo l'handler originale, assumendo che i servizi possano
-    // accedere all'ID utente da un contesto globale simulato, se necessario.
-
-    // --- SIMULAZIONE DI INIEZIONE DATI ---
-    //  _SimulatedRequestContext.currentUserId = userId;
-    // ------------------------------------
-
-    try {
-      return await nextHandler(request);
-    } finally {
-      /*_SimulatedRequestContext.currentUserId =
-          null; // Pulisci dopo l'esecuzione
-       */
-    }
-  }
-
-  // Funzione di utilità per la risposta 401
-  String _unauthorizedResponse(String message) {
-    // In un framework reale, imposteresti lo stato HTTP a 401
-    return jsonEncode({
-      'success': false,
-      'message': message,
-      'statusCode': 401,
-    });
+  // Helper per risposta 401 JSON standardizzata
+  Response _unauthorizedResponse(String message) {
+    return Response(
+      401, // HTTP Status Code: Unauthorized
+      body: jsonEncode({
+        'success': false,
+        'message': message,
+      }),
+      headers: {'content-type': 'application/json'},
+    );
   }
 }
-
-// Classe fittizia per simulare un contesto globale dove iniettare l'ID utente
-// in un'app server reale, questo sarebbe gestito dal framework.
-/*class _SimulatedRequestContext {
-  static int? currentUserId;
-}*/

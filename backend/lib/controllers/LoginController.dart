@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:shelf/shelf.dart'; // Import fondamentale per Shelf
 import '../services/LoginService.dart';
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
@@ -7,15 +8,27 @@ import 'package:data_models/UtenteGenerico.dart';
 class LoginController {
   final LoginService _loginService = LoginService();
 
+  // Headers standard per le risposte JSON
+  final Map<String, String> _headers = {'content-type': 'application/json'};
+
   // 1. Login classico (Email/Telefono + Password)
-  Future<String> handleLoginRequest(String requestBodyJson) async {
+  Future<Response> handleLoginRequest(Request request) async {
     try {
-      final Map<String, dynamic> credentials = jsonDecode(requestBodyJson);
+      // Lettura e validazione body
+      final String body = await request.readAsString();
+      if (body.isEmpty) return _buildErrorResponse(400, 'Body della richiesta vuoto');
+
+      final Map<String, dynamic> credentials = jsonDecode(body);
 
       final email = credentials['email'] as String?;
       final telefono = credentials['telefono'] as String?;
-      final password = credentials['password'] as String;
+      final password = credentials['password'] as String?;
 
+      if ((email == null && telefono == null) || password == null) {
+        return _buildErrorResponse(400, 'Email/Telefono e Password sono obbligatori.');
+      }
+
+      // Chiamata al Service
       final result = await _loginService.login(
         email: email,
         telefono: telefono,
@@ -26,56 +39,57 @@ class LoginController {
         return _buildSuccessResponse(result);
       } else {
         return _buildErrorResponse(
+          401, // Unauthorized
           'Credenziali non valide (combinazione errata o utente non trovato)',
         );
       }
-    } on ArgumentError catch (e) {
-      return _buildErrorResponse(e.message);
+    } on FormatException {
+      return _buildErrorResponse(400, 'JSON non valido');
     } catch (e) {
-      return _buildErrorResponse('Errore interno del server: $e');
+      return _buildErrorResponse(500, 'Errore interno del server: $e');
     }
   }
 
   // 2. Login con Google
-  Future<String> handleGoogleLoginRequest(String requestBodyJson) async {
+  Future<Response> handleGoogleLoginRequest(Request request) async {
     try {
-      final Map<String, dynamic> payload = jsonDecode(requestBodyJson);
+      final String body = await request.readAsString();
+      if (body.isEmpty) return _buildErrorResponse(400, 'Body vuoto');
 
-      // Il frontend deve inviare una chiave 'id_token'
+      final Map<String, dynamic> payload = jsonDecode(body);
       final googleToken = payload['id_token'] as String?;
 
       if (googleToken == null || googleToken.isEmpty) {
-        return _buildErrorResponse('Token Google mancante nella richiesta.');
+        return _buildErrorResponse(400, 'Token Google mancante nella richiesta.');
       }
 
-      // Chiama il service che gestisce la logica "Find or Create"
       final result = await _loginService.loginWithGoogle(googleToken);
 
       if (result != null) {
         return _buildSuccessResponse(result);
       } else {
-        // Teoricamente loginWithGoogle lancia eccezioni se fallisce, ma gestiamo il null per sicurezza
-        return _buildErrorResponse('Autenticazione Google fallita.');
+        return _buildErrorResponse(401, 'Autenticazione Google fallita.');
       }
     } catch (e) {
-      // Cattura le eccezioni lanciate dal Service (es. "Token Google non valido")
-      return _buildErrorResponse('Errore durante il login Google: $e');
+      return _buildErrorResponse(500, 'Errore durante il login Google: $e');
     }
   }
 
-  Future<String> handleAppleLoginRequest(String requestBodyJson) async {
+  // 3. Login con Apple
+  Future<Response> handleAppleLoginRequest(Request request) async {
     try {
-      final Map<String, dynamic> payload = jsonDecode(requestBodyJson);
+      final String body = await request.readAsString();
+      if (body.isEmpty) return _buildErrorResponse(400, 'Body vuoto');
 
-      // Parametri inviati dal frontend (Flutter "sign_in_with_apple")
+      final Map<String, dynamic> payload = jsonDecode(body);
+
       final identityToken = payload['identityToken'] as String?;
       final email = payload['email'] as String?;
-      final firstName =
-          payload['givenName'] as String?; // Apple chiama così il nome
-      final lastName = payload['familyName'] as String?; // e così il cognome
+      final firstName = payload['givenName'] as String?;
+      final lastName = payload['familyName'] as String?;
 
       if (identityToken == null || identityToken.isEmpty) {
-        return _buildErrorResponse('Token Apple (identityToken) mancante.');
+        return _buildErrorResponse(400, 'Token Apple (identityToken) mancante.');
       }
 
       final result = await _loginService.loginWithApple(
@@ -88,21 +102,24 @@ class LoginController {
       if (result != null) {
         return _buildSuccessResponse(result);
       } else {
-        return _buildErrorResponse('Autenticazione Apple fallita.');
+        return _buildErrorResponse(401, 'Autenticazione Apple fallita.');
       }
     } catch (e) {
-      return _buildErrorResponse('Errore durante il login Apple: $e');
+      return _buildErrorResponse(500, 'Errore durante il login Apple: $e');
     }
   }
 
-  // Costruzione Risposta di Successo
-  // Centralizza la logica di formattazione della risposta per evitare duplicati
-  String _buildSuccessResponse(Map<String, dynamic> result) {
+  // --- HELPER METHODS ---
+
+  // Costruzione Risposta di Successo (200 OK)
+  Response _buildSuccessResponse(Map<String, dynamic> result) {
+    // Gestione sicura del casting: se 'user' non è UtenteGenerico, gestisci l'errore o fallo nel service
+    // Assumo che LoginService ritorni la mappa {'user': UtenteGenerico, 'token': String}
     final user = result['user'] as UtenteGenerico;
     final token = result['token'] as String;
 
     String tipoUtente;
-    int assegnatoId = user.id ?? 0;
+    int assignedId = user.id ?? 0;
 
     if (user is Soccorritore) {
       tipoUtente = 'Soccorritore';
@@ -114,17 +131,20 @@ class LoginController {
 
     final responseBody = {
       'success': true,
-      'message':
-          'Login avvenuto con successo. Tipo: $tipoUtente, ID: $assegnatoId',
+      'message': 'Login avvenuto con successo. Tipo: $tipoUtente, ID: $assignedId',
       'user': user.toJson()..remove('passwordHash'), // Rimuove dati sensibili
       'token': token,
     };
 
-    return jsonEncode(responseBody);
+    return Response.ok(jsonEncode(responseBody), headers: _headers);
   }
 
-  //Costruzione Risposta di Errore
-  String _buildErrorResponse(String message) {
-    return jsonEncode({'success': false, 'message': message});
+  // Costruzione Risposta di Errore (400, 401, 500)
+  Response _buildErrorResponse(int statusCode, String message) {
+    return Response(
+      statusCode,
+      body: jsonEncode({'success': false, 'message': message}),
+      headers: _headers,
+    );
   }
 }
