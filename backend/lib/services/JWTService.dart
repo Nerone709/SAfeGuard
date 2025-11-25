@@ -1,46 +1,42 @@
 import 'dart:convert';
-
-// CHIAVE SEGRETA: Questa DEVE essere una stringa lunga e casuale,
-// conservata in modo sicuro (es. variabili d'ambiente).
-const String jwtSecret = "chiave_segreta_molto_forte";
+import 'dart:io';
 
 class JWTService {
-  // Simula la generazione di un token JWT
+  // Recupera la chiave dalle variabili d'ambiente
+  String get _secret => Platform.environment['JWT_SECRET'] ?? 'FALLBACK_DEV_SECRET_DO_NOT_USE_IN_PROD';
+
   String generateToken(int userId, String userType) {
-    // 1. Definisce il Payload (Claims)
     final payload = {
-      'id': userId, // Identificatore univoco
-      'type':
-          userType, // Utile per le logiche di autorizzazione (Utente/Soccorritore)
-      'iat': DateTime.now().millisecondsSinceEpoch, // Issued At
-      'exp': DateTime.now()
-          .add(const Duration(days: 7))
-          .millisecondsSinceEpoch, // Scadenza (es. 7 giorni)
+      'id': userId,
+      'type': userType,
+      'iat': DateTime.now().millisecondsSinceEpoch,
+      'exp': DateTime.now().add(const Duration(days: 7)).millisecondsSinceEpoch,
     };
 
-    // 2. Simula la creazione del token firmato
-    // In un'implementazione reale: JWT.sign(payload, _JWT_SECRET, algorithm: HS256)
+    final header = jsonEncode({'alg': 'HS256', 'typ': 'JWT'});
+    final headerBase64 = base64Url.encode(utf8.encode(header));
+    final payloadBase64 = base64Url.encode(utf8.encode(jsonEncode(payload))); // Fix: jsonEncode del payload
 
-    // Per la simulazione, creiamo una stringa base64 fittizia
-    final header = '{"alg": "HS256", "typ": "JWT"}';
-    final payloadEncoded = Uri.encodeComponent(payload.toString());
-    final signature = 'FAKE_SIGNATURE';
+    // In un caso reale qui useresti HMAC-SHA256 con _secret
+    final signature = base64Url.encode(utf8.encode('fake_signature_$_secret'));
 
-    return '${base64Url.encode(utf8.encode(header))}.$payloadEncoded.$signature';
+    return '$headerBase64.$payloadBase64.$signature';
   }
 
-  // Simula la verifica e decodifica di un token JWT
   Map<String, dynamic>? verifyToken(String token) {
-    // In un'implementazione reale: verifica la firma, la scadenza e decodifica il payload.
-    // logica di verifica
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
 
-    // Se la verifica fallisce: return null;
+      // Decodifica Payload
+      final payloadString = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+      final payload = jsonDecode(payloadString);
 
-    // Per la simulazione, assumiamo che sia sempre valido e restituiamo un payload parziale
-    final parts = token.split('.');
-    if (parts.length != 3) return null;
+      // Qui dovresti verificare la firma ricalcolandola con _secret
 
-    // Logica di decodifica incompleta per la simulazione
-    return {'id': 101, 'type': 'Utente'};
+      return payload;
+    } catch (e) {
+      return null;
+    }
   }
 }
