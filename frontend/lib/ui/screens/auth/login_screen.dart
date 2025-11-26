@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/screens/emailRegister.dart';
-import 'package:frontend/screens/homePage.dart';
-import 'package:frontend/screens/loginScreen.dart';
-import 'package:frontend/screens/phoneRegister.dart';
+import 'package:frontend/ui/screens/auth/email_login_screen.dart';
+import 'package:frontend/ui/screens/auth/phone_login_screen.dart';
+import 'package:frontend/ui/screens/auth/registration_screen.dart';
+import 'package:frontend/ui/screens/home/home_screen.dart';
 
-class RegistrationScreen extends StatelessWidget {
-  const RegistrationScreen({super.key});
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,74 +16,51 @@ class RegistrationScreen extends StatelessWidget {
         backgroundColor: darkBlue,
         elevation: 0,
         centerTitle: true,
-
-        // --- MODIFICA PER LA PARTE SINISTRA (Back + Registrati) ---
-        leadingWidth:
-            120, // Allarghiamo lo spazio a sinistra per far entrare il testo
+        leadingWidth: 120,
         leading: GestureDetector(
-          onTap: () =>
-              Navigator.of(context).pop(), // Rende cliccabile tutta l'area
-          child: Row(
+          onTap: () => Navigator.of(context).pop(),
+          child: const Row(
             children: [
-              const SizedBox(width: 10),
-              const Text(
-                "Registrati",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
+              SizedBox(width: 10),
+              Text("Indietro", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
         ),
         title: Image.asset(
           'assets/logo.png',
           height: 40,
-          errorBuilder: (c, e, s) =>
-              const Icon(Icons.shield, color: Colors.white),
+          errorBuilder: (c, e, s) => const Icon(Icons.shield, color: Colors.white),
         ),
-
-        // Tasto Skip (Destra)
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const HomePage()),
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
               );
             },
-            child: const Text(
-              "Skip",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: const Text("Skip", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
-
       body: Stack(
         children: [
-          // LAYER 1: SFONDO
+          // SFONDO
           Container(
             height: double.infinity,
             width: double.infinity,
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/backgroundBubbles1.png'),
+                image: AssetImage('assets/backgroundBubbles2.png'),
                 fit: BoxFit.cover,
               ),
             ),
           ),
-
-          // LAYER 2: CONTENUTO
+          // CONTENUTO
           SafeArea(
             child: Column(
               children: [
                 const SizedBox(height: 20),
-
-                // PARTE ALTA: LOGO E TESTI
+                // HEADER
                 Padding(
                   padding: const EdgeInsets.fromLTRB(25, 5, 25, 10),
                   child: Row(
@@ -92,8 +69,7 @@ class RegistrationScreen extends StatelessWidget {
                         'assets/stylizedMascot.png',
                         width: 100,
                         color: darkBlue,
-                        errorBuilder: (c, e, s) =>
-                            Icon(Icons.shield, size: 80, color: darkBlue),
+                        errorBuilder: (c, e, s) => Icon(Icons.shield, size: 80, color: darkBlue),
                       ),
                       const SizedBox(width: 20),
                       Expanded(
@@ -102,20 +78,15 @@ class RegistrationScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
-                              "Benvenuto in\nSAfeGuard",
+                              "Bentornato in\nSAfeGuard",
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: darkBlue,
-                                fontSize: 35,
-                                fontWeight: FontWeight.w900,
-                                height: 1.2,
-                              ),
+                              style: TextStyle(color: darkBlue, fontSize: 30, fontWeight: FontWeight.w900, height: 1.2),
                             ),
                             const SizedBox(height: 10),
                             Text(
-                              "Registrati per connetterti alla rete di emergenza",
+                              "Accedi per connetterti alla rete di emergenza",
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: darkBlue, fontSize: 18),
+                              style: TextStyle(color: darkBlue, fontSize: 16),
                             ),
                           ],
                         ),
@@ -123,8 +94,7 @@ class RegistrationScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                // PARTE BASSA: BOTTONI
+                // BOTTONI
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 30.0),
@@ -140,75 +110,42 @@ class RegistrationScreen extends StatelessWidget {
                         const SizedBox(height: 15),
                         _buildSocialButton(
                           text: "Continua con Google",
-                          imagePath: 'assets/googleIcon.png',
+                          imagePath: 'assets/googleIcon.png', // Assicurati che esista
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           iconColor: Colors.red,
                         ),
                         const SizedBox(height: 15),
-
                         _buildSocialButton(
                           text: "Continua con Email",
                           icon: Icons.alternate_email,
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           iconColor: darkBlue,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const EmailRegister(),
-                              ),
-                            );
-                          },
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const EmailLoginScreen())),
                         ),
-
                         const SizedBox(height: 15),
-
                         _buildSocialButton(
                           text: "Continua con Telefono",
                           icon: Icons.phone,
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           iconColor: darkBlue,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const PhoneRegister(),
-                              ),
-                            );
-                          },
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PhoneLoginScreen())),
                         ),
-
-                        const SizedBox(height: 80),
-
-                        // FOOTER LOGIN
+                        const SizedBox(height: 50),
+                        // FOOTER
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
-                              "Hai già un account? ",
-                              style: TextStyle(color: Colors.white),
-                            ),
+                            const Text("Non hai un account? ", style: TextStyle(color: Colors.white)),
                             GestureDetector(
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const LoginScreen(),
-                                  ),
-                                );
-                              },
-                              child: const Text(
-                                "Login",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RegistrationScreen())),
+                              child: const Text("Registrati", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             ),
                           ],
                         ),
-
-                        const SizedBox(height: 50),
+                        const SizedBox(height: 30),
                       ],
                     ),
                   ),
@@ -221,7 +158,6 @@ class RegistrationScreen extends StatelessWidget {
     );
   }
 
-  // --- HELPER BOTTONI (CORRETTO) ---
   Widget _buildSocialButton({
     required String text,
     required Color backgroundColor,
@@ -229,7 +165,7 @@ class RegistrationScreen extends StatelessWidget {
     IconData? icon,
     String? imagePath,
     Color? iconColor,
-    VoidCallback? onTap, // Parametro ricevuto
+    VoidCallback? onTap,
   }) {
     return SizedBox(
       width: double.infinity,
@@ -240,9 +176,7 @@ class RegistrationScreen extends StatelessWidget {
           backgroundColor: backgroundColor,
           foregroundColor: textColor,
           elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -254,13 +188,7 @@ class RegistrationScreen extends StatelessWidget {
               Icon(icon, color: iconColor ?? textColor, size: 24),
             Expanded(
               child: Center(
-                child: Text(
-                  text,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(width: 24),

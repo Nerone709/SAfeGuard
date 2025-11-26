@@ -38,6 +38,8 @@ dependencies:
   # Pacchetto necessario per le chiamate HTTP
   http: ^1.1.0
 
+  provider: ^6.1.5
+
   # dipendenza comune
   data_models:
     path: ../data_models

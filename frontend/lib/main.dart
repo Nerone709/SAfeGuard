@@ -1,10 +1,27 @@
 import 'package:flutter/material.dart';
-// Importiamo solo la Home Screen
-import 'package:frontend/ui/screens/home/home_screen.dart';
+import 'package:provider/provider.dart';
+
+// --- IMPORT DEI PROVIDER ---
+import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/providers/medical_provider.dart';
+import 'package:frontend/providers/emergency_provider.dart';
+
+// --- IMPORT DELLA SCHERMATA DI LOGIN ---
+import 'package:frontend/ui/screens/auth/login_screen.dart';
 
 void main() {
-  // Avviamo direttamente l'app senza avvolgerla nei Provider
-  runApp(const SAfeGuard());
+  runApp(
+    // È FONDAMENTALE avvolgere l'app nel MultiProvider,
+    // altrimenti la LoginScreen non troverà l'AuthProvider e l'app andrà in crash.
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => MedicalProvider()),
+        ChangeNotifierProvider(create: (_) => EmergencyProvider()),
+      ],
+      child: const SAfeGuard(),
+    ),
+  );
 }
 
 class SAfeGuard extends StatelessWidget {
@@ -16,17 +33,15 @@ class SAfeGuard extends StatelessWidget {
       title: 'SafeGuard',
       debugShowCheckedModeBanner: false,
 
-      // TEMA GLOBALE
+      // --- TEMA GLOBALE ---
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,
-
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF041528), // Blu Scuro
+          seedColor: const Color(0xFF041528),
           primary: const Color(0xFF041528),
-          secondary: const Color(0xFFEF923D), // Arancione
+          secondary: const Color(0xFFEF923D),
         ),
-
         appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF041528),
           iconTheme: IconThemeData(color: Colors.white),
@@ -38,8 +53,9 @@ class SAfeGuard extends StatelessWidget {
         ),
       ),
 
-      // AVVIO DIRETTO DELLA HOME
-      home: const HomeScreen(),
+      // --- PUNTO DI INGRESSO ---
+      // Impostiamo la LoginScreen come prima pagina
+      home: const LoginScreen(),
     );
   }
 }
