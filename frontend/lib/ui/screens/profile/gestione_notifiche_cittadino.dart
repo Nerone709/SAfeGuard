@@ -64,7 +64,6 @@ class _GestioneNotificheCittadinoState
     return Scaffold(
       backgroundColor: bgColor,
 
-      // Uso IndexedStack per mantenere lo stato delle pagine
       body: SafeArea(
         child: IndexedStack(index: _currentIndex, children: _pages),
       ),

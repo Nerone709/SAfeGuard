@@ -16,12 +16,12 @@ class GestionePermessiCittadino extends StatefulWidget {
 class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
   int _currentIndex = 3;
 
-  // Colori definiti a livello di classe
+
   final Color bgColor = const Color(0xFF12345A);
   final Color cardColor = const Color(0xFF0E2A48);
   final Color activeColor = const Color(
     0xFFEF923D,
-  ); // Arancione coerente con il tema
+  );
 
   final List<SettingItem> permissions = [
     SettingItem(title: 'Accesso alla posizione', isEnabled: false),
@@ -77,7 +77,6 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
 
       bottomNavigationBar: CustomBottomNavBar(
         onIconTapped: _onTabChange,
-        // selectedIndex: _currentIndex, // Decommenta se la tua NavBar supporta l'evidenziazione
       ),
     );
   }
@@ -148,7 +147,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
     );
   }
 
-  // Widget helper per la singola riga
+  // Switch items
   Widget _buildSwitchItem(SettingItem item, Color activeColor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -169,7 +168,6 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
             setState(() {
               item.isEnabled = val;
             });
-            // PermissionService.update(item.title, val);
           },
           activeThumbColor: activeColor,
           inactiveThumbColor: Colors.white,
