@@ -4,6 +4,9 @@ import 'package:frontend/ui/widgets/custom_bottom_nav_bar.dart';
 // --- IMPORTA LE TUE PAGINE ---
 import 'package:frontend/ui/screens/home/home_page_content.dart';
 import 'package:frontend/ui/screens/medical/gestione_cartella_clinica_cittadino.dart';
+
+import '../profile/gestione_notifiche_cittadino.dart';
+import '../profile/profile_settings_screen.dart';
 // import 'package:frontend/ui/screens/profile/gestione_notifiche_cittadino.dart';
 // import 'package:frontend/ui/screens/profile/profile_settings_screen.dart';
 
@@ -36,22 +39,10 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
 
     // 3. NOTIFICHE (Placeholder temporaneo)
-    const Center(
-      child: Text(
-        "Notifiche\n(Da implementare)",
-        textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.white, fontSize: 24),
-      ),
-    ),
+    const GestioneNotificheCittadino(),
 
     // 4. IMPOSTAZIONI (Placeholder temporaneo)
-    const Center(
-      child: Text(
-        "Impostazioni\n(Da implementare)",
-        textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.white, fontSize: 24),
-      ),
-    ),
+    const ProfileSettingsScreen(isSoccorritore: false)
   ];
 
   void _onTabChange(int index) {
