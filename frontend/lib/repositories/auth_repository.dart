@@ -1,31 +1,46 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'dart:io';
+import 'package:flutter/foundation.dart'; // Serve per kIsWeb
 import 'package:http/http.dart' as http;
 
 class AuthRepository {
 
-  static const String baseUrl = "http://10.0.2.2:8080";
-
-  /// Simula il Login con Email e Password
-  /// In futuro qui userai: http.post('api/login', body: {...})
-  Future<void> login(String email, String password) async {
-    // 1. Simuliamo l'attesa della rete (2 secondi)
-    await Future.delayed(const Duration(seconds: 2));
-
-    // 2. Simuliamo un controllo (Backend finto)
-    // Se l'email contiene "error", lanciamo un'eccezione per testare i messaggi rossi in UI
-    if (email.contains("error")) {
-      throw Exception("Credenziali non valide");
+  String get _baseUrl {
+    String host = 'http://localhost';
+    if (!kIsWeb && Platform.isAndroid) {
+      host = 'http://10.0.2.2';
     }
-
-    // Se tutto va bene, la funzione finisce senza errori (Successo)
-    return;
+    return '$host:8080';
   }
 
-  /// Registrazione: Chiama /api/auth/register definita in server.dart
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final url = Uri.parse('$_baseUrl/api/auth/login');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      final Map<String, dynamic> body = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return body;
+      } else {
+        throw Exception(body['message'] ?? "Errore durante il login");
+      }
+    } catch (e) {
+      throw Exception("Errore di connessione: $e");
+    }
+  }
+
   Future<void> register(String email, String password) async {
-    final url = Uri.parse('$baseUrl/api/auth/register');
+    final url = Uri.parse('$_baseUrl/api/auth/register'); // Usa _baseUrl
 
     try {
       final response = await http.post(
@@ -38,36 +53,30 @@ class AuthRepository {
         }),
       );
 
-      print(response.statusCode);
-      print(response.body);
-
       if (response.statusCode != 200 && response.statusCode != 201) {
         final errorData = jsonDecode(response.body);
         throw Exception(errorData['message'] ?? "Errore registrazione");
       }
-      // Se 200/201, successo.
     } catch (e) {
       throw Exception("Errore di connessione: $e");
     }
   }
 
-  /// Simula l'invio del codice SMS (OTP)
   Future<void> sendOtp(String phoneNumber) async {
+    // Se hai un endpoint backend per rinviare l'OTP, chiamalo qui usando _baseUrl
     await Future.delayed(const Duration(seconds: 1));
-    // Qui chiameresti l'endpoint per inviare l'SMS reale
     return;
   }
 
-  /// Simula la verifica del codice OTP inserito
   Future<bool> verifyOtp(String email, String code) async {
-    final url = Uri.parse('$baseUrl/api/verify');
+    final url = Uri.parse('$_baseUrl/api/verify');
 
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': email, // Ora usiamo l'email passata come argomento
+          'email': email,
           'code': code,
         }),
       );

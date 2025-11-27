@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:frontend/repositories/auth_repository.dart';
+import 'package:data_models/UtenteGenerico.dart';
+import 'package:data_models/Utente.dart';
+import 'package:data_models/Soccorritore.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthRepository _authRepository = AuthRepository();
@@ -8,32 +14,61 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
-  // Serve per ricordare l'email durante il flusso di verifica OTP
-  String? _tempEmail;
-  // Serve per ricordare la password nel caso dovessimo rifare la registrazione (opzionale)
-  String? _tempPassword;
+  // Dati utente loggato
+  UtenteGenerico? _currentUser;
+  String? _authToken;
 
-  // --- STATO DEL TIMER ---
+  // Dati temporanei per OTP
+  String? _tempEmail;
+  String? _tempPassword;
   int _secondsRemaining = 30;
   Timer? _timer;
 
+  // Getters
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   int get secondsRemaining => _secondsRemaining;
+  UtenteGenerico? get currentUser => _currentUser;
 
-  // ----------------------------------------------------------------
-  // LOGICA REALE CON IL SERVER
-  // ----------------------------------------------------------------
+  // Getter fondamentale per la UI
+  bool get isLogged => _authToken != null;
 
+  // --- AUTO LOGIN (Al lancio dell'app) ---
+  Future<void> tryAutoLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (!prefs.containsKey('auth_token')) return;
+
+    final token = prefs.getString('auth_token');
+    final userDataString = prefs.getString('user_data');
+
+    if (token != null && userDataString != null) {
+      _authToken = token;
+      try {
+        final userMap = jsonDecode(userDataString);
+        _currentUser = _parseUser(userMap);
+        notifyListeners();
+      } catch (e) {
+        await logout();
+      }
+    }
+  }
+
+  // --- LOGIN ---
   Future<bool> login(String email, String password) async {
     _setLoading(true);
     try {
-      // Chiama /api/auth/login
-      // Nota: AuthRepository.login restituisce void o lancia eccezione se fallisce
-      await _authRepository.login(email, password);
+      final response = await _authRepository.login(email, password);
 
-      // TODO: Quando il backend restituirà un token JWT, dovrai modificare
-      // il repository per restituirlo e salvarlo qui nelle SharedPreferences.
+      final token = response['token'];
+      final userMap = response['user'];
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', token);
+      await prefs.setString('user_data', jsonEncode(userMap));
+
+      _authToken = token;
+      _currentUser = _parseUser(userMap);
 
       _setLoading(false);
       return true;
@@ -44,18 +79,14 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // --- REGISTRAZIONE ---
   Future<bool> register(String email, String password) async {
     _setLoading(true);
     try {
-      // Chiama /api/auth/register
-      // Se fallisce, lancia un'eccezione che viene catturata dal catch
       await _authRepository.register(email, password);
 
-      // Salviamo le credenziali temporaneamente
       _tempEmail = email;
       _tempPassword = password;
-
-      // Avviamo il timer per l'inserimento del codice
       startTimer();
 
       _setLoading(false);
@@ -67,24 +98,21 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Verifica il codice inserito dall'utente chiamando il server
+  // --- VERIFICA OTP ---
   Future<bool> verifyCode(String code) async {
     if (_tempEmail == null) {
-      _errorMessage = "Email non trovata. Riprova la registrazione.";
+      _errorMessage = "Errore: Email persa.";
       notifyListeners();
       return false;
     }
 
     _setLoading(true);
     try {
-      // Chiama /api/verify usando l'email salvata e il codice inserito
       bool isValid = await _authRepository.verifyOtp(_tempEmail!, code);
-
       _setLoading(false);
 
       if (isValid) {
         stopTimer();
-        // Pulizia dati temporanei dopo successo
         _tempEmail = null;
         _tempPassword = null;
         return true;
@@ -100,10 +128,10 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Metodo per rinviare il codice
+  // --- RESEND OTP (RINVIA CODICE) ---
   Future<void> resendOtp() async {
     if (_tempEmail == null || _tempPassword == null) {
-      _errorMessage = "Dati scaduti. Registrati di nuovo.";
+      _errorMessage = "Dati sessione scaduti. Registrati di nuovo.";
       notifyListeners();
       return;
     }
@@ -125,35 +153,50 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- GESTIONE TIMER ---
-  void startTimer() {
-    _secondsRemaining = 30; // Reset a 30 secondi
-    _timer?.cancel(); // Cancella eventuali timer vecchi
+  // --- LOGOUT ---
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    _currentUser = null;
+    _authToken = null;
+    notifyListeners();
+  }
 
+  // --- UTILS ---
+  UtenteGenerico _parseUser(Map<String, dynamic> json) {
+    if (json['isSoccorritore'] == true) {
+      return Soccorritore.fromJson(json);
+    } else {
+      return Utente.fromJson(json);
+    }
+  }
+
+  void startTimer() {
+    _secondsRemaining = 30;
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining == 0) {
-        timer.cancel(); // Ferma quando arriva a 0
+        timer.cancel();
       } else {
-        _secondsRemaining--; // Scala 1 secondo
-        notifyListeners(); // Avvisa la UI di aggiornare il testo
+        _secondsRemaining--;
+        notifyListeners();
       }
     });
-    notifyListeners(); // Aggiornamento iniziale
+    notifyListeners();
   }
 
   void stopTimer() {
     _timer?.cancel();
     _secondsRemaining = 0;
-    notifyListeners(); // Importante notificare per aggiornare la UI
+    notifyListeners();
   }
 
   void _setLoading(bool value) {
     _isLoading = value;
-    if (value) _errorMessage = null; // Resetta errori vecchi
+    if (value) _errorMessage = null;
     notifyListeners();
   }
 
-  // Helper per pulire i messaggi di errore
   String _cleanError(Object e) {
     return e.toString().replaceAll("Exception: ", "");
   }

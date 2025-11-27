@@ -39,6 +39,8 @@ dependencies:
   # Pacchetto necessario per le chiamate HTTP
   http: ^1.1.0
 
+  # Per salvare il token e i dati login sul telefono
+  shared_preferences: ^2.3.2
 
   # dipendenza comune
   data_models:
