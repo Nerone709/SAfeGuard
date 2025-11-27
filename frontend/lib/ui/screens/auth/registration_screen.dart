@@ -122,7 +122,6 @@ class RegistrationScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-
                         //CONTINUA CON APPLE NON HA IL MEOTODO SU L'ON_TAP
                         _buildSocialButton(
                           text: "Continua con Apple",
@@ -213,7 +212,6 @@ class RegistrationScreen extends StatelessWidget {
       ),
     );
   }
-
 
   //DA METTERE IN UN ALTRO FILE
   Widget _buildSocialButton({

@@ -118,7 +118,6 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
 
-
                 //ZONA PULSANTI
                 Expanded(
                   child: Padding(
@@ -126,7 +125,6 @@ class LoginScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-
                         //CONTINUA CON APPLE NON HA IL MEOTODO SU L'ON_TAP
                         _buildSocialButton(
                           text: "Continua con Apple",
@@ -179,7 +177,6 @@ class LoginScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 50),
 
-
                         //PARTE BASSA, HAI GIA' UN ACCOUNT - REINDIRIZZATO AL registration_screen
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -220,7 +217,6 @@ class LoginScreen extends StatelessWidget {
       ),
     );
   }
-
 
   //DA METTERE IN UN ALTRO FILE
   Widget _buildSocialButton({

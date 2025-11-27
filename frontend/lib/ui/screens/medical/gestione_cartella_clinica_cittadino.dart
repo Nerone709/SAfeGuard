@@ -12,8 +12,8 @@ class GestioneCartellaClinicaCittadino extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Colori standard definiti
-    const Color bgColor = Color(0xFF12345A);
-    const Color cardColor = Color(0xFF0E2A48);
+    const Color cardColor = Color(0xFF12345A);
+    const Color bgColor = Color(0xFF0E2A48);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -30,9 +30,9 @@ class GestioneCartellaClinicaCittadino extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(
-                      Icons.assignment_ind_outlined,
-                      color: Colors.white70,
-                      size: 80
+                    Icons.assignment_ind_outlined,
+                    color: Colors.white70,
+                    size: 80,
                   ),
                   const SizedBox(width: 20),
                   const Text(
@@ -60,14 +60,17 @@ class GestioneCartellaClinicaCittadino extends StatelessWidget {
                   borderRadius: BorderRadius.circular(25.0),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 30.0, horizontal: 20.0),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 30.0,
+                    horizontal: 20.0,
+                  ),
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -80,7 +83,8 @@ class GestioneCartellaClinicaCittadino extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const CondizioniMedicheScreen(),
+                                builder: (context) =>
+                                    const CondizioniMedicheScreen(),
                               ),
                             );
                           },
@@ -125,7 +129,8 @@ class GestioneCartellaClinicaCittadino extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const ContattiEmergenzaScreen(),
+                                builder: (context) =>
+                                    const ContattiEmergenzaScreen(),
                               ),
                             );
                           },
@@ -145,7 +150,11 @@ class GestioneCartellaClinicaCittadino extends StatelessWidget {
   }
 
   // --- WIDGET PULSANTE MENU ---
-  Widget _buildMenuButton(BuildContext context, {required String label, required VoidCallback onTap}) {
+  Widget _buildMenuButton(
+    BuildContext context, {
+    required String label,
+    required VoidCallback onTap,
+  }) {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(15.0),
@@ -165,7 +174,11 @@ class GestioneCartellaClinicaCittadino extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, color: Colors.black, size: 20),
+              const Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.black,
+                size: 20,
+              ),
             ],
           ),
         ),

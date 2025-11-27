@@ -109,7 +109,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                   MaterialPageRoute(
                                     builder: (context) => const HomeScreen(),
                                   ),
-                                      (route) => false,
+                                  (route) => false,
                                 );
                               }
                             },
@@ -142,7 +142,6 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
       ),
     );
   }
-
 
   //DA METTERE IN UN ALTRO FILE
   Widget _buildTextField(

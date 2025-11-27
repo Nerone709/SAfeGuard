@@ -5,10 +5,12 @@ class GestioneModificaProfiloCittadino extends StatefulWidget {
   const GestioneModificaProfiloCittadino({super.key});
 
   @override
-  State<GestioneModificaProfiloCittadino> createState() => _GestioneModificaProfiloCittadinoState();
+  State<GestioneModificaProfiloCittadino> createState() =>
+      _GestioneModificaProfiloCittadinoState();
 }
 
-class _GestioneModificaProfiloCittadinoState extends State<GestioneModificaProfiloCittadino> {
+class _GestioneModificaProfiloCittadinoState
+    extends State<GestioneModificaProfiloCittadino> {
   late TextEditingController _nomeController;
   late TextEditingController _cognomeController;
   late TextEditingController _emailController;
@@ -49,19 +51,35 @@ class _GestioneModificaProfiloCittadinoState extends State<GestioneModificaProfi
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20.0,
+                  horizontal: 16.0,
+                ),
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 28),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                     const SizedBox(width: 10),
-                    const Icon(Icons.person_outline, color: iconColor, size: 40),
+                    const Icon(
+                      Icons.person_outline,
+                      color: iconColor,
+                      size: 40,
+                    ),
                     const SizedBox(width: 10),
                     const Text(
                       "Modifica\nProfilo",
-                      style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, height: 1.0),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        height: 1.0,
+                      ),
                     ),
                   ],
                 ),
@@ -69,13 +87,20 @@ class _GestioneModificaProfiloCittadinoState extends State<GestioneModificaProfi
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20.0),
                 padding: const EdgeInsets.all(20.0),
-                decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(25.0)),
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(25.0),
+                ),
                 child: Column(
                   children: [
                     const CircleAvatar(
                       radius: 40,
                       backgroundColor: Colors.white24,
-                      child: Icon(Icons.camera_alt, size: 30, color: Colors.white70),
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 30,
+                        color: Colors.white70,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     _buildField("Nome", _nomeController),
@@ -88,12 +113,28 @@ class _GestioneModificaProfiloCittadinoState extends State<GestioneModificaProfi
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: accentColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: accentColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Profilo aggiornato!")));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Profilo aggiornato!"),
+                            ),
+                          );
                           Navigator.pop(context);
                         },
-                        child: const Text("SALVA MODIFICHE", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          "SALVA MODIFICHE",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -107,23 +148,43 @@ class _GestioneModificaProfiloCittadinoState extends State<GestioneModificaProfi
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller, {bool isEmail = false, bool isPhone = false}) {
+  Widget _buildField(
+    String label,
+    TextEditingController controller, {
+    bool isEmail = false,
+    bool isPhone = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 5),
           TextField(
             controller: controller,
-            keyboardType: isEmail ? TextInputType.emailAddress : (isPhone ? TextInputType.phone : TextInputType.text),
+            keyboardType: isEmail
+                ? TextInputType.emailAddress
+                : (isPhone ? TextInputType.phone : TextInputType.text),
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.black12,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 15,
+                vertical: 15,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
             ),
           ),
         ],

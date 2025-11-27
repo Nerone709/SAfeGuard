@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 // --- IMPORTA IL MODELLO ---
 import 'package:data_models/medical_item.dart';
+
 class AllergieScreen extends StatefulWidget {
   const AllergieScreen({super.key});
 
@@ -41,11 +42,18 @@ class _AllergieScreenState extends State<AllergieScreen> {
           children: [
             // HEADER
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 10.0,
+              ),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 28),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -82,12 +90,18 @@ class _AllergieScreenState extends State<AllergieScreen> {
                   borderRadius: BorderRadius.circular(25.0),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 10.0,
+                    horizontal: 5.0,
+                  ),
                   child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15.0,
+                      vertical: 10.0,
+                    ),
                     itemCount: allergie.length,
                     separatorBuilder: (context, index) => Divider(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       thickness: 1,
                     ),
                     itemBuilder: (context, index) {
@@ -95,7 +109,8 @@ class _AllergieScreenState extends State<AllergieScreen> {
                         // --- MODIFICA: Accesso alla proprietà .name ---
                         text: allergie[index].name,
                         onEdit: () => _openDialog(isEdit: true, index: index),
-                        onDelete: () => setState(() => allergie.removeAt(index)),
+                        onDelete: () =>
+                            setState(() => allergie.removeAt(index)),
                         deleteColor: deleteColor,
                       );
                     },
@@ -107,7 +122,11 @@ class _AllergieScreenState extends State<AllergieScreen> {
 
             // BOTTONE AGGIUNGI
             Padding(
-              padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 30.0),
+              padding: const EdgeInsets.only(
+                left: 20.0,
+                right: 20.0,
+                bottom: 30.0,
+              ),
               child: InkWell(
                 onTap: () => _openDialog(isEdit: false),
                 child: Container(
@@ -117,7 +136,11 @@ class _AllergieScreenState extends State<AllergieScreen> {
                     color: addBtnColor,
                     borderRadius: BorderRadius.circular(20.0),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 5))
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
                     ],
                   ),
                   child: Row(
@@ -125,9 +148,17 @@ class _AllergieScreenState extends State<AllergieScreen> {
                     children: [
                       const Text(
                         "Aggiungi un’allergia",
-                        style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      Icon(Icons.add_circle_outline, color: Colors.greenAccent[400], size: 32),
+                      Icon(
+                        Icons.add_circle_outline,
+                        color: Colors.greenAccent[400],
+                        size: 32,
+                      ),
                     ],
                   ),
                 ),
@@ -139,19 +170,39 @@ class _AllergieScreenState extends State<AllergieScreen> {
     );
   }
 
-  Widget _buildItem({required String text, required VoidCallback onEdit, required VoidCallback onDelete, required Color deleteColor}) {
+  Widget _buildItem({
+    required String text,
+    required VoidCallback onEdit,
+    required VoidCallback onDelete,
+    required Color deleteColor,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           Row(
             children: [
-              IconButton(icon: const Icon(Icons.edit, color: Colors.white, size: 26), onPressed: onEdit),
-              IconButton(icon: Icon(Icons.delete_outline, color: deleteColor, size: 28), onPressed: onDelete),
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.white, size: 26),
+                onPressed: onEdit,
+              ),
+              IconButton(
+                icon: Icon(Icons.delete_outline, color: deleteColor, size: 28),
+                onPressed: onDelete,
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -170,21 +221,31 @@ class _AllergieScreenState extends State<AllergieScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF0E2A48),
-          title: Text(isEdit ? "Modifica allergia" : "Nuova allergia", style: const TextStyle(color: Colors.white)),
+          title: Text(
+            isEdit ? "Modifica allergia" : "Nuova allergia",
+            style: const TextStyle(color: Colors.white),
+          ),
           content: TextField(
             controller: _textController,
             style: const TextStyle(color: Colors.white),
             decoration: const InputDecoration(
               hintText: "Inserisci nome...",
               hintStyle: TextStyle(color: Colors.white54),
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.orange)),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.orange),
+              ),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Annulla", style: TextStyle(color: Colors.white70)),
+              child: const Text(
+                "Annulla",
+                style: TextStyle(color: Colors.white70),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),

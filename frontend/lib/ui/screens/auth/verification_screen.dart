@@ -117,27 +117,33 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         onPressed: authProvider.isLoading
                             ? null
                             : () async {
-                          final code = _getVerificationCode();
-                          if (code.length < 6) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Inserisci il codice completo")),
-                            );
-                            return;
-                          }
+                                final code = _getVerificationCode();
+                                if (code.length < 6) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Inserisci il codice completo",
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
 
-                          final navigator = Navigator.of(context);
+                                final navigator = Navigator.of(context);
 
-                          bool success = await authProvider.verifyCode(code);
+                                bool success = await authProvider.verifyCode(
+                                  code,
+                                );
 
-                          if (success) {
-                            navigator.pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                builder: (context) => const HomeScreen(),
-                              ),
-                                  (route) => false,
-                            );
-                          }
-                        },
+                                if (success) {
+                                  navigator.pushAndRemoveUntil(
+                                    MaterialPageRoute(
+                                      builder: (context) => const HomeScreen(),
+                                    ),
+                                    (route) => false,
+                                  );
+                                }
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: darkBlueButton,
                           shape: RoundedRectangleBorder(
@@ -206,7 +212,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                 decorationColor:
                                     authProvider.secondsRemaining == 0
                                     ? textWhite
-                                    : textWhite.withValues(alpha: 0.5)
+                                    : textWhite.withValues(alpha: 0.5),
                               ),
                             ),
                           ),

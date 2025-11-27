@@ -5,7 +5,6 @@ import 'package:frontend/ui/widgets/custom_bottom_nav_bar.dart';
 import 'package:frontend/ui/screens/home/home_page_content.dart';
 import 'package:frontend/ui/screens/medical/gestione_cartella_clinica_cittadino.dart';
 
-import '../profile/gestione_notifiche_cittadino.dart';
 import '../profile/profile_settings_screen.dart';
 // import 'package:frontend/ui/screens/profile/gestione_notifiche_cittadino.dart';
 // import 'package:frontend/ui/screens/profile/profile_settings_screen.dart';
@@ -38,8 +37,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ),
 
-    // 3. NOTIFICHE (Placeholder temporaneo)
-    const GestioneNotificheCittadino(),
+    // 3. AVVISI (Placeholder temporaneo)
+    const Center(
+      child: Text(
+        "Avvisi\nin lavorazione",
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Colors.white, fontSize: 24),
+      ),
+    ),
 
     // 4. IMPOSTAZIONI (Placeholder temporaneo)
     const ProfileSettingsScreen(isSoccorritore: false),
@@ -54,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF041528),
+      backgroundColor: const Color(0xFF0e2a48),
 
       // IndexedStack ora troverà sempre un widget per ogni indice (0-4)
       body: SafeArea(

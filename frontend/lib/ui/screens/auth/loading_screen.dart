@@ -41,7 +41,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 'assets/logo.png',
                 width: 200,
                 errorBuilder: (c, e, s) =>
-                const Icon(Icons.security, size: 150, color: Colors.orange),
+                    const Icon(Icons.security, size: 150, color: Colors.orange),
               ),
 
               const Spacer(),

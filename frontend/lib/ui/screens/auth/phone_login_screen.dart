@@ -92,20 +92,21 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       onPressed: authProvider.isLoading
                           ? null
                           : () async {
-                        final navigator = Navigator.of(context);
+                              final navigator = Navigator.of(context);
 
-                        bool success = await authProvider.sendPhoneCode(
-                          _phoneController.text,
-                        );
+                              bool success = await authProvider.sendPhoneCode(
+                                _phoneController.text,
+                              );
 
-                        if (success) {
-                          navigator.push(
-                            MaterialPageRoute(
-                              builder: (context) => const VerificationScreen(),
-                            ),
-                          );
-                        }
-                      },
+                              if (success) {
+                                navigator.push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const VerificationScreen(),
+                                  ),
+                                );
+                              }
+                            },
 
                       //PULSANTE PER ANDARE AVANTI
                       style: ElevatedButton.styleFrom(

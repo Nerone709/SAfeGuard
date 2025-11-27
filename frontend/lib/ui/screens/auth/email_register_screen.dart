@@ -107,30 +107,33 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                       onPressed: authProvider.isLoading
                           ? null
                           : () async {
-                        final navigator = Navigator.of(context);
-                        final messenger = ScaffoldMessenger.of(context);
+                              final navigator = Navigator.of(context);
+                              final messenger = ScaffoldMessenger.of(context);
 
-                        if (_passController.text != _repeatPassController.text) {
-                          messenger.showSnackBar(
-                            const SnackBar(content: Text("Le password non coincidono")),
-                          );
-                          return;
-                        }
+                              if (_passController.text !=
+                                  _repeatPassController.text) {
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Le password non coincidono"),
+                                  ),
+                                );
+                                return;
+                              }
 
-                        bool success = await authProvider.register(
-                          _emailController.text,
-                          _passController.text,
-                        );
+                              bool success = await authProvider.register(
+                                _emailController.text,
+                                _passController.text,
+                              );
 
-                        if (success) {
-                          navigator.pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (context) => const HomeScreen(),
-                            ),
-                                (route) => false,
-                          );
-                        }
-                      },
+                              if (success) {
+                                navigator.pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                    builder: (context) => const HomeScreen(),
+                                  ),
+                                  (route) => false,
+                                );
+                              }
+                            },
 
                       //PULSANTE CONTINUA
                       style: ElevatedButton.styleFrom(
@@ -162,8 +165,6 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
       ),
     );
   }
-
-
 
   //INSERIRE IN UN FILE A PARTE
   Widget _buildTextField(

@@ -17,7 +17,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
     MedicalItem(name: "Insulina"),
     MedicalItem(name: "Corticosteroidi"),
     MedicalItem(name: "Antidepressivi"),
-    ];
+  ];
 
   final TextEditingController _textController = TextEditingController();
 
@@ -41,11 +41,18 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
           children: [
             // HEADER
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 10.0,
+              ),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 28),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -59,14 +66,26 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 70, height: 70,
-                    decoration: const BoxDecoration(color: Color(0xFFE08E50), shape: BoxShape.circle),
-                    child: const Icon(Icons.medication_liquid, color: Colors.white, size: 40),
+                    width: 70,
+                    height: 70,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE08E50),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.medication_liquid,
+                      color: Colors.white,
+                      size: 40,
+                    ),
                   ),
                   const SizedBox(width: 20),
                   const Text(
                     "Medicinali",
-                    style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ],
               ),
@@ -82,18 +101,26 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                   borderRadius: BorderRadius.circular(25.0),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 10.0,
+                    horizontal: 5.0,
+                  ),
                   child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15.0,
+                      vertical: 10.0,
+                    ),
                     itemCount: medicinali.length,
-                    separatorBuilder: (context, index) => Divider(color: Colors.white.withOpacity(0.1)),
+                    separatorBuilder: (context, index) =>
+                        Divider(color: Colors.white.withValues(alpha: .1)),
                     itemBuilder: (context, index) {
                       return _buildItem(
                         // --- MODIFICA 2: Accediamo alla proprietà .name ---
-                          text: medicinali[index].name,
-                          onEdit: () => _openDialog(isEdit: true, index: index),
-                      onDelete: () => setState(() => medicinali.removeAt(index)),
-                      deleteColor: deleteColor,
+                        text: medicinali[index].name,
+                        onEdit: () => _openDialog(isEdit: true, index: index),
+                        onDelete: () =>
+                            setState(() => medicinali.removeAt(index)),
+                        deleteColor: deleteColor,
                       );
                     },
                   ),
@@ -104,7 +131,11 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
 
             // AGGIUNGI
             Padding(
-              padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 30.0),
+              padding: const EdgeInsets.only(
+                left: 20.0,
+                right: 20.0,
+                bottom: 30.0,
+              ),
               child: InkWell(
                 onTap: () => _openDialog(isEdit: false),
                 child: Container(
@@ -117,8 +148,19 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text("Aggiungi un farmaco", style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold)),
-                      Icon(Icons.add_circle_outline, color: Colors.greenAccent[400], size: 32),
+                      const Text(
+                        "Aggiungi un farmaco",
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Icon(
+                        Icons.add_circle_outline,
+                        color: Colors.greenAccent[400],
+                        size: 32,
+                      ),
                     ],
                   ),
                 ),
@@ -130,19 +172,39 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
     );
   }
 
-  Widget _buildItem({required String text, required VoidCallback onEdit, required VoidCallback onDelete, required Color deleteColor}) {
+  Widget _buildItem({
+    required String text,
+    required VoidCallback onEdit,
+    required VoidCallback onDelete,
+    required Color deleteColor,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           Row(
             children: [
-              IconButton(icon: const Icon(Icons.edit, color: Colors.white, size: 26), onPressed: onEdit),
-              IconButton(icon: Icon(Icons.delete_outline, color: deleteColor, size: 28), onPressed: onDelete),
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.white, size: 26),
+                onPressed: onEdit,
+              ),
+              IconButton(
+                icon: Icon(Icons.delete_outline, color: deleteColor, size: 28),
+                onPressed: onDelete,
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -160,19 +222,32 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF0E2A48),
-          title: Text(isEdit ? "Modifica farmaco" : "Nuovo farmaco", style: const TextStyle(color: Colors.white)),
+          title: Text(
+            isEdit ? "Modifica farmaco" : "Nuovo farmaco",
+            style: const TextStyle(color: Colors.white),
+          ),
           content: TextField(
             controller: _textController,
             style: const TextStyle(color: Colors.white),
             decoration: const InputDecoration(
               hintText: "Nome farmaco...",
               hintStyle: TextStyle(color: Colors.white54),
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.orange)),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.orange),
+              ),
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annulla", style: TextStyle(color: Colors.white70))),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                "Annulla",
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
               onPressed: () {
@@ -181,7 +256,9 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                     // --- MODIFICA 4: Creiamo nuovi oggetti MedicalItem ---
                     if (isEdit && index != null) {
                       // Sostituiamo l'oggetto esistente con uno nuovo che ha il nome aggiornato
-                      medicinali[index] = MedicalItem(name: _textController.text);
+                      medicinali[index] = MedicalItem(
+                        name: _textController.text,
+                      );
                     } else {
                       // Aggiungiamo un nuovo oggetto
                       medicinali.add(MedicalItem(name: _textController.text));

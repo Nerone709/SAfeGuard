@@ -20,7 +20,10 @@ class HomePageContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 10),
+            /*
+            // se ci sono avvisi recenti si deve attivare
             _buildEmergencyNotification(),
+             */
             const SizedBox(height: 25),
             _buildMapPlaceholder(),
             const SizedBox(height: 20),
@@ -33,7 +36,7 @@ class HomePageContent extends StatelessWidget {
       ),
     );
   }
-
+  /*// costruzione della notifica
   Widget _buildEmergencyNotification() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
@@ -75,6 +78,8 @@ class HomePageContent extends StatelessWidget {
       ),
     );
   }
+
+ */
 
   Widget _buildMapPlaceholder() {
     return Container(

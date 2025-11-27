@@ -65,7 +65,6 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                   ),
                   const SizedBox(height: 100),
 
-
                   //CAMPO PER INSERIRE IL NUMERO DI TELEFONO
                   TextField(
                     controller: _phoneController,
@@ -74,7 +73,8 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      hintText: "+39 ...", //PARTE INIZIALE PER IL PREFISSO ITALIANO
+                      hintText:
+                          "+39 ...", //PARTE INIZIALE PER IL PREFISSO ITALIANO
                       hintStyle: const TextStyle(color: Colors.grey),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 25,
@@ -95,20 +95,21 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                       onPressed: authProvider.isLoading
                           ? null
                           : () async {
-                        final navigator = Navigator.of(context);
+                              final navigator = Navigator.of(context);
 
-                        bool success = await authProvider.sendPhoneCode(
-                          _phoneController.text,
-                        );
+                              bool success = await authProvider.sendPhoneCode(
+                                _phoneController.text,
+                              );
 
-                        if (success) {
-                          navigator.push(
-                            MaterialPageRoute(
-                              builder: (context) => const VerificationScreen(),
-                            ),
-                          );
-                        }
-                      },
+                              if (success) {
+                                navigator.push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const VerificationScreen(),
+                                  ),
+                                );
+                              }
+                            },
 
                       //PULSANTE REGISTRATI
                       style: ElevatedButton.styleFrom(

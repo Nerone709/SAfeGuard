@@ -4,12 +4,13 @@ class CondizioniMedicheScreen extends StatefulWidget {
   const CondizioniMedicheScreen({super.key});
 
   @override
-  State<CondizioniMedicheScreen> createState() => _CondizioniMedicheScreenState();
+  State<CondizioniMedicheScreen> createState() =>
+      _CondizioniMedicheScreenState();
 }
 
 class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
   // Stato locale (In futuro andrà nel MedicalProvider)
-  bool _disabilitaMotorie = true;
+  bool _disabilitaMotorie = false;
   bool _disabilitaVisive = false;
   bool _disabilitaUditive = false;
   bool _disabilitaIntellettive = false;
@@ -28,11 +29,18 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
           children: [
             // --- HEADER ---
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 10.0,
+              ),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 28),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -79,29 +87,51 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
                   padding: const EdgeInsets.all(25.0),
                   child: ListView(
                     children: [
-                      _buildSwitchTile("Disabilità motorie", _disabilitaMotorie, (val) {
-                        setState(() => _disabilitaMotorie = val);
-                      }, activeSwitchColor),
+                      _buildSwitchTile(
+                        "Disabilità motorie",
+                        _disabilitaMotorie,
+                        (val) {
+                          setState(() => _disabilitaMotorie = val);
+                        },
+                        activeSwitchColor,
+                      ),
                       const SizedBox(height: 10),
 
-                      _buildSwitchTile("Disabilità visive", _disabilitaVisive, (val) {
+                      _buildSwitchTile("Disabilità visive", _disabilitaVisive, (
+                        val,
+                      ) {
                         setState(() => _disabilitaVisive = val);
                       }, activeSwitchColor),
                       const SizedBox(height: 10),
 
-                      _buildSwitchTile("Disabilità uditive", _disabilitaUditive, (val) {
-                        setState(() => _disabilitaUditive = val);
-                      }, activeSwitchColor),
+                      _buildSwitchTile(
+                        "Disabilità uditive",
+                        _disabilitaUditive,
+                        (val) {
+                          setState(() => _disabilitaUditive = val);
+                        },
+                        activeSwitchColor,
+                      ),
                       const SizedBox(height: 10),
 
-                      _buildSwitchTile("Disabilità intellettive", _disabilitaIntellettive, (val) {
-                        setState(() => _disabilitaIntellettive = val);
-                      }, activeSwitchColor),
+                      _buildSwitchTile(
+                        "Disabilità intellettive",
+                        _disabilitaIntellettive,
+                        (val) {
+                          setState(() => _disabilitaIntellettive = val);
+                        },
+                        activeSwitchColor,
+                      ),
                       const SizedBox(height: 10),
 
-                      _buildSwitchTile("Disabilità psichiche", _disabilitaPsichiche, (val) {
-                        setState(() => _disabilitaPsichiche = val);
-                      }, activeSwitchColor),
+                      _buildSwitchTile(
+                        "Disabilità psichiche",
+                        _disabilitaPsichiche,
+                        (val) {
+                          setState(() => _disabilitaPsichiche = val);
+                        },
+                        activeSwitchColor,
+                      ),
                     ],
                   ),
                 ),
@@ -114,7 +144,12 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
     );
   }
 
-  Widget _buildSwitchTile(String title, bool value, Function(bool) onChanged, Color activeColor) {
+  Widget _buildSwitchTile(
+    String title,
+    bool value,
+    Function(bool) onChanged,
+    Color activeColor,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
@@ -133,8 +168,8 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
             child: Switch(
               value: value,
               onChanged: onChanged,
-              activeColor: activeColor,
-              activeTrackColor: Colors.white.withOpacity(0.3),
+              activeThumbColor: activeColor,
+              activeTrackColor: Colors.white.withValues(alpha: 0.3),
               inactiveThumbColor: Colors.grey.shade300,
               inactiveTrackColor: Colors.white24,
             ),
