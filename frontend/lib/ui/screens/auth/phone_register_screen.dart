@@ -95,22 +95,20 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                       onPressed: authProvider.isLoading
                           ? null
                           : () async {
-                              // In una app reale qui potresti chiamare un endpoint diverso per la registrazione
-                              bool success = await authProvider.sendPhoneCode(
-                                _phoneController.text,
-                              );
+                        final navigator = Navigator.of(context);
 
-                              //SE FUNZIONA VIENI REINDIRIZZATO
-                              if (success && mounted) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const VerificationScreen(),
-                                  ),
-                                );
-                              }
-                            },
+                        bool success = await authProvider.sendPhoneCode(
+                          _phoneController.text,
+                        );
+
+                        if (success) {
+                          navigator.push(
+                            MaterialPageRoute(
+                              builder: (context) => const VerificationScreen(),
+                            ),
+                          );
+                        }
+                      },
 
                       //PULSANTE REGISTRATI
                       style: ElevatedButton.styleFrom(

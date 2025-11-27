@@ -86,28 +86,26 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ),
 
                   const Spacer(),
-                  //anche senza numero ti rimanda al codice OTP, visivamente funziona
                   SizedBox(
                     height: 55,
                     child: ElevatedButton(
                       onPressed: authProvider.isLoading
                           ? null
                           : () async {
-                              bool success = await authProvider.sendPhoneCode(
-                                _phoneController.text,
-                              );
+                        final navigator = Navigator.of(context);
 
-                              //CONTROLLO, SE FUNZIONA TI RIMANDA AL OTP
-                              if (success && mounted) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const VerificationScreen(), //OTP
-                                  ),
-                                );
-                              }
-                            },
+                        bool success = await authProvider.sendPhoneCode(
+                          _phoneController.text,
+                        );
+
+                        if (success) {
+                          navigator.push(
+                            MaterialPageRoute(
+                              builder: (context) => const VerificationScreen(),
+                            ),
+                          );
+                        }
+                      },
 
                       //PULSANTE PER ANDARE AVANTI
                       style: ElevatedButton.styleFrom(

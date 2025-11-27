@@ -107,32 +107,30 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                       onPressed: authProvider.isLoading
                           ? null
                           : () async {
-                              // CONTROLLO BASE DELLA PASSWORD
-                              if (_passController.text !=
-                                  _repeatPassController.text) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Le password non coincidono"),
-                                  ),
-                                );
-                                return;
-                              }
-                              bool success = await authProvider.register(
-                                _emailController.text,
-                                _passController.text,
-                              );
+                        final navigator = Navigator.of(context);
+                        final messenger = ScaffoldMessenger.of(context);
 
-                              //REINDIRIZZAMENTO SE IL CONTROLLO VA BENE
-                              if (success && mounted) {
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const HomeScreen(),
-                                  ),
-                                  (route) => false,
-                                );
-                              }
-                            },
+                        if (_passController.text != _repeatPassController.text) {
+                          messenger.showSnackBar(
+                            const SnackBar(content: Text("Le password non coincidono")),
+                          );
+                          return;
+                        }
+
+                        bool success = await authProvider.register(
+                          _emailController.text,
+                          _passController.text,
+                        );
+
+                        if (success) {
+                          navigator.pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const HomeScreen(),
+                            ),
+                                (route) => false,
+                          );
+                        }
+                      },
 
                       //PULSANTE CONTINUA
                       style: ElevatedButton.styleFrom(

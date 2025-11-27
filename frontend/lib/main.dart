@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/ui/screens/auth/loading_screen.dart';
-import 'package:frontend/ui/screens/auth/registration_screen.dart';
 import 'package:provider/provider.dart';
 
 // IMPORT DEI PROVIDER
@@ -8,8 +7,6 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/medical_provider.dart';
 import 'package:frontend/providers/emergency_provider.dart';
 
-// IMPORT DELLA SCHERMATA DI LOGIN
-import 'package:frontend/ui/screens/auth/login_screen.dart';
 
 void main() {
   runApp(

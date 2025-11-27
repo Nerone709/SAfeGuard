@@ -117,34 +117,27 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         onPressed: authProvider.isLoading
                             ? null
                             : () async {
-                                final code = _getVerificationCode();
+                          final code = _getVerificationCode();
+                          if (code.length < 6) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Inserisci il codice completo")),
+                            );
+                            return;
+                          }
 
-                                if (code.length < 6) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Inserisci il codice completo",
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
+                          final navigator = Navigator.of(context);
 
-                                // Chiamata al Provider
-                                bool success = await authProvider.verifyCode(
-                                  code,
-                                );
+                          bool success = await authProvider.verifyCode(code);
 
-                                if (success && mounted) {
-                                  // Navigazione alla Home e rimozione della storia precedente
-                                  Navigator.of(context).pushAndRemoveUntil(
-                                    MaterialPageRoute(
-                                      builder: (context) => const HomeScreen(),
-                                    ),
-                                    (route) => false,
-                                  );
-                                }
-                              },
+                          if (success) {
+                            navigator.pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                builder: (context) => const HomeScreen(),
+                              ),
+                                  (route) => false,
+                            );
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: darkBlueButton,
                           shape: RoundedRectangleBorder(

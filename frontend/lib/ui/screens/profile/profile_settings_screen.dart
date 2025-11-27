@@ -113,7 +113,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       const SizedBox(height: 10),
 
                       // Generazione dinamica della lista
-                      ...requests.map((req) => _buildRequestItem(req)).toList(),
+                      ...requests.map((req) => _buildRequestItem(req)),
                     ],
                   ),
                 ),

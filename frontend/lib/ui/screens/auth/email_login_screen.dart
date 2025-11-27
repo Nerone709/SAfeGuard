@@ -99,19 +99,17 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       onPressed: authProvider.isLoading
                           ? null
                           : () async {
+                              final navigator = Navigator.of(context);
                               bool success = await authProvider.login(
                                 _emailController.text,
                                 _passController.text,
                               );
-
-                              //CONTROLLO, SE OK VA SU HOMESCREEN
-                              if (success && mounted) {
-                                Navigator.pushAndRemoveUntil(
-                                  context,
+                              if (success) {
+                                navigator.pushAndRemoveUntil(
                                   MaterialPageRoute(
                                     builder: (context) => const HomeScreen(),
                                   ),
-                                  (route) => false,
+                                      (route) => false,
                                 );
                               }
                             },
