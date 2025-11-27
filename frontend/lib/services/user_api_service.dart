@@ -1,31 +1,44 @@
 import 'dart:convert';
-import 'dart:io'; // Necessario per controllare il sistema operativo (Platform)
-import 'package:flutter/foundation.dart'; // Necessario per controllare se è Web (kIsWeb)
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:data_models/user.dart';
 
 class UserApiService {
-  // Sostituisci la variabile 'final String _baseUrl' con questo getter dinamico.
-  // Questo codice viene eseguito ogni volta che richiami _baseUrl.
+  // 1. Definiamo le costanti prendendole dall'ambiente di compilazione
+  // Se non vengono passate (es. avvio normale), usano il defaultValue.
+  static const String _envHost = String.fromEnvironment(
+    'SERVER_HOST',
+    defaultValue: 'http://localhost',
+  );
+  static const String _envPort = String.fromEnvironment(
+    'SERVER_PORT',
+    defaultValue: '8080',
+  );
+  static const String _envPrefix = String.fromEnvironment(
+    'API_PREFIX',
+    defaultValue: '',
+  );
+
   String get _baseUrl {
-    // 1. Controllo se siamo sul WEB
-    if (kIsWeb) {
-      return 'http://localhost:8080/api/v1/user';
+    String host = _envHost;
+
+    // 2. Logica specifica per Android Emulatore
+    // Se l'host è localhost (perché è il default o è stato passato così),
+    // su Android Emulatore deve diventare 10.0.2.2
+    if (!kIsWeb && Platform.isAndroid && host.contains('localhost')) {
+      host = host.replaceFirst('localhost', '10.0.2.2');
     }
-    // 2. Controllo se siamo su ANDROID (Emulatore)
-    else if (Platform.isAndroid) {
-      // L'emulatore vede il localhost del computer come 10.0.2.2
-      return 'http://10.0.2.2:8080/api/v1/user';
-    }
-    // 3. Fallback per iOS o Desktop
-    else {
-      return 'http://127.0.0.1:8080/api/v1/user';
-    }
+
+    // Se _envPort è "-1", non mettiamo nulla
+    final String portPart = _envPort == '-1' ? '' : ':$_envPort';
+
+    // 3. Costruisci l'URL finale
+    return '$host$portPart$_envPrefix/user';
   }
 
   Future<User> fetchUser(int userId) async {
     try {
-      // Usa il getter _baseUrl
       final response = await http.get(Uri.parse('$_baseUrl/$userId'));
 
       if (response.statusCode == 200) {
@@ -35,7 +48,6 @@ class UserApiService {
         throw Exception('Errore server: ${response.statusCode}');
       }
     } catch (e) {
-      // È utile catturare l'errore per vedere se è un problema di connessione (SocketException)
       throw Exception('Errore di connessione: $e');
     }
   }
