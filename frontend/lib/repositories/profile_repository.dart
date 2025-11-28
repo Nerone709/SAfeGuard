@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:data_models/Condizione.dart';
 import 'package:data_models/ContattoEmergenza.dart';
+import 'package:data_models/Permesso.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart'; // Per kIsWeb
@@ -247,6 +248,51 @@ class ProfileRepository {
 
     if (response.statusCode != 200) {
       throw Exception('Errore aggiornamento condizioni: ${response.body}');
+    }
+  }
+
+  // --- GET PERMESSI ---
+  Future<Permesso> fetchPermessi() async {
+    final token = await _getToken();
+    // Usiamo la rotta base del profilo che restituisce tutto l'utente
+    final url = Uri.parse('$_baseUrl/api/profile/');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      // Estraiamo solo la parte relativa ai permessi
+      if (data['permessi'] != null) {
+        return Permesso.fromJson(data['permessi']);
+      }
+      return Permesso(); // Ritorna default (tutto false) se null
+    } else {
+      throw Exception('Impossibile caricare i permessi');
+    }
+  }
+
+  // --- UPDATE PERMESSI ---
+  Future<void> updatePermessi(Permesso permessi) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/permessi');
+
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(permessi.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Errore aggiornamento permessi: ${response.body}');
     }
   }
 }

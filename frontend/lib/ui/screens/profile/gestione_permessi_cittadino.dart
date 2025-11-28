@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:data_models/setting_item.dart'; // Import Model
+import 'package:provider/provider.dart';
+import 'package:frontend/providers/permission_provider.dart';
 
 class GestionePermessiCittadino extends StatefulWidget {
   const GestionePermessiCittadino({super.key});
@@ -10,14 +11,15 @@ class GestionePermessiCittadino extends StatefulWidget {
 }
 
 class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
-  // Lista permessi basata sul Model
-  final List<SettingItem> permissions = [
-    SettingItem(title: 'Accesso alla posizione', isEnabled: false),
-    SettingItem(title: 'Accesso ai contatti', isEnabled: false),
-    SettingItem(title: 'Notifiche di sistema', isEnabled: false),
-    SettingItem(title: 'Accesso alla memoria', isEnabled: false),
-    SettingItem(title: 'Accesso al Bluetooth', isEnabled: false),
-  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Carica i permessi reali dal server all'avvio [cite: 554]
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<PermissionProvider>(context, listen: false).loadPermessi();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +68,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
               ),
             ),
 
-            // LISTA
+            // LISTA DINAMICA DAL PROVIDER
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -76,32 +78,101 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
-                  child: ListView.separated(
-                    itemCount: permissions.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 15),
-                    itemBuilder: (context, index) {
-                      return _buildSwitchItem(permissions[index], activeColor);
+                  // Consumer ascolta i cambiamenti nel Provider [cite: 553]
+                  child: Consumer<PermissionProvider>(
+                    builder: (context, provider, child) {
+
+                      if (provider.isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (provider.errorMessage != null) {
+                        return Center(
+                            child: Text(
+                                "Errore: ${provider.errorMessage}",
+                                style: const TextStyle(color: Colors.red)
+                            )
+                        );
+                      }
+
+                      // Otteniamo l'oggetto Permesso attuale
+                      final permessi = provider.permessi;
+
+                      return ListView(
+                        children: [
+                          _buildSwitchItem(
+                              "Accesso alla posizione",
+                              permessi.posizione,
+                                  (val) {
+                                // Aggiorna il DB tramite provider
+                                provider.updatePermessi(
+                                    permessi.copyWith(posizione: val)
+                                );
+                              },
+                              activeColor
+                          ),
+                          const SizedBox(height: 15),
+
+                          _buildSwitchItem(
+                              "Accesso ai contatti",
+                              permessi.contatti,
+                                  (val) {
+                                provider.updatePermessi(
+                                    permessi.copyWith(contatti: val)
+                                );
+                              },
+                              activeColor
+                          ),
+                          const SizedBox(height: 15),
+
+                          _buildSwitchItem(
+                              "Notifiche di sistema",
+                              permessi.notificheSistema,
+                                  (val) {
+                                provider.updatePermessi(
+                                    permessi.copyWith(notificheSistema: val)
+                                );
+                              },
+                              activeColor
+                          ),
+                          const SizedBox(height: 15),
+
+                          _buildSwitchItem(
+                              "Accesso al Bluetooth",
+                              permessi.bluetooth,
+                                  (val) {
+                                provider.updatePermessi(
+                                    permessi.copyWith(bluetooth: val)
+                                );
+                              },
+                              activeColor
+                          ),
+                        ],
+                      );
                     },
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 320),
+            const SizedBox(height: 50), // Spazio inferiore ridotto
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSwitchItem(SettingItem item, Color activeColor) {
+  Widget _buildSwitchItem(
+      String title,
+      bool value,
+      Function(bool) onChanged,
+      Color activeColor
+      ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          // Expanded serve se il testo è lungo
           child: Text(
-            item.title,
+            title,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 18,
@@ -109,16 +180,16 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
             ),
           ),
         ),
-        Switch(
-          value: item.isEnabled,
-          onChanged: (val) {
-            setState(() {
-              item.isEnabled = val;
-            });
-          },
-          activeThumbColor: activeColor,
-          inactiveThumbColor: Colors.white,
-          inactiveTrackColor: Colors.grey.shade400,
+        Transform.scale(
+          scale: 1.1, // Switch leggermente più grande
+          child: Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: activeColor,
+            activeTrackColor: Colors.white.withValues(alpha: 0.3),
+            inactiveThumbColor: Colors.grey.shade300,
+            inactiveTrackColor: Colors.white24,
+          ),
         ),
       ],
     );
