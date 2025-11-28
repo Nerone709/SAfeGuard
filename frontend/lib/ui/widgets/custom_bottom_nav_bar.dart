@@ -6,8 +6,6 @@ class CustomBottomNavBar extends StatefulWidget {
   // Funzione di callback: comunica alla Home quale icona è stata premuta
   final Function(int) onIconTapped;
 
-
-
   const CustomBottomNavBar({
     super.key,
     required this.onIconTapped,
@@ -23,6 +21,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   @override
   Widget build(BuildContext context) {
     final isRescuer = context.watch<AuthProvider>().isRescuer;
+    final isLogged = true;
     // --- 1. CONFIGURAZIONE STILE IN BASE AL RUOLO ---
     final Color backgroundColor = isRescuer
         ? const Color(0xFF995618) // Marrone/Arancio (Soccorritore)
@@ -33,11 +32,12 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
 
     // --- 2. LISTA ICONE ---
     final List<IconData> navIcons = [
-      Icons.home_outlined,
-      isRescuer ? Icons.person_outline : Icons.medication_liquid_sharp,
+
+      ?isLogged ? Icons.home_outlined : null,
+      ?isLogged ? Icons.report_problem_outlined : null,
       Icons.map_outlined,
-      Icons.notifications_none,
-      Icons.settings_outlined,
+      ?isLogged ? Icons.notifications_none : null,
+      ?isLogged ? Icons.settings_outlined : null,
     ];
 
     return Container(

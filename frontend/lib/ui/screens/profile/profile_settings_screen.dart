@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 // IMPORT MODEL
 import 'package:data_models/help_request_item.dart';
+import 'package:frontend/providers/auth_provider.dart';
 
 // IMPORT SCHERMATE COLLEGATE
 import 'package:frontend/ui/screens/profile/gestione_notifiche_cittadino.dart';
 import 'package:frontend/ui/screens/profile/gestione_permessi_cittadino.dart';
 import 'package:frontend/ui/screens/profile/gestione_modifica_profilo_cittadino.dart';
 import 'package:frontend/ui/screens/medical/gestione_cartella_clinica_cittadino.dart';
+import 'package:provider/provider.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
-  final bool isSoccorritore;
-  const ProfileSettingsScreen({super.key, required this.isSoccorritore});
+
+  const ProfileSettingsScreen({super.key});
 
   @override
   State<ProfileSettingsScreen> createState() => _ProfileSettingsScreenState();
@@ -18,6 +20,7 @@ class ProfileSettingsScreen extends StatefulWidget {
 
 class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   // Dati simulati delle richieste (In futuro verranno dal Backend/Provider)
+
   final List<HelpRequestItem> requests = [
     HelpRequestItem(
       title: "Richiesta ambulanza",
@@ -48,8 +51,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color kCardColor = Color(0xFF12345A);
-    const Color kBackgroundColor = Color(0xFF0E2A48);
+    final isRescuer = context.watch<AuthProvider>().isRescuer;
+
+    Color kCardColor = isRescuer ? Color(0xFFD65D01) : Color(0xFF0E2A48);
+    Color kBackgroundColor = isRescuer ? Color(0xFFEF932D) : Color(0xFF12345A);
+    // const Color kCardColor = Color(0xFF12345A);  EF923D
+    // const Color kBackgroundColor = Color(0xFF0E2A48);
     const Color kAccentOrange = Color(0xFFEF923D);
 
     return Scaffold(
@@ -149,18 +156,21 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           const GestioneNotificheCittadino(),
                         ),
                       ),
-                      const SizedBox(width: 15),
-                      _buildSettingCard(
-                        "Cartella clinica",
-                        "Impostazioni",
-                        Icons.medical_services_outlined,
-                        Colors.white,
-                        kCardColor,
-                        () => _navigateTo(
-                          context,
-                          const GestioneCartellaClinicaCittadino(),
+                      ?!isRescuer ? const SizedBox(width: 15) : null,
+                      if(!isRescuer)
+                        _buildSettingCard(
+                          "Cartella clinica",
+                          "Cartella Clinica",
+                          Icons.medical_services_outlined,
+                          Colors.white,
+                          kCardColor,
+                              () => _navigateTo(
+                            context,
+                            const GestioneCartellaClinicaCittadino(),
+                          ),
                         ),
-                      ),
+
+
                       const SizedBox(width: 15),
                       _buildSettingCard(
                         "Permessi",
