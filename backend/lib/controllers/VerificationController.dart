@@ -5,6 +5,7 @@ import 'package:firedart/firedart.dart';
 class VerificationController {
   final Map<String, String> _headers = {'content-type': 'application/json'};
 
+  // Handler per l'API: POST /api/verify
   Future<Response> handleVerificationRequest(Request request) async {
     try {
       final String body = await request.readAsString();
@@ -13,13 +14,14 @@ class VerificationController {
       final Map<String, dynamic> data = jsonDecode(body);
       final String? email = data['email'];
       final String? telefono = data['telefono'];
-      final String? code = data['code'];
+      final String? code = data['code']; // Codice OTP inviato dal frontend
 
       if (code == null || (email == null && telefono == null)) {
         return _errorResponse('Dati mancanti (Email/Telefono e Codice richiesti).');
       }
 
-      // --- LOGICA IBRIDA ---
+      // Logica Ibrida: Email o Telefono
+      // Decide quale collezione usare (email_verifications o phone_verifications)
       String collectionName;
       String docId;
       String fieldNameForQuery;
@@ -44,10 +46,11 @@ class VerificationController {
       final verifyDoc = await verifyDocRef.get();
       final String serverOtp = verifyDoc['otp'];
 
-      // 2. Confronto
+      // 2. Confronto OTP
       if (serverOtp == code) {
-        // --- SUCCESSO ---
 
+        // Aggiornamente stato utente
+        // Trova l'utente corrispondente usando l'email/telefono
         final usersQuery = await Firestore.instance
             .collection('utenti')
             .where(fieldNameForQuery, isEqualTo: docId)
@@ -61,7 +64,7 @@ class VerificationController {
           });
         }
 
-        // B. Cancelliamo l'OTP usato (per sicurezza e pulizia)
+        //  Cancelliazzione dell'OTP usato
         await verifyDocRef.delete();
 
 
@@ -81,6 +84,7 @@ class VerificationController {
     }
   }
 
+  // Helper per costruire risposte di Errore 400 (Bad Request)
   Response _errorResponse(String msg) {
     return Response.badRequest(
       body: jsonEncode({'success': false, 'message': msg}),

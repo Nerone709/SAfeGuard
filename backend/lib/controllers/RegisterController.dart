@@ -11,6 +11,7 @@ import '../repositories/UserRepository.dart';
 import 'package:data_models/UtenteGenerico.dart';
 
 class RegisterController {
+  // 1. Inizializzazione del RegisterService con le sue dipendenze
   final RegisterService _registerService = RegisterService(
     UserRepository(),
     VerificationService(UserRepository(), SmsService()),
@@ -18,6 +19,7 @@ class RegisterController {
 
   final Map<String, String> _headers = {'content-type': 'application/json'};
 
+  // Handler per l'API: POST /api/auth/register
   Future<Response> handleRegisterRequest(Request request) async {
     try {
       final String body = await request.readAsString();
@@ -33,18 +35,13 @@ class RegisterController {
       final nome = requestData['nome'] as String?;
       final cognome = requestData['cognome'] as String?;
 
+      // Rimuove i campi sensibili/temporanei prima di passare i dati al RegisterService
       requestData.remove('password');
       requestData.remove('confermaPassword');
 
-      // 1. VALIDAZIONE CAMPI
       if ((email == null || email.isEmpty) && (telefono == null || telefono.isEmpty)) {
         return _badRequest('Inserisci Email o Numero di Telefono.');
       }
-
-      /* Generazione Password fittizia per telefono
-      if (telefono != null && (password == null || password.isEmpty)) {
-        password = _generateRandomPassword();
-      }*/
 
       if (password == null || password.isEmpty) {
         return _badRequest('Password obbligatoria.');
@@ -58,12 +55,14 @@ class RegisterController {
         return _badRequest('Nome e Cognome sono obbligatori.');
       }
 
-      // 2. CHIAMATA AL SERVICE
+      // 2. Chiamata al RegisterService
+      // Delega la creazione dell'utente, l'hashing della password e il salvataggio nel DB.
       final UtenteGenerico user = await _registerService.register(requestData, password);
 
-      // 3. OTP EMAIL
+      // 3. Avvio del processo di verifica (OTP email)
       if (email != null && (telefono == null || telefono.isEmpty)) {
         final String otpCode = _generateOTP();
+        // Salva l'OTP nel database in attesa di verifica
         await Firestore.instance.collection('email_verifications').document(email).set({
           'otp': otpCode,
           'email': email,
@@ -72,6 +71,7 @@ class RegisterController {
         });
       }
 
+      // Rimuove l'hash della password prima di inviare i dati utente al frontend
       final responseBody = {
         'success': true,
         'message': 'Registrazione avviata.',
@@ -86,6 +86,7 @@ class RegisterController {
     }
   }
 
+  // Helper per costruire risposte di Errore 400 (Bad Request)
   Response _badRequest(String message) {
     return Response.badRequest(
       body: jsonEncode({'success': false, 'message': message}),
@@ -93,11 +94,8 @@ class RegisterController {
     );
   }
 
+  // Genera un codice OTP a 6 cifre
   String _generateOTP() {
     return (Random().nextInt(900000) + 100000).toString();
   }
-
-  /*String _generateRandomPassword() {
-    return 'PhoneUser_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(999)}!';
-  }*/
 }
