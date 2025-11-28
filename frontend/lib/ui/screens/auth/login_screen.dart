@@ -43,7 +43,7 @@ class LoginScreen extends StatelessWidget {
           'assets/logo.png',
           height: 40,
           errorBuilder: (c, e, s) =>
-              const Icon(Icons.shield, color: Colors.white),
+          const Icon(Icons.shield, color: Colors.white),
         ),
         actions: [
           TextButton(
@@ -82,19 +82,13 @@ class LoginScreen extends StatelessWidget {
             child: Column(
               children: [
                 const SizedBox(height: 20),
-                // HEADER
+                // HEADER - SEZIONE MODIFICATA
                 Padding(
                   padding: const EdgeInsets.fromLTRB(25, 5, 25, 10),
                   child: Row(
+                    // === MODIFICA QUI: Inverti l'ordine per specchiare ===
                     children: [
-                      Image.asset(
-                        'assets/stylizedMascot.png',
-                        width: 100,
-                        color: darkBlue,
-                        errorBuilder: (c, e, s) =>
-                            Icon(Icons.shield, size: 80, color: darkBlue),
-                      ),
-                      const SizedBox(width: 20),
+                      // 1. Blocco Testo (Precedentemente 2° elemento)
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -119,7 +113,24 @@ class LoginScreen extends StatelessWidget {
                           ],
                         ),
                       ),
+
+                      const SizedBox(width: 20), // Spaziatura
+
+                      // 2. Mascot (Precedentemente 1° elemento)
+                      // === APPLICAZIONE DELLA ROTAZIONE SPECCHIATA ALLA MASCOT ===
+                      Transform.flip(
+                        flipX: true, // Specchia orizzontalmente
+                        child: Image.asset(
+                          'assets/stylizedMascot.png',
+                          width: 100,
+                          color: darkBlue,
+                          errorBuilder: (c, e, s) =>
+                              Icon(Icons.shield, size: 80, color: darkBlue),
+                        ),
+                      ),
+                      // ====================================================
                     ],
+                    // ====================================================
                   ),
                 ),
 
@@ -210,7 +221,7 @@ class LoginScreen extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      const RegistrationScreen(),
+                                  const RegistrationScreen(),
                                 ),
                               ),
 
