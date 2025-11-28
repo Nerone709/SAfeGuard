@@ -22,8 +22,14 @@ class _HomeScreenState extends State<HomeScreen> {
     // 0. HOME (Esiste già)
     const HomePageContent(),
 
-    // 1. UTENTE (Placeholder temporaneo)
-    const GestioneCartellaClinicaCittadino(),
+    // 1. REPORT (Placeholder temporaneo)
+    const Center(
+      child: Text(
+        "Report specifico\n(In lavorazione)",
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Colors.white, fontSize: 24),
+      ),
+    ),
 
     // 2. MAPPA (Placeholder temporaneo)
     const Center(
@@ -37,14 +43,14 @@ class _HomeScreenState extends State<HomeScreen> {
     // 3. AVVISI (Placeholder temporaneo)
     const Center(
       child: Text(
-        "Avvisi\nin lavorazione",
+        "Avvisi\n(In lavorazione)",
         textAlign: TextAlign.center,
         style: TextStyle(color: Colors.white, fontSize: 24),
       ),
     ),
 
     // 4. IMPOSTAZIONI (Placeholder temporaneo)
-    const ProfileSettingsScreen(isSoccorritore: false),
+    const ProfileSettingsScreen(),
   ];
 
   void _onTabChange(int index) {

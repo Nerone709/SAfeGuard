@@ -27,8 +27,18 @@ class GestioneCartellaClinicaCittadino extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
+
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+
                   const Icon(
                     Icons.assignment_ind_outlined,
                     color: Colors.white70,

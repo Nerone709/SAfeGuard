@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/ui/screens/auth/registration_screen.dart';
 import 'package:frontend/ui/screens/home/confirm_emergency_screen.dart';
 import 'package:frontend/ui/screens/medical/contatti_emergenza_screen.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,7 @@ import 'package:frontend/ui/widgets/emergency_item.dart';
 
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});
+
 
   // Colori della pagina
   final Color darkBlue = const Color(0xFF041528);
@@ -18,6 +20,8 @@ class HomePageContent extends StatelessWidget {
     final isRescuer = context
         .watch<AuthProvider>()
         .isRescuer;
+
+
     // Permette lo scroll se lo schermo è piccolo
     return SingleChildScrollView(
       child: Padding(
@@ -47,6 +51,8 @@ class HomePageContent extends StatelessWidget {
   }
 
   /*// costruzione della notifica
+  // mettere controllo su isLogged
+
   Widget _buildEmergencyNotification() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
@@ -133,41 +139,87 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
+
   Widget _buildEmergencyContactsButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ContattiEmergenzaScreen(),
-          ),
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: amberOrange,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-        elevation: 5,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.person_pin_circle, color: darkBlue, size: 28),
-          const SizedBox(width: 10),
-          Text(
-            "Contatti di Emergenza",
-            style: TextStyle(
-              color: darkBlue,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+    // controllo se l'utente è loggato, se lo è mostro i contatti di emergenza se no mostra il tasto per andare alla registrazione
+    final isLogged = true;
+    if(!isLogged){
+
+      //return Text("");
+
+      return ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const RegistrationScreen(),
             ),
-          ),
-        ],
-      ),
-    );
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+          elevation: 5,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(width: 10),
+            Text(
+              "Registrati",
+              style: TextStyle(
+                color: darkBlue,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+      return ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ContattiEmergenzaScreen(),
+            ),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: amberOrange,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+          elevation: 5,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.person_pin_circle, color: darkBlue, size: 28),
+            const SizedBox(width: 10),
+            Text(
+              "Contatti di Emergenza",
+              style: TextStyle(
+                color: darkBlue,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+      );
+
   }
 
+
   Widget _buildSosSection(BuildContext context) {
+    // controllo se l'utente è loggato, se lo è mostro il pulsante di SOS se no niente
+    final isLogged = true;
+    if(!isLogged){
+      return Text("");
+    }
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
