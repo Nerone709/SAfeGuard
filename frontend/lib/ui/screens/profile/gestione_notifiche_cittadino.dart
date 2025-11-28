@@ -11,11 +11,11 @@ class GestioneNotificheCittadino extends StatefulWidget {
 class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
   // Lista notifiche basata sul Model
   final List<SettingItem> permissions = [
-    SettingItem(title: 'Notifiche1', isEnabled: false),
-    SettingItem(title: 'Notifiche1', isEnabled: false),
-    SettingItem(title: 'Notifiche1', isEnabled: false),
-    SettingItem(title: 'Notifiche1', isEnabled: false),
-    SettingItem(title: 'Notifiche1', isEnabled: false),
+    SettingItem(title: 'Notifiche SMS', isEnabled: false),
+    SettingItem(title: 'Notifiche e-mail', isEnabled: false),
+    SettingItem(title: 'Silenzia notifiche', isEnabled: false),
+    SettingItem(title: 'Notifiche push', isEnabled: false),
+    SettingItem(title: 'Aggiornamenti', isEnabled: false),
   ];
 
   @override
