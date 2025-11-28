@@ -49,13 +49,13 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: SingleChildScrollView( // Aggiunto per evitare overflow con la tastiera
+              child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 30),
                     const Text(
-                      "Registrati col numero",
+                      "Registrazione",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
@@ -65,9 +65,11 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                     ),
                     const SizedBox(height: 40),
 
+                    // CAMPO NOME
                     _buildTextField("Nome", _nameController),
                     const SizedBox(height: 15),
 
+                    // CAMPO COGNOME
                     _buildTextField("Cognome", _surnameController),
                     const SizedBox(height: 15),
 
@@ -88,11 +90,11 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 15),
 
                     // INPUT PASSWORD
                     _buildTextField("Password", _passController, isPassword: true),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 15),
 
                     // INPUT RIPETI PASSWORD
                     _buildTextField("Ripeti Password", _repeatPassController, isPassword: true),
@@ -107,7 +109,7 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                         ),
                       ),
 
-                    const SizedBox(height: 40), // Spaziatura prima del bottone
+                    const SizedBox(height: 30),
 
                     // BOTTONE REGISTRATI
                     SizedBox(
@@ -117,9 +119,10 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                             ? null
                             : () async {
                           final navigator = Navigator.of(context);
-                          final phone = _phoneController.text.trim();
+                          final phone = _phoneController.text.trim().replaceAll(' ', ''); // Pulizia spazi
                           final nome = _nameController.text.trim();
                           final cognome = _surnameController.text.trim();
+                          final password = _passController.text;
 
                           if (phone.isEmpty || phone.length < 5) {
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Inserisci un numero valido")));
@@ -129,48 +132,36 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Nome e Cognome obbligatori")));
                             return;
                           }
-                          if (_passController.text != _repeatPassController.text) {
+                          if (password != _repeatPassController.text) {
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Le password non coincidono")));
                             return;
                           }
-                          if (_passController.text.isEmpty) {
+                          if (password.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Inserisci una password")));
                             return;
                           }
 
+                          // ⚠️ CORREZIONE QUI SOTTO: Passiamo i controller giusti!
                           bool success = await authProvider.startPhoneAuth(
                               phone,
-                              password: _passController.text, // Passiamo la password!
-                              nome: _passController.text,
-                              cognome: _passController.text
+                              password: password,
+                              nome: nome,         // <--- ORA È GIUSTO (_nameController)
+                              cognome: cognome    // <--- ORA È GIUSTO (_surnameController)
                           );
 
                           if (success && mounted) {
-                            navigator.push(
-                              MaterialPageRoute(
-                                builder: (context) => const VerificationScreen(),
-                              ),
-                            );
+                            navigator.push(MaterialPageRoute(builder: (context) => const VerificationScreen()));
                           }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: buttonColor,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                           side: const BorderSide(color: Colors.white12, width: 1),
                         ),
                         child: authProvider.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text(
-                          "REGISTRATI",
-                          style: TextStyle(
-                            fontSize: 35,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
+                            : const Text("REGISTRATI", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
                       ),
                     ),
                     const SizedBox(height: 50),
@@ -184,12 +175,7 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
     );
   }
 
-  // Widget Helper per i campi di testo
-  Widget _buildTextField(
-      String hint,
-      TextEditingController controller, {
-        bool isPassword = false,
-      }) {
+  Widget _buildTextField(String hint, TextEditingController controller, {bool isPassword = false}) {
     return TextField(
       controller: controller,
       obscureText: isPassword,
@@ -199,14 +185,8 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
         fillColor: Colors.white,
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.grey),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 25,
-          vertical: 20,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
       ),
     );
   }
