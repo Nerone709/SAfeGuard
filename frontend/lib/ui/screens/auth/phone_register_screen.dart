@@ -13,6 +13,8 @@ class PhoneRegisterScreen extends StatefulWidget {
 class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
   // Controller inizializzato col prefisso
   final TextEditingController _phoneController = TextEditingController(text: "+39");
+  final TextEditingController _passController = TextEditingController();
+  final TextEditingController _repeatPassController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -45,107 +47,163 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 50),
-                  const Text(
-                    "Registrati col numero",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 100),
-
-                  // INPUT TELEFONO
-                  TextField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    style: const TextStyle(color: Colors.black),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
-                      hintText: "+39 ...",
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
+              child: SingleChildScrollView( // Aggiunto per evitare overflow con la tastiera
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 50),
+                    const Text(
+                      "Registrati col numero",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                        height: 1.2,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 80),
 
-                  if (authProvider.errorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: Text(
-                        authProvider.errorMessage!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-
-                  const Spacer(),
-
-                  // BOTTONE REGISTRATI
-                  SizedBox(
-                    height: 55,
-                    child: ElevatedButton(
-                      onPressed: authProvider.isLoading
-                          ? null
-                          : () async {
-                        final navigator = Navigator.of(context);
-                        final phone = _phoneController.text.trim();
-
-                        if (phone.isEmpty || phone.length < 5) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Inserisci un numero valido")),
-                          );
-                          return;
-                        }
-
-                        // CHIAMATA AL PROVIDER
-                        bool success = await authProvider.startPhoneAuth(phone);
-
-                        // Se successo, vai alla verifica OTP
-                        if (success && mounted) {
-                          navigator.push(
-                            MaterialPageRoute(
-                              builder: (context) => const VerificationScreen(),
-                            ),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: buttonColor,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
+                    // INPUT TELEFONO
+                    TextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      style: const TextStyle(color: Colors.black),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: "+39 ...",
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+                        border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
-                        ),
-                        side: const BorderSide(color: Colors.white12, width: 1),
-                      ),
-                      child: authProvider.isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                        "REGISTRATI",
-                        style: TextStyle(
-                          fontSize: 35,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
+                          borderSide: BorderSide.none,
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 100),
-                ],
+                    const SizedBox(height: 20),
+
+                    // INPUT PASSWORD
+                    _buildTextField("Password", _passController, isPassword: true),
+                    const SizedBox(height: 20),
+
+                    // INPUT RIPETI PASSWORD
+                    _buildTextField("Ripeti Password", _repeatPassController, isPassword: true),
+
+                    if (authProvider.errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Text(
+                          authProvider.errorMessage!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+
+                    const SizedBox(height: 40), // Spaziatura prima del bottone
+
+                    // BOTTONE REGISTRATI
+                    SizedBox(
+                      height: 55,
+                      child: ElevatedButton(
+                        onPressed: authProvider.isLoading
+                            ? null
+                            : () async {
+                          final navigator = Navigator.of(context);
+                          final phone = _phoneController.text.trim();
+
+                          if (phone.isEmpty || phone.length < 5) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Inserisci un numero valido")),
+                            );
+                            return;
+                          }
+
+                          // Controllo Password coincidenti
+                          if (_passController.text != _repeatPassController.text) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Le password non coincidono")),
+                            );
+                            return;
+                          }
+
+                          if (_passController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Inserisci una password")),
+                            );
+                            return;
+                          }
+
+                          // CHIAMATA AL PROVIDER
+                          // NOTA: Aggiorna il metodo nel provider per accettare anche la password
+                          bool success = await authProvider.startPhoneAuth(
+                            phone,
+                            // password: _passController.text // Decommenta e adatta al tuo provider
+                          );
+
+                          // Se successo, vai alla verifica OTP
+                          if (success && mounted) {
+                            navigator.push(
+                              MaterialPageRoute(
+                                builder: (context) => const VerificationScreen(),
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: buttonColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          side: const BorderSide(color: Colors.white12, width: 1),
+                        ),
+                        child: authProvider.isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text(
+                          "REGISTRATI",
+                          style: TextStyle(
+                            fontSize: 35,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 50),
+                  ],
+                ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Widget Helper per i campi di testo
+  Widget _buildTextField(
+      String hint,
+      TextEditingController controller, {
+        bool isPassword = false,
+      }) {
+    return TextField(
+      controller: controller,
+      obscureText: isPassword,
+      style: const TextStyle(color: Colors.black),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.grey),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 25,
+          vertical: 20,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }
