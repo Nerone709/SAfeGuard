@@ -8,7 +8,9 @@ import 'package:data_models/Utente.dart';
 import '../repositories/UserRepository.dart';
 import 'VerificationService.dart';
 
+// Lista domini Soccorritori (Allineata con LoginService e ProfileService)
 const List<String> rescuerDomains = [
+  '@soccorritore.com',
   '@soccorritore.gmail',
   '@crocerossa.it',
   '@118.it',
@@ -16,6 +18,7 @@ const List<String> rescuerDomains = [
 ];
 
 class RegisterService {
+  // Dipendenze: Repository per il DB e Service per la verifica
   final UserRepository _userRepository;
   final VerificationService _verificationService;
 
@@ -36,7 +39,7 @@ class RegisterService {
     final nome = requestData['nome'] as String?;
     final cognome = requestData['cognome'] as String?;
 
-    // 1. Validazione: Almeno uno dei due deve esistere
+    // 1. Validazione Campi
     if (password.isEmpty || (email == null && telefono == null)) {
       throw Exception('Devi fornire Password e almeno Email o Telefono.');
     }
@@ -45,6 +48,8 @@ class RegisterService {
       throw Exception('Nome e Cognome sono obbligatori.');
     }
 
+    // 2. Validazione Unicità
+    // Controlla se l'email o il telefono sono già registrati nel DataBase
     if (email != null && await _userRepository.findUserByEmail(email) != null) {
       throw Exception('Utente con questa email è già registrato.');
     }
@@ -52,20 +57,23 @@ class RegisterService {
       throw Exception('Utente con questo telefono è già registrato.');
     }
 
-    // Invece di salvare la password in chiaro, salviamo l'hash
+    // 3. Preparazione Dati
+    // Sostituisce la password in chiaro con l'hash
     requestData['passwordHash'] = _hashPassword(password);
 
+    // Imposta campi di stato iniziali
     requestData['id'] = 0;
     requestData['isVerified'] = false;
     requestData['attivo'] = false;
 
+    // 4. Classificazione Utente
     bool isSoccorritore = false;
     if (email != null) {
       isSoccorritore = rescuerDomains.any((domain) => email.toLowerCase().endsWith(domain));
     }
     requestData['isSoccorritore'] = isSoccorritore;
 
-    // 5. Creazione Oggetto
+    // 5. Creazione Oggetto Modello
     final UtenteGenerico newUser;
     if (isSoccorritore) {
       newUser = Soccorritore.fromJson(requestData);
@@ -73,14 +81,16 @@ class RegisterService {
       newUser = Utente.fromJson(requestData);
     }
 
-    // 6. Salvataggio
+    // 6. Salvataggio nel DataBase
     final savedUser = await _userRepository.saveUser(newUser);
 
     // 7. Avvio Verifica Telefono (se presente)
     if (savedUser.telefono != null && savedUser.telefono!.isNotEmpty) {
       try {
+        // Delega al VerificationService l'invio dell'OTP
         await _verificationService.startPhoneVerification(savedUser.telefono!);
       } catch (e) {
+        // Registra l'errore SMS, ma non blocca la registrazione (l'utente può riprovare)
         print("Errore durante l'invio dell'SMS: $e");
       }
     }

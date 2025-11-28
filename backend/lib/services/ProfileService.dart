@@ -1,3 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:crypto/crypto.dart';
+
 import '../repositories/UserRepository.dart';
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
@@ -7,39 +12,45 @@ import 'package:data_models/Notifica.dart';
 import 'package:data_models/Condizione.dart';
 import 'package:data_models/ContattoEmergenza.dart';
 
+// Lista domini Soccorritori (Allineata con LoginService e RegisterService)
+const List<String> rescuerDomains = [
+  '@soccorritore.com',
+  '@soccorritore.gmail',
+  '@crocerossa.it',
+  '@118.it',
+  '@protezionecivile.it',
+];
+
 class ProfileService {
+  // Dipendenza dal Repository per l'accesso ai dati
   final UserRepository _userRepository = UserRepository();
 
-  // LISTA DOMINI SOCCORRITORI (Deve coincidere con LoginService e RegisterService)
-  static const List<String> rescuerDomains = [
-    '@soccorritore.com',
-    '@soccorritore.gmail',
-    '@crocerossa.it',
-    '@118.it',
-    '@protezionecivile.it',
-  ];
+  String _hashPassword(String password) {
+    final secret = Platform.environment['HASH_SECRET'] ?? 'fallback_secret_dev';
+    final bytes = utf8.encode(password + secret);
+    return sha256.convert(bytes).toString();
+  }
 
-  // --- 1. GET PROFILE ---
+  // 1. GET Profilo
+  // Recupera i dati grezzi e li trasforma nell'oggetto Utente/Soccorritore corretto
   Future<UtenteGenerico?> getProfile(int userId) async {
     try {
-      // Recupero raw data dal repository
+      // 1. Recupero dati dal Repository
       Map<String, dynamic>? data = await _userRepository.findUserById(userId);
 
       if (data != null) {
         final String email = data['email'] ?? '';
 
-        // Sicurezza: Rimuoviamo l'hash della password
+        // 2. Sicurezza: Rimuove l'hash della password prima di restituire i dati
         data.remove('passwordHash');
 
-        // Polimorfismo Manuale: controlla se l'email corrisponde a QUALSIASI dominio soccorritore
+        // 3. Logica di classificazione
         final bool isSoccorritore = rescuerDomains.any((domain) => email.toLowerCase().endsWith(domain));
 
         if (isSoccorritore) {
-          // Forza il flag a true nel caso mancasse nel DB
-          data['isSoccorritore'] = true;
+          data['isSoccorritore'] = true; // Assicura il flag corretto
           return Soccorritore.fromJson(data);
         } else {
-          // Se è un utente normale
           return Utente.fromJson(data);
         }
       }
@@ -50,9 +61,10 @@ class ProfileService {
     }
   }
 
-  // --- 2. UPDATE PERMESSI ---
+  // 2. UPDATE Permessi
   Future<bool> updatePermessi(int userId, Permesso permessi) async {
     try {
+      // Delega al UserRepository l'aggiornamento del campo 'permessi' con il JSON dell'oggetto
       await _userRepository.updateUserField(userId, 'permessi', permessi.toJson());
       return true;
     } catch (e) {
@@ -61,9 +73,10 @@ class ProfileService {
     }
   }
 
-  // --- 3. UPDATE CONDIZIONI ---
+  // 3. UPDATE Condizioni
   Future<bool> updateCondizioni(int userId, Condizione condizioni) async {
     try {
+      // Delega al UserRepository l'aggiornamento del campo 'condizioni' con il JSON dell'oggetto
       await _userRepository.updateUserField(userId, 'condizioni', condizioni.toJson());
       return true;
     } catch (e) {
@@ -72,9 +85,10 @@ class ProfileService {
     }
   }
 
-  // --- 4. UPDATE NOTIFICHE ---
+  // 4. UPDATE Notifiche
   Future<bool> updateNotifiche(int userId, Notifica notifiche) async {
     try {
+      // Delega al UserRepository l'aggiornamento del campo 'notifiche' con il JSON dell'oggetto
       await _userRepository.updateUserField(userId, 'notifiche', notifiche.toJson());
       return true;
     } catch (e) {
@@ -83,7 +97,7 @@ class ProfileService {
     }
   }
 
-  // --- 5. UPDATE ANAGRAFICA ---
+  // 5. UPDATE Aanagrafica
   Future<bool> updateAnagrafica(int userId, {
     String? nome,
     String? cognome,
@@ -93,6 +107,7 @@ class ProfileService {
     String? email,
   }) async {
     try {
+      // Costruisce la mappa di aggiornamento solo con i campi non nulli
       Map<String, dynamic> updates = {};
       if (nome != null) updates['nome'] = nome;
       if (cognome != null) updates['cognome'] = cognome;
@@ -102,6 +117,7 @@ class ProfileService {
       if (email != null && email.isNotEmpty) updates['email'] = email;
 
       if (updates.isNotEmpty) {
+        // Delega l'aggiornamento al UserRepository
         await _userRepository.updateUserGeneric(userId, updates);
       }
       return true;
@@ -111,7 +127,7 @@ class ProfileService {
     }
   }
 
-  // --- 6. GESTIONE ALLERGIE ---
+  // 6. Gestione Allergie
   Future<void> addAllergia(int userId, String allergia) async {
     await _userRepository.addToArrayField(userId, 'allergie', allergia);
   }
@@ -120,7 +136,7 @@ class ProfileService {
     await _userRepository.removeFromArrayField(userId, 'allergie', allergia);
   }
 
-  // --- 7. GESTIONE MEDICINALI ---
+  // 7. Gestione Medicinali
   Future<void> addMedicinale(int userId, String farmaco) async {
     await _userRepository.addToArrayField(userId, 'medicinali', farmaco);
   }
@@ -129,7 +145,7 @@ class ProfileService {
     await _userRepository.removeFromArrayField(userId, 'medicinali', farmaco);
   }
 
-  // --- 8. GESTIONE CONTATTI EMERGENZA ---
+  // 8. Gestione Contatti Emergenza
   Future<void> addContatto(int userId, ContattoEmergenza contatto) async {
     await _userRepository.addToArrayField(userId, 'contattiEmergenza', contatto.toJson());
   }
@@ -138,21 +154,20 @@ class ProfileService {
     await _userRepository.removeFromArrayField(userId, 'contattiEmergenza', contatto.toJson());
   }
 
-  // --- 9. GESTIONE ACCOUNT ---
+  // 9. Gestione Account
   Future<String?> updatePassword(int userId, String oldPassword, String newPassword) async {
     try {
       final userData = await _userRepository.findUserById(userId);
       if (userData == null) return "Utente non trovato";
 
-      final String storedHash = userData['passwordHash'] ?? '';
-
-      await _userRepository.updateUserField(userId, 'passwordHash', newPassword);
+      await _userRepository.updateUserField(userId, 'passwordHash', _hashPassword(newPassword));
       return null;
     } catch (e) {
       return "Errore cambio password: $e";
     }
   }
 
+  // 10. Eliminazione Account
   Future<bool> deleteAccount(int userId) async {
     try {
       return await _userRepository.deleteUser(userId);
@@ -162,18 +177,18 @@ class ProfileService {
     }
   }
 
-  // --- INIZIALIZZAZIONE ---
+  // Inizializza i campi del profilo con valori di default se sono assenti
   Future<void> initializeUserProfile(int userId) async {
     try {
       final existingUser = await _userRepository.findUserById(userId);
-      // Usiamo l'assenza del campo 'permessi' come flag per capire se l'utente è "nuovo"
+      // Controlla se il profilo ha già i campi di default
       if (existingUser != null && existingUser['permessi'] == null) {
         print("🆕 Inizializzazione profilo default...");
 
-        // Verifica se è soccorritore per eventuali default diversi
         final String email = existingUser['email'] ?? '';
         final bool isSoccorritore = rescuerDomains.any((domain) => email.toLowerCase().endsWith(domain));
 
+        // Crea gli oggetti modello con i valori di default
         final defaultPermessi = Permesso(
           posizione: false,
           contatti: false,
@@ -183,6 +198,7 @@ class ProfileService {
         final defaultCondizioni = Condizione();
         final defaultNotifiche = Notifica();
 
+        // Mappa dei dati da inserire
         Map<String, dynamic> initData = {
           'permessi': defaultPermessi.toJson(),
           'condizioni': defaultCondizioni.toJson(),

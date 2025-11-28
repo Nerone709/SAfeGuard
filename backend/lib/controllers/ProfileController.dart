@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import '../services/ProfileService.dart';
-import 'package:data_models/Utente.dart';
 import 'package:data_models/Permesso.dart';
 import 'package:data_models/Notifica.dart';
 import 'package:data_models/Condizione.dart';
 import 'package:data_models/ContattoEmergenza.dart';
 
 class ProfileController {
+  // Dipendenza: delega tutte le operazioni di database al ProfileService
   final ProfileService _profileService = ProfileService();
 
   // Helper per estrarre l'ID utente dal contesto (iniettato da AuthGuard)
@@ -25,7 +25,8 @@ class ProfileController {
     );
   }
 
-  // --- 1. GET /profile ---
+  // 1. GET /profile
+  // Recupera il profilo completo dell'utente loggato
   Future<Response> getProfile(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
@@ -38,7 +39,8 @@ class ProfileController {
     }
   }
 
-  // --- 2. PUT /profile/anagrafica ---
+  // 2. PUT /profile/anagrafica
+  // Aggiorna i campi base (nome, cognome, telefono, email, ecc.)
   Future<Response> updateAnagrafica(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
@@ -51,8 +53,7 @@ class ProfileController {
       cognome: body['cognome'],
       telefono: body['telefono'],
       citta: body['cittaDiNascita'],
-      // Passiamo l'email ricevuta dal frontend
-      email: body['email'], // <--- AGGIUNTO
+      email: body['email'],
       dataNascita: body['dataDiNascita'] != null ? DateTime.parse(body['dataDiNascita']) : null,
     );
 
@@ -63,7 +64,8 @@ class ProfileController {
     }
   }
 
-  // --- 3. PUT /profile/permessi ---
+  // 3. PUT /profile/permessi
+  // Aggiorna i permessi dell'utente
   Future<Response> updatePermessi(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
@@ -79,7 +81,8 @@ class ProfileController {
     }
   }
 
-    // --- 4. PUT /profile/condizioni ---
+  // 4. PUT /profile/condizioni
+  // Aggiorna le condizioni mediche dell'utente
   Future<Response> updateCondizioni(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
@@ -95,7 +98,8 @@ class ProfileController {
     }
   }
 
-  // --- 5. PUT /profile/notifiche ---
+  // 5. PUT /profile/notifiche
+  // Aggiorna le preferenze relative alle notifiche
   Future<Response> updateNotifiche(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
@@ -111,7 +115,8 @@ class ProfileController {
     }
   }
 
-  // --- 6. POST /profile/allergie ---
+  // 6. POST /profile/allergie
+  // Aggiunge un elemento alla lista delle allergie dell'utente
   Future<Response> addAllergia(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
@@ -122,7 +127,8 @@ class ProfileController {
     return _jsonResponse(201, body: {'message': 'Allergia aggiunta'});
   }
 
-  // --- 7. DELETE /profile/allergie ---
+  // 7. DELETE /profile/allergie
+  // Rimuove un elemento dalla lista delle allergie dell'utente
   Future<Response> removeAllergia(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
@@ -133,7 +139,8 @@ class ProfileController {
     return _jsonResponse(200, body: {'message': 'Allergia rimossa'});
   }
 
-    // --- 8. POST /profile/medicinali ---
+  // 8. POST /profile/medicinali
+  // Aggiunge un farmaco alla lista dei medicinali assunti dall'utente
   Future<Response> addMedicinale(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
@@ -144,7 +151,8 @@ class ProfileController {
     return _jsonResponse(201, body: {'message': 'Medicinale aggiunto'});
   }
 
-  // --- 9. DELETE /profile/medicinali ---
+  // 9. DELETE /profile/medicinali
+  // Rimuove un farmaco dalla lista dei medicinali assunti dall'utente
   Future<Response> removeMedicinale(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
@@ -155,7 +163,8 @@ class ProfileController {
     return _jsonResponse(200, body: {'message': 'Medicinale rimosso'});
   }
 
-  // --- 10. POST /profile/contatti ---
+  // 10. POST /profile/contatti
+  // Aggiunge un contatto di emergenza
   Future<Response> addContatto(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
@@ -166,7 +175,8 @@ class ProfileController {
     return _jsonResponse(201, body: {'message': 'Contatto aggiunto'});
   }
 
-  // --- 11. DELETE /profile/contatti ---
+  // 11. DELETE /profile/contatti
+  // Rimuove un contatto di emergenza
   Future<Response> removeContatto(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
@@ -177,7 +187,8 @@ class ProfileController {
     return _jsonResponse(200, body: {'message': 'Contatto rimosso'});
   }
 
-  // --- 12. PUT /profile/password ---
+  // 12. PUT /profile/password
+  // Aggiorna la password dell'utente richiesta password vecchia per la verifica
   Future<Response> updatePassword(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
@@ -194,7 +205,8 @@ class ProfileController {
     }
   }
 
-  // --- 13. DELETE /profile ---
+  // 13. DELETE /profile
+  // Elimina l'intero account utente
   Future<Response> deleteAccount(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});

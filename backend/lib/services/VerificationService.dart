@@ -2,6 +2,7 @@ import '../repositories/UserRepository.dart';
 import 'SmsService.dart';
 
 class VerificationService {
+  // Dipendenze: Repository per l'accesso al DB e SmsService per l'invio fisico dell'SMS
   final UserRepository _userRepository;
   final SmsService _smsService;
 
@@ -19,7 +20,7 @@ class VerificationService {
     final isOtpValid = await _userRepository.verifyOtp(telefono, otp);
 
     if (isOtpValid) {
-      // Logica di business: Trova l'utente registrato con questo telefono
+      // Trova l'utente registrato con questo telefono
       final userData = await _userRepository.findUserByPhone(telefono);
       if (userData != null) {
         final email = userData['email'] as String;

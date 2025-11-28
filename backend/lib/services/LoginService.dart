@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 // Per Platform.environment
-import 'package:crypto/crypto.dart'; // Importa crypto
+import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:data_models/Utente.dart';
@@ -10,7 +10,7 @@ import 'package:data_models/UtenteGenerico.dart';
 import '../repositories/UserRepository.dart';
 import 'JWTService.dart';
 
-// LISTA DOMINI SOCCORRITORI (Allineata con RegisterService)
+// Lista domini Soccorritori (Allineata con RegisterService e ProfileService)
 const List<String> rescuerDomains = [
   '@soccorritore.com',
   '@soccorritore.gmail',
@@ -20,6 +20,7 @@ const List<String> rescuerDomains = [
 ];
 
 class LoginService {
+  // Dipendenze: Repository per il DB e Service per la verifica
   final UserRepository _userRepository = UserRepository();
   final JWTService _jwtService = JWTService();
 
@@ -30,6 +31,7 @@ class LoginService {
     return sha256.convert(bytes).toString();
   }
 
+  // Confronta l'hash generato dalla password fornita con l'hash memorizzato
   bool _verifyPassword(String providedPassword, String storedHash) {
     final generatedHash = _hashPassword(providedPassword);
     return generatedHash == storedHash;
@@ -42,7 +44,7 @@ class LoginService {
 
   // Login con Google
   Future<Map<String, dynamic>?> loginWithGoogle(String googleIdToken) async {
-    // 1. Verifica del Token Google
+    // 1. Verifica Remota del Token Google (API di Google)
     final verifyUrl = Uri.parse(
       'https://oauth2.googleapis.com/tokeninfo?id_token=$googleIdToken',
     );
@@ -52,14 +54,12 @@ class LoginService {
       throw Exception('Token Google non valido o scaduto.');
     }
 
-    // 2. Estrazione Dati Utente dal Token
+    // 2. Estrazione Dati utente dal Token
     final payload = jsonDecode(response.body);
     final String email = payload['email'];
 
-// Google fornisce spesso 'given_name' e 'family_name'
     final String? firstName = payload['given_name'];
     final String? lastName = payload['family_name'];
-// Fallback sul nome completo se i parziali mancano
     final String fullName = payload['name'] ?? 'Utente Google';
 
     // 3. Controllo esistenza utente nel Database
@@ -71,8 +71,9 @@ class LoginService {
     // Determina il tipo in base alla lista dei domini
     final isSoccorritore = _isSoccorritore(email);
     userType = isSoccorritore ? 'Soccorritore' : 'users';
+
     if (userData != null) {
-      // Caso A: L'utente esiste già
+      // Caso A: L'utente esiste già (Login)
       userData.remove('passwordHash'); // Pulizia sicurezza
 
       if (isSoccorritore) {
@@ -84,9 +85,8 @@ class LoginService {
       // Caso B: Primo accesso (Registrazione Automatica)
       final newUserMap = {
         'email': email,
-        // Usa il first name, oppure spacca il full name, oppure usa l'intero nome come fallback
+        // Fallback per nome/cognome se Google non li fornisce separati
         'nome': firstName ?? fullName.split(' ').first,
-        // Usa il last name, oppure prova a prendere l'ultima parte del full name
         'cognome': lastName ?? (fullName.contains(' ') ? fullName.split(' ').last : ''),
         'telefono': null,
         'passwordHash': '',
@@ -94,10 +94,10 @@ class LoginService {
         'isSoccorritore': isSoccorritore, // Salviamo il flag esplicitamente
       };
 
-      // Salva nel DB tramite Repository
+      // Salva nel DB usando la collezione appropriata
       final createdUserData = await _userRepository.createUser(
         newUserMap,
-        collection: userType, // 'Soccorritore' o 'Utente'
+        collection: userType,
       );
 
       if (isSoccorritore) {
@@ -126,7 +126,7 @@ class LoginService {
     Map<String, dynamic>? userData;
     String finalEmail = '';
 
-    // 1. Tenta il login tramite EMAIL
+    // 1. Tenta il login tramite email
     if (email != null) {
       userData = await _userRepository.findUserByEmail(email);
       if (userData != null) {
@@ -134,7 +134,7 @@ class LoginService {
       }
     }
 
-    // 2. Se l'email fallisce, tenta il login tramite TELEFONO
+    // 2. Se l'email fallisce, tenta il login tramite telefono
     if (userData == null && telefono != null) {
       userData = await _userRepository.findUserByPhone(telefono);
       if (userData != null) {
@@ -147,6 +147,7 @@ class LoginService {
       return null;
     }
 
+    // Verifica la presenza dell'hash (gli utenti Google/Apple non hanno hash)
     final storedHash = (userData['passwordHash'] as String?) ?? '';
     if (storedHash.isEmpty) {
       throw Exception('Questo utente deve accedere tramite Google/Apple.');
@@ -157,13 +158,12 @@ class LoginService {
       return null;
     }
 
-    // 4. Determina il tipo di Utente e deserializza
+    // 4. Determina il tipo di utente e deserializza
     userData.remove('passwordHash');
 
     final UtenteGenerico user;
     final String userType;
 
-    // Controllo domini multipli
     if (_isSoccorritore(finalEmail)) {
       user = Soccorritore.fromJson(userData);
       userType = 'Soccorritore';
@@ -172,7 +172,7 @@ class LoginService {
       userType = 'Utente';
     }
 
-    // Genera il Token JWT
+    // 5. Genera il Token JWT per la sessione
     final token = _jwtService.generateToken(user.id!, userType);
     return {'user': user, 'token': token};
   }
@@ -180,7 +180,7 @@ class LoginService {
   // Login con Apple
   Future<Map<String, dynamic>?> loginWithApple({
     required String identityToken,
-    String? email,
+    String? email, // Email fornita dal client (disponibile solo al primo login)
     String? firstName,
     String? lastName,
   }) async {
@@ -192,10 +192,12 @@ class LoginService {
       throw Exception('Token Apple non valido o malformato.');
     }
 
+    // Validazione dell'emittente (issuer)
     if (payload['iss'] != 'https://appleid.apple.com') {
       throw Exception('Issuer non valido');
     }
 
+    // Prende l'email dal token o dal body della richiesta
     final String tokenEmail = payload['email'] as String? ?? '';
     final String finalEmail = tokenEmail.isNotEmpty ? tokenEmail : (email ?? '');
 
@@ -207,30 +209,22 @@ class LoginService {
     Map<String, dynamic>? userData = await _userRepository.findUserByEmail(finalEmail);
 
     UtenteGenerico user;
-
-    // Controllo domini multipli
     final isSoccorritore = _isSoccorritore(finalEmail);
     final userType = isSoccorritore ? 'Soccorritore' : 'users';
 
     if (userData != null) {
-      // CASO A: Utente già esistente
+      // Caso A: Utente già esistente (Login)
       userData.remove('passwordHash');
-      if (isSoccorritore) {
-        user = Soccorritore.fromJson(userData);
-      } else {
-        user = Utente.fromJson(userData);
-      }
+      user = isSoccorritore ? Soccorritore.fromJson(userData) : Utente.fromJson(userData);
     } else {
-      // CASO B: Primo accesso (Registrazione)
-      // Qui firstName e lastName sono importanti perché Apple non li rimanda più.
-
+      // Caso B: Primo accesso (Registrazione Automatica)
       final newUserMap = {
         'email': finalEmail,
         'nome': firstName ?? 'Utente Apple', // Fallback se manca il nome
         'cognome': lastName ?? '',
         'telefono': null,
         'passwordHash': '',
-        'fotoProfilo': null, // Apple non fornisce foto profilo
+        'fotoProfilo': null,
         'dataRegistrazione': DateTime.now().toIso8601String(),
         'authProvider': 'apple',
         'isSoccorritore': isSoccorritore,
@@ -241,11 +235,7 @@ class LoginService {
         collection: userType,
       );
 
-      if (isSoccorritore) {
-        user = Soccorritore.fromJson(createdUserData);
-      } else {
-        user = Utente.fromJson(createdUserData);
-      }
+      user = isSoccorritore ? Soccorritore.fromJson(createdUserData) : Utente.fromJson(createdUserData);
     }
 
     // 3. Generazione Token Interno
@@ -253,7 +243,7 @@ class LoginService {
     return {'user': user, 'token': token};
   }
 
-  // Helper per decodificare il JWT
+  // Helper per decodificare il Payload di un JWT
   Map<String, dynamic> _decodeJWTPayload(String token) {
     final parts = token.split('.');
     if (parts.length != 3) {

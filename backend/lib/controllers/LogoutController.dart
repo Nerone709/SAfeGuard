@@ -1,17 +1,17 @@
-// File: backend/lib/controllers/LogoutController.dart
-
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import '../services/LogoutService.dart';
 
 class LogoutController {
+  // Dipendenza: il Controller delega la logica di logout al LogoutService.
   final LogoutService _logoutService = LogoutService();
 
   // Handler per l'API: POST /api/auth/logout
   Future<Response> handleLogout(Request request) async {
 
-    // Assumiamo che il middleware di autenticazione abbia estratto l'ID utente dal token JWT
-    // e messo l'ID stringa nel contesto.
+    // 1. Estrazione ID Utente
+    // AuthGuard (controller che verifica il JWT) ha precedentemente iniettato
+    // l'ID utente nel contesto della richiesta.
     final userIdFromToken = request.context['userId'] as String?;
 
     if (userIdFromToken == null) {
@@ -20,11 +20,11 @@ class LogoutController {
     }
 
     try {
+      // 2. Chiamata a LogoutService
+      // Delega il compito di invalidare la sessione.
       final success = await _logoutService.signOut(userIdFromToken);
 
       if (success) {
-        // Risposta 200 OK per confermare la disconnessione
-        // Aggiungi un header per forzare la scadenza di cookie (se usati)
         return Response.ok(jsonEncode({'message': 'Logout completato.'}), headers: {'Content-Type': 'application/json'});
       } else {
         return Response.internalServerError(body: jsonEncode({'error': 'Disconnessione fallita lato server.'}));
