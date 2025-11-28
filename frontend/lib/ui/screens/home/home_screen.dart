@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:frontend/ui/widgets/custom_bottom_nav_bar.dart';
 
 import 'package:frontend/ui/screens/home/home_page_content.dart';
-import 'package:frontend/ui/screens/medical/gestione_cartella_clinica_cittadino.dart';
+//import 'package:frontend/ui/screens/medical/gestione_cartella_clinica_cittadino.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import '../profile/profile_settings_screen.dart';
+import 'package:frontend/ui/screens/map/map_screen.dart';
+import 'package:frontend/ui/screens/reports/reports_screen.dart';
 // import 'package:frontend/ui/screens/profile/gestione_notifiche_cittadino.dart';
 // import 'package:frontend/ui/screens/profile/profile_settings_screen.dart';
 
@@ -22,23 +24,11 @@ class _HomeScreenState extends State<HomeScreen> {
     // 0. HOME (Esiste già)
     const HomePageContent(),
 
-    // 1. REPORT (Placeholder temporaneo)
-    const Center(
-      child: Text(
-        "Report specifico\n(In lavorazione)",
-        textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.white, fontSize: 24),
-      ),
-    ),
+    // 1. REPORT
+    const ReportsScreen(),
 
-    // 2. MAPPA (Placeholder temporaneo)
-    const Center(
-      child: Text(
-        "Mappa\n(In lavorazione)",
-        textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.white, fontSize: 24),
-      ),
-    ),
+    // 2. MAPPA
+    const MapScreen(),
 
     // 3. AVVISI (Placeholder temporaneo)
     const Center(
