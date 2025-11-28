@@ -1,3 +1,4 @@
+import 'package:data_models/Condizione.dart';
 import 'package:data_models/ContattoEmergenza.dart';
 import 'package:flutter/material.dart';
 import 'package:data_models/medical_item.dart';
@@ -160,6 +161,44 @@ class MedicalProvider extends ChangeNotifier {
       _errorMessage = "Errore rimozione contatto: $e";
       notifyListeners();
       return false;
+    }
+  }
+
+
+
+  // Stato Condizioni
+  Condizione _condizioni = Condizione();// Default tutto false [cite: 361]
+  Condizione get condizioni => _condizioni;
+
+  // Caricamento dati
+  Future<void> loadCondizioni() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      _condizioni = await _profileRepository.fetchCondizioni();
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Aggiornamento (Toggle Switch)
+  Future<void> updateCondizioni(Condizione nuoveCondizioni) async {
+    // 1. Aggiornamento Ottimistico: aggiorniamo subito la UI per reattività
+    _condizioni = nuoveCondizioni;
+    notifyListeners();
+
+    try {
+      // 2. Chiamata al server in background
+      await _profileRepository.updateCondizioni(nuoveCondizioni);
+    } catch (e) {
+      // 3. Rollback in caso di errore (opzionale, ma consigliato)
+      _errorMessage = "Errore salvataggio: $e";
+      // Qui potresti ricaricare i dati vecchi dal server
+      await loadCondizioni();
     }
   }
 }

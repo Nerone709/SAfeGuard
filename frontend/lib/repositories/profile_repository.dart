@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:data_models/Condizione.dart';
 import 'package:data_models/ContattoEmergenza.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -200,6 +201,52 @@ class ProfileRepository {
 
     if (response.statusCode != 200) {
       throw Exception('Errore rimozione contatto');
+    }
+  }
+
+  // --- GET CONDIZIONI ---
+  Future<Condizione> fetchCondizioni() async {
+    final token = await _getToken();
+    // Usiamo la rotta base del profilo che restituisce tutto l'utente [cite: 565]
+    final url = Uri.parse('$_baseUrl/api/profile/');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      // Estraiamo solo la parte relativa alle condizioni
+      if (data['condizioni'] != null) {
+        return Condizione.fromJson(data['condizioni']);
+      }
+      return Condizione(); // Ritorna default (tutto false) se null
+    } else {
+      throw Exception('Impossibile caricare le condizioni');
+    }
+  }
+
+  // --- UPDATE CONDIZIONI ---
+  Future<void> updateCondizioni(Condizione condizioni) async {
+    final token = await _getToken();
+    // Endpoint specifico definito nel backend
+    final url = Uri.parse('$_baseUrl/api/profile/condizioni');
+
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(condizioni.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Errore aggiornamento condizioni: ${response.body}');
     }
   }
 }
