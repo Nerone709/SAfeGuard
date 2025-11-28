@@ -130,7 +130,8 @@ class LoginService {
     if (userData == null && telefono != null) {
       userData = await _userRepository.findUserByPhone(telefono);
       if (userData != null) {
-        finalEmail = userData['email'] as String; // Recupera l'email dal DB
+        // Usiamo 'as String?' (con punto interrogativo) e se è null mettiamo una stringa vuota
+        finalEmail = (userData['email'] as String?) ?? '';
       }
     }
 
@@ -139,7 +140,7 @@ class LoginService {
       return null;
     }
 
-    final storedHash = userData['passwordHash'] as String;
+    final storedHash = (userData['passwordHash'] as String?) ?? '';
     if (storedHash.isEmpty) {
       // Se l'utente si è registrato con Google, potrebbe non avere password
       throw Exception('Questo utente deve accedere tramite Google.');

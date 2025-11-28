@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/auth/verification_screen.dart';
 
+import '../home/home_screen.dart';
+
 class PhoneLoginScreen extends StatefulWidget {
   const PhoneLoginScreen({super.key});
 
@@ -111,23 +113,24 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                             : () async {
                           final navigator = Navigator.of(context);
 
-                          /*
-                          // NOTA: Aggiorna il metodo nel provider per accettare anche la password
+                          // --- MODIFICA QUI ---
+                          // Togliamo i commenti e usiamo il metodo corretto
                           bool success = await authProvider.loginPhone(
-                            _phoneController.text,
+                            _phoneController.text.trim(),
                             _passController.text,
                           );
-                          */
 
-                          // SIMULAZIONE LOGICA
-                          if (false) { // Sostituire con 'if (success)'
-                            navigator.push(
+                          if (success) {
+                            // Se il login ha successo, vai alla Home, NON alla verifica
+                            // (La verifica si fa solo in registrazione o se l'account non è attivo)
+                            navigator.pushAndRemoveUntil(
                               MaterialPageRoute(
-                                builder: (context) =>
-                                const VerificationScreen(),
+                                builder: (context) => const HomeScreen(), // Assicurati di importare HomeScreen
                               ),
+                                  (route) => false,
                             );
                           }
+                          // --------------------
                         },
 
                         //PULSANTE PER ANDARE AVANTI

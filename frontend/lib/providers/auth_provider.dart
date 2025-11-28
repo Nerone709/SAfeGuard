@@ -54,11 +54,27 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- LOGIN EMAIL ---
+// --- MODIFICA: LOGIN EMAIL ---
   Future<bool> login(String email, String password) async {
     _setLoading(true);
     try {
-      final response = await _authRepository.login(email, password);
+      // Chiama il nuovo metodo con i parametri nominati
+      final response = await _authRepository.login(email: email, password: password);
+      await _saveSession(response);
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _errorMessage = _cleanError(e);
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  // --- AGGIUNTA: LOGIN TELEFONO ---
+  Future<bool> loginPhone(String phone, String password) async {
+    _setLoading(true);
+    try {
+      final response = await _authRepository.login(phone: phone, password: password);
       await _saveSession(response);
       _setLoading(false);
       return true;
@@ -87,16 +103,17 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- REGISTRAZIONE / LOGIN TELEFONO ---
-  Future<bool> startPhoneAuth(String phoneNumber) async {
+// --- MODIFICA: START PHONE AUTH (REGISTRAZIONE) ---
+  // Aggiungi il parametro password
+  Future<bool> startPhoneAuth(String phoneNumber, {String? password}) async {
     _setLoading(true);
     try {
-      // Chiama il repository per inviare SMS (endpoint register)
-      await _authRepository.sendPhoneOtp(phoneNumber);
+      // Passiamo la password al repository così viene salvata nel DB!
+      await _authRepository.sendPhoneOtp(phoneNumber, password: password);
 
       _tempPhone = phoneNumber;
       _tempEmail = null;
-      _tempPassword = null;
+      _tempPassword = password; // Salviamo temporaneamente
 
       startTimer();
       _setLoading(false);

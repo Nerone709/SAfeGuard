@@ -34,14 +34,10 @@ class UserRepository {
     final userData = newUser.toJson();
     userData['id'] = newId;
 
-    String docId;
-    if (newUser.email != null && newUser.email!.isNotEmpty) {
-      docId = newUser.email!;
-    } else if (newUser.telefono != null && newUser.telefono!.isNotEmpty) {
-      docId = newUser.telefono!;
-    } else {
-      docId = newId.toString();
-    }
+    // --- MODIFICA QUI ---
+    // Usiamo direttamente l'ID generato come nome del documento
+    final String docId = newId.toString();
+    // --------------------
 
     await _usersCollection.document(docId).set(userData);
 
@@ -55,22 +51,15 @@ class UserRepository {
   // --- CREATE USER (Usato da LoginService per Google/Apple) ---
   // Questo metodo mancava e causava l'errore nello screenshot
   Future<Map<String, dynamic>> createUser(Map<String, dynamic> userData, {String collection = 'utenti'}) async {
-    final email = userData['email'] as String?;
-    final telefono = userData['telefono'] as String?;
-
     // Genera ID se manca
     if (userData['id'] == null || userData['id'] == 0) {
       userData['id'] = DateTime.now().millisecondsSinceEpoch;
     }
 
-    String docId;
-    if (email != null && email.isNotEmpty) {
-      docId = email;
-    } else if (telefono != null && telefono.isNotEmpty) {
-      docId = telefono;
-    } else {
-      docId = userData['id'].toString();
-    }
+    // --- MODIFICA QUI ---
+    // Indipendentemente da email o telefono, usiamo l'ID
+    final String docId = userData['id'].toString();
+    // --------------------
 
     // Salvataggio
     await Firestore.instance.collection(collection).document(docId).set(userData);
@@ -81,9 +70,16 @@ class UserRepository {
   // --- AGGIORNAMENTI PROFILO ---
 
   Future<String?> _findDocIdByIntId(int id) async {
-    final pages = await _usersCollection.where('id', isEqualTo: id).get();
-    if (pages.isNotEmpty) return pages.first.id;
-    return null;
+    final docId = id.toString();
+
+    try {
+      // In Firedart, se il documento non c'è, questa riga lancia un errore
+      await _usersCollection.document(docId).get();
+      return docId;
+    } catch (e) {
+      // Se entra qui, il documento non esiste
+      return null;
+    }
   }
 
   Future<void> updateUserGeneric(int id, Map<String, dynamic> updates) async {
@@ -155,12 +151,20 @@ class UserRepository {
   }
 
   Future<void> markUserAsVerified(String identifier) async {
-    try {
-      await _usersCollection.document(identifier).update({'isVerified': true, 'attivo': true});
-      return;
-    } catch (e) {}
+    // --- MODIFICA QUI ---
+    // Rimuoviamo il tentativo di accesso diretto (document(identifier))
+    // perché ora l'ID è un numero, mentre 'identifier' è email o telefono.
+
+    // Cerchiamo direttamente l'utente tramite query
     var pages = await _usersCollection.where('email', isEqualTo: identifier).get();
-    if (pages.isEmpty) pages = await _usersCollection.where('telefono', isEqualTo: identifier).get();
-    if (pages.isNotEmpty) await _usersCollection.document(pages.first.id).update({'isVerified': true, 'attivo': true});
+
+    if (pages.isEmpty) {
+      pages = await _usersCollection.where('telefono', isEqualTo: identifier).get();
+    }
+
+    if (pages.isNotEmpty) {
+      await _usersCollection.document(pages.first.id).update({'isVerified': true, 'attivo': true});
+    }
+    // --------------------
   }
 }

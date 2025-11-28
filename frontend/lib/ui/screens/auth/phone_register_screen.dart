@@ -137,8 +137,8 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                           // CHIAMATA AL PROVIDER
                           // NOTA: Aggiorna il metodo nel provider per accettare anche la password
                           bool success = await authProvider.startPhoneAuth(
-                            phone,
-                            // password: _passController.text // Decommenta e adatta al tuo provider
+                              phone,
+                              password: _passController.text // Passiamo la password!
                           );
 
                           // Se successo, vai alla verifica OTP

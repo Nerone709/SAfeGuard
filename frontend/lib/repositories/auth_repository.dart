@@ -15,25 +15,31 @@ class AuthRepository {
   }
 
   // --- LOGIN EMAIL/PASSWORD ---
-  Future<Map<String, dynamic>> login(String email, String password) async {
+// --- MODIFICA: LOGIN UNIFICATO ---
+  Future<Map<String, dynamic>> login({String? email, String? phone, required String password}) async {
     final url = Uri.parse('$_baseUrl/api/auth/login');
+
+    // Costruiamo il body dinamicamente in base a cosa abbiamo
+    final Map<String, dynamic> body = {'password': password};
+    if (email != null) {
+      body['email'] = email;
+    } else if (phone != null) {
+      body['telefono'] = phone; // Importante: usare la chiave che il backend si aspetta
+    }
 
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
+        body: jsonEncode(body),
       );
 
-      final Map<String, dynamic> body = jsonDecode(response.body);
+      final Map<String, dynamic> responseBody = jsonDecode(response.body); // Rinomina per chiarezza
 
       if (response.statusCode == 200) {
-        return body;
+        return responseBody;
       } else {
-        throw Exception(body['message'] ?? "Errore durante il login");
+        throw Exception(responseBody['message'] ?? "Errore durante il login");
       }
     } catch (e) {
       throw Exception("Errore di connessione: $e");
@@ -66,17 +72,24 @@ class AuthRepository {
 
   // --- INVIO OTP TELEFONO ---
   // Usa l'endpoint di registrazione perché il tuo RegisterController gestisce anche il solo telefono
-  Future<void> sendPhoneOtp(String phoneNumber) async {
+// --- MODIFICA: INVIO OTP TELEFONO (REGISTRAZIONE) ---
+  // Aggiungi il parametro password opzionale
+  Future<void> sendPhoneOtp(String phoneNumber, {String? password}) async {
     final url = Uri.parse('$_baseUrl/api/auth/register');
-
     try {
+      final Map<String, dynamic> body = {'telefono': phoneNumber};
+
+      // Se c'è una password (registrazione), inviala!
+      // Altrimenti il backend ne genererà una random
+      if (password != null) {
+        body['password'] = password;
+        body['confermaPassword'] = password; // Per validazione backend
+      }
+
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'telefono': phoneNumber,
-          // Non mandiamo password, il backend la genera random per il DB
-        }),
+        body: jsonEncode(body),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
