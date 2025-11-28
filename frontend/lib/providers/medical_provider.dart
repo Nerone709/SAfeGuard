@@ -60,4 +60,53 @@ class MedicalProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  List<MedicalItem> _medicinali = [];
+  List<MedicalItem> get medicinali => _medicinali;
+
+  // Carica medicinali
+  Future<void> loadMedicines() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final List<String> strings = await _profileRepository.fetchMedicines();
+      _medicinali = strings.map((e) => MedicalItem(name: e)).toList();
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Aggiunge medicinale
+  Future<bool> addMedicinale(String nome) async {
+    try {
+      await _profileRepository.addMedicinale(nome);
+      _medicinali.add(MedicalItem(name: nome));
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = "Errore aggiunta: $e";
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Rimuove medicinale
+  Future<bool> removeMedicinale(int index) async {
+    try {
+      final item = _medicinali[index];
+      await _profileRepository.removeMedicinale(item.name);
+
+      _medicinali.removeAt(index);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = "Errore rimozione: $e";
+      notifyListeners();
+      return false;
+    }
+  }
 }

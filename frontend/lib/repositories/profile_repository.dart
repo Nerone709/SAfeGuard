@@ -78,4 +78,65 @@ class ProfileRepository {
       throw Exception('Errore rimozione allergia');
     }
   }
+
+
+  // --- GET MEDICINALI ---
+  Future<List<String>> fetchMedicines() async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return List<String>.from(data['medicinali'] ?? []);
+    } else {
+      throw Exception('Impossibile caricare i medicinali');
+    }
+  }
+
+  // --- AGGIUNGI MEDICINALE ---
+  Future<void> addMedicinale(String farmaco) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/medicinali');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      // Nota: la chiave JSON deve coincidere con quella che il controller si aspetta (vedi source 98: 'medicinale')
+      body: jsonEncode({'medicinale': farmaco}),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Errore aggiunta medicinale: ${response.body}');
+    }
+  }
+
+  // --- RIMUOVI MEDICINALE ---
+  Future<void> removeMedicinale(String farmaco) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/medicinali');
+
+    final response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'medicinale': farmaco}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Errore rimozione medicinale');
+    }
+  }
 }
