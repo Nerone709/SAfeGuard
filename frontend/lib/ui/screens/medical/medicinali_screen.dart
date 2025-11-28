@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
-// --- IMPORTA IL MODELLO ---
+import 'package:provider/provider.dart';
+// IMPORT MODELLO E PROVIDER
 import 'package:data_models/medical_item.dart';
+import 'package:frontend/providers/medical_provider.dart';
 
 class MedicinaliScreen extends StatefulWidget {
   const MedicinaliScreen({super.key});
-
   @override
   State<MedicinaliScreen> createState() => _MedicinaliScreenState();
 }
 
 class _MedicinaliScreenState extends State<MedicinaliScreen> {
-  // --- MODIFICA 1: La lista ora contiene oggetti MedicalItem ---
-  List<MedicalItem> medicinali = [
-    MedicalItem(name: "Anticoagulanti"),
-    MedicalItem(name: "Beta-bloccanti"),
-    MedicalItem(name: "Insulina"),
-    MedicalItem(name: "Corticosteroidi"),
-    MedicalItem(name: "Antidepressivi"),
-  ];
-
   final TextEditingController _textController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Carica i medicinali dal server all'avvio
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<MedicalProvider>(context, listen: false).loadMedicines();
+    });
+  }
 
   @override
   void dispose() {
@@ -41,18 +42,11 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
           children: [
             // HEADER
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 10.0,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new,
-                      color: Colors.white,
-                      size: 28,
-                    ),
+                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 28),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -72,11 +66,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                       color: Color(0xFFE08E50),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.medication_liquid,
-                      color: Colors.white,
-                      size: 40,
-                    ),
+                    child: const Icon(Icons.medication_liquid, color: Colors.white, size: 40),
                   ),
                   const SizedBox(width: 20),
                   const Text(
@@ -92,7 +82,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
             ),
             const SizedBox(height: 30),
 
-            // LISTA
+            // LISTA COLLEGATA AL PROVIDER
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -101,26 +91,31 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                   borderRadius: BorderRadius.circular(25.0),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 10.0,
-                    horizontal: 5.0,
-                  ),
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 15.0,
-                      vertical: 10.0,
-                    ),
-                    itemCount: medicinali.length,
-                    separatorBuilder: (context, index) =>
-                        Divider(color: Colors.white.withValues(alpha: .1)),
-                    itemBuilder: (context, index) {
-                      return _buildItem(
-                        // --- MODIFICA 2: Accediamo alla proprietà .name ---
-                        text: medicinali[index].name,
-                        onEdit: () => _openDialog(isEdit: true, index: index),
-                        onDelete: () =>
-                            setState(() => medicinali.removeAt(index)),
-                        deleteColor: deleteColor,
+                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+                  child: Consumer<MedicalProvider>(
+                    builder: (context, provider, child) {
+                      if (provider.isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (provider.medicinali.isEmpty) {
+                        return const Center(child: Text("Nessun farmaco inserito", style: TextStyle(color: Colors.white)));
+                      }
+
+                      return ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+                        itemCount: provider.medicinali.length,
+                        separatorBuilder: (context, index) =>
+                            Divider(color: Colors.white.withValues(alpha: .1)),
+                        itemBuilder: (context, index) {
+                          return _buildItem(
+                            text: provider.medicinali[index].name,
+                            onEdit: () => _openDialog(isEdit: false), // Edit disabilitato per ora
+                            onDelete: () async {
+                              await provider.removeMedicinale(index);
+                            },
+                            deleteColor: deleteColor,
+                          );
+                        },
                       );
                     },
                   ),
@@ -131,11 +126,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
 
             // AGGIUNGI
             Padding(
-              padding: const EdgeInsets.only(
-                left: 20.0,
-                right: 20.0,
-                bottom: 30.0,
-              ),
+              padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 30.0),
               child: InkWell(
                 onTap: () => _openDialog(isEdit: false),
                 child: Container(
@@ -172,6 +163,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
     );
   }
 
+  // WIDGET ITEM
   Widget _buildItem({
     required String text,
     required VoidCallback onEdit,
@@ -210,21 +202,18 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
     );
   }
 
+  // DIALOGO
   void _openDialog({required bool isEdit, int? index}) {
-    if (isEdit && index != null) {
-      // --- MODIFICA 3: Pre-popoliamo il campo usando .name ---
-      _textController.text = medicinali[index].name;
-    } else {
-      _textController.clear();
-    }
+    _textController.clear();
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF0E2A48),
-          title: Text(
-            isEdit ? "Modifica farmaco" : "Nuovo farmaco",
-            style: const TextStyle(color: Colors.white),
+          title: const Text(
+            "Nuovo farmaco",
+            style: TextStyle(color: Colors.white),
           ),
           content: TextField(
             controller: _textController,
@@ -250,21 +239,14 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-              onPressed: () {
+              onPressed: () async {
                 if (_textController.text.isNotEmpty) {
-                  setState(() {
-                    // --- MODIFICA 4: Creiamo nuovi oggetti MedicalItem ---
-                    if (isEdit && index != null) {
-                      // Sostituiamo l'oggetto esistente con uno nuovo che ha il nome aggiornato
-                      medicinali[index] = MedicalItem(
-                        name: _textController.text,
-                      );
-                    } else {
-                      // Aggiungiamo un nuovo oggetto
-                      medicinali.add(MedicalItem(name: _textController.text));
-                    }
-                  });
-                  Navigator.pop(context);
+                  final success = await Provider.of<MedicalProvider>(context, listen: false)
+                      .addMedicinale(_textController.text);
+
+                  if (success && context.mounted) {
+                    Navigator.pop(context);
+                  }
                 }
               },
               child: const Text("Salva", style: TextStyle(color: Colors.white)),
