@@ -38,28 +38,27 @@ class Utente extends UtenteGenerico {
     List<String>? allergie,
     List<String>? medicinali,
     List<ContattoEmergenza>? contattiEmergenza,
-  }) :
-  // Inizializzazione Sicura dei campi specifici:
-  // Se gli oggetti (Permesso, Condizione, Notifica) arrivano null dal DB,
-  // vengono inizializzati con le loro rispettive classi di default
-        permessi = permessi ?? Permesso(),
-        condizioni = condizioni ?? Condizione(),
-        notifiche = notifiche ?? Notifica(),
-        allergie = allergie ?? const [],
-        medicinali = medicinali ?? const [],
-        contattiEmergenza = contattiEmergenza ?? const [],
-  // I dati base sono passati al costruttore del padre (UtenteGenerico)
-        super(
-        id: id,
-        passwordHash: passwordHash,
-        email: email,
-        telefono: telefono,
-        nome: nome,
-        cognome: cognome,
-        dataDiNascita: dataDiNascita,
-        cittaDiNascita: cittaDiNascita,
-        iconaProfilo: iconaProfilo,
-      );
+  }) : // Inizializzazione Sicura dei campi specifici:
+       // Se gli oggetti (Permesso, Condizione, Notifica) arrivano null dal DB,
+       // vengono inizializzati con le loro rispettive classi di default
+       permessi = permessi ?? Permesso(),
+       condizioni = condizioni ?? Condizione(),
+       notifiche = notifiche ?? Notifica(),
+       allergie = allergie ?? const [],
+       medicinali = medicinali ?? const [],
+       contattiEmergenza = contattiEmergenza ?? const [],
+       // I dati base sono passati al costruttore del padre (UtenteGenerico)
+       super(
+         id: id,
+         passwordHash: passwordHash,
+         email: email,
+         telefono: telefono,
+         nome: nome,
+         cognome: cognome,
+         dataDiNascita: dataDiNascita,
+         cittaDiNascita: cittaDiNascita,
+         iconaProfilo: iconaProfilo,
+       );
 
   // Metodo copyWith Avanzato
   // Gestisce la creazione di una copia mutata, includendo sia i campi locali
@@ -133,15 +132,21 @@ class Utente extends UtenteGenerico {
           : Notifica(),
 
       // 4. Parsing Liste
-      allergie: (json['allergie'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ?? [],
-      medicinali: (json['medicinali'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ?? [],
-      contattiEmergenza: (json['contattiEmergenza'] as List<dynamic>?)
-          ?.map((e) => ContattoEmergenza.fromJson(e))
-          .toList() ?? [],
+      allergie:
+          (json['allergie'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      medicinali:
+          (json['medicinali'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      contattiEmergenza:
+          (json['contattiEmergenza'] as List<dynamic>?)
+              ?.map((e) => ContattoEmergenza.fromJson(e))
+              .toList() ??
+          [],
     );
   }
 

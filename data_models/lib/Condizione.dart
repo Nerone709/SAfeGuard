@@ -34,7 +34,8 @@ class Condizione {
       disabilitaMotorie: disabilitaMotorie ?? this.disabilitaMotorie,
       disabilitaVisive: disabilitaVisive ?? this.disabilitaVisive,
       disabilitaUditive: disabilitaUditive ?? this.disabilitaUditive,
-      disabilitaIntellettive: disabilitaIntellettive ?? this.disabilitaIntellettive,
+      disabilitaIntellettive:
+          disabilitaIntellettive ?? this.disabilitaIntellettive,
       disabilitaPsichiche: disabilitaPsichiche ?? this.disabilitaPsichiche,
     );
   }

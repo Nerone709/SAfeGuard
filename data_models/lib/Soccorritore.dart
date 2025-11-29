@@ -5,7 +5,6 @@
 import 'UtenteGenerico.dart';
 
 class Soccorritore extends UtenteGenerico {
-
   // Costruttore principale non nominato: Delega a 'super' e forza il flag.
   Soccorritore({
     required int id,
@@ -18,41 +17,41 @@ class Soccorritore extends UtenteGenerico {
     String? cittaDiNascita,
     String? iconaProfilo,
   }) : super(
-    id: id,
-    email: email,
-    passwordHash: passwordHash ?? '',
-    telefono: telefono,
-    nome: nome,
-    cognome: cognome,
-    dataDiNascita: dataDiNascita,
-    cittaDiNascita: cittaDiNascita,
-    iconaProfilo: iconaProfilo,
-    // Punto Chiave: Forza il flag isSoccorritore a true nella classe base.
-    isSoccorritore: true,
-  );
+         id: id,
+         email: email,
+         passwordHash: passwordHash ?? '',
+         telefono: telefono,
+         nome: nome,
+         cognome: cognome,
+         dataDiNascita: dataDiNascita,
+         cittaDiNascita: cittaDiNascita,
+         iconaProfilo: iconaProfilo,
+         // Punto Chiave: Forza il flag isSoccorritore a true nella classe base.
+         isSoccorritore: true,
+       );
 
   // Costruttore nominato
   Soccorritore.conTuttiICampi(
-      int id,
-      String email,
-      String passwordHash, {
-        String? telefono,
-        String? nome,
-        String? cognome,
-        DateTime? dataDiNascita,
-        String? cittaDiNascita,
-        String? iconaProfilo,
-      }) : this(
-    id: id,
-    email: email,
-    passwordHash: passwordHash,
-    telefono: telefono,
-    nome: nome,
-    cognome: cognome,
-    dataDiNascita: dataDiNascita,
-    cittaDiNascita: cittaDiNascita,
-    iconaProfilo: iconaProfilo,
-  );
+    int id,
+    String email,
+    String passwordHash, {
+    String? telefono,
+    String? nome,
+    String? cognome,
+    DateTime? dataDiNascita,
+    String? cittaDiNascita,
+    String? iconaProfilo,
+  }) : this(
+         id: id,
+         email: email,
+         passwordHash: passwordHash,
+         telefono: telefono,
+         nome: nome,
+         cognome: cognome,
+         dataDiNascita: dataDiNascita,
+         cittaDiNascita: cittaDiNascita,
+         iconaProfilo: iconaProfilo,
+       );
 
   // Metodo copyWith Avanzato
   // Gestisce la creazione di una copia mutata, includendo sia i campi locali

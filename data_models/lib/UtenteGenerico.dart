@@ -30,59 +30,61 @@ class UtenteGenerico {
     this.iconaProfilo,
     this.isSoccorritore = false,
   }) : assert(
-  email != null || telefono != null,
-  'Devi fornire almeno email o telefono per UtenteGenerico',
-  );
+         email != null || telefono != null,
+         'Devi fornire almeno email o telefono per UtenteGenerico',
+       );
 
   // Costruttore 1: Autenticazione tramite Email
   UtenteGenerico.conEmail(
-      int? id,
-      String email,
-      String passwordHash, {
-        String? telefono,
-        String? nome,
-        String? cognome,
-        DateTime? dataDiNascita,
-        String? cittaDiNascita,
-        String? iconaProfilo,
-        bool isSoccorritore = false,
-      }) : this( // Delega al costruttore principale
-    id: id,
-    passwordHash: passwordHash,
-    email: email,
-    telefono: telefono,
-    nome: nome,
-    cognome: cognome,
-    dataDiNascita: dataDiNascita,
-    cittaDiNascita: cittaDiNascita,
-    iconaProfilo: iconaProfilo,
-    isSoccorritore: isSoccorritore,
-  );
+    int? id,
+    String email,
+    String passwordHash, {
+    String? telefono,
+    String? nome,
+    String? cognome,
+    DateTime? dataDiNascita,
+    String? cittaDiNascita,
+    String? iconaProfilo,
+    bool isSoccorritore = false,
+  }) : this(
+         // Delega al costruttore principale
+         id: id,
+         passwordHash: passwordHash,
+         email: email,
+         telefono: telefono,
+         nome: nome,
+         cognome: cognome,
+         dataDiNascita: dataDiNascita,
+         cittaDiNascita: cittaDiNascita,
+         iconaProfilo: iconaProfilo,
+         isSoccorritore: isSoccorritore,
+       );
 
   // Costruttore 2: Autenticazione tramite Telefono
   UtenteGenerico.conTelefono(
-      int? id,
-      String telefono,
-      String passwordHash, {
-        String? email,
-        String? nome,
-        String? cognome,
-        DateTime? dataDiNascita,
-        String? cittaDiNascita,
-        String? iconaProfilo,
-        bool isSoccorritore = false,
-      }) : this( // Delega al costruttore principale
-    id: id,
-    passwordHash: passwordHash,
-    email: email,
-    telefono: telefono,
-    nome: nome,
-    cognome: cognome,
-    dataDiNascita: dataDiNascita,
-    cittaDiNascita: cittaDiNascita,
-    iconaProfilo: iconaProfilo,
-    isSoccorritore: isSoccorritore,
-  );
+    int? id,
+    String telefono,
+    String passwordHash, {
+    String? email,
+    String? nome,
+    String? cognome,
+    DateTime? dataDiNascita,
+    String? cittaDiNascita,
+    String? iconaProfilo,
+    bool isSoccorritore = false,
+  }) : this(
+         // Delega al costruttore principale
+         id: id,
+         passwordHash: passwordHash,
+         email: email,
+         telefono: telefono,
+         nome: nome,
+         cognome: cognome,
+         dataDiNascita: dataDiNascita,
+         cittaDiNascita: cittaDiNascita,
+         iconaProfilo: iconaProfilo,
+         isSoccorritore: isSoccorritore,
+       );
 
   // Deserializzazione (da JSON a Model): Factory per ricostruire l'oggetto da una Map JSON.
   factory UtenteGenerico.fromJson(Map<String, dynamic> json) {
