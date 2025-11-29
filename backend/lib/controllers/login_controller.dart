@@ -52,6 +52,19 @@ class LoginController {
     } on FormatException {
       return _buildErrorResponse(400, 'JSON non valido');
     } catch (e) {
+      // Gestione specifica per utente non verificato
+      if (e.toString().contains('USER_NOT_VERIFIED')) {
+        return Response(
+          403, // Forbidden
+          body: jsonEncode({
+            'success': false,
+            'error': 'USER_NOT_VERIFIED',
+            'message': 'Account non verificato. Inserisci il codice OTP.'
+          }),
+          headers: _headers,
+        );
+      }
+
       return _buildErrorResponse(500, 'Errore interno del server: $e');
     }
   }

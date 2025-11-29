@@ -31,6 +31,20 @@ class RegisterService {
     final nome = requestData['nome'] as String?;
     final cognome = requestData['cognome'] as String?;
 
+    if (email != null) {
+      final existingUser = await _userRepository.findUserByEmail(email);
+      if (existingUser != null) {
+        // MODIFICA: Se esiste MA non è verificato, procediamo (è un re-tentativo)
+        final bool isVerified = existingUser['isVerified'] == true || existingUser['attivo'] == true;
+        if (isVerified) {
+          throw Exception('Utente con questa email è già registrato.');
+        } else {
+          // Se non è verificato, riusiamo questo ID per aggiornare i dati
+          requestData['id'] = existingUser['id'];
+        }
+      }
+    }
+
     // 1. Validazione Campi
     if (password.isEmpty || (email == null && telefono == null)) {
       throw Exception('Devi fornire Password e almeno Email o Telefono.');

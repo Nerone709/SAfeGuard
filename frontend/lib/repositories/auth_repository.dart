@@ -40,6 +40,9 @@ class AuthRepository {
 
       if (response.statusCode == 200) {
         return responseBody;
+      } else if (response.statusCode == 403 && responseBody['error'] == 'USER_NOT_VERIFIED') {
+        // Ritorniamo la mappa con l'errore specifico invece di lanciare un'eccezione generica
+        return responseBody;
       } else {
         throw Exception(responseBody['message'] ?? "Errore durante il login");
       }
