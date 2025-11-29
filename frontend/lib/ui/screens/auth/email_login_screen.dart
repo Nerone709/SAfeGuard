@@ -4,6 +4,7 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata di Login tramite Email e Password.
 class EmailLoginScreen extends StatefulWidget {
   const EmailLoginScreen({super.key});
 
@@ -12,6 +13,7 @@ class EmailLoginScreen extends StatefulWidget {
 }
 
 class _EmailLoginScreenState extends State<EmailLoginScreen> {
+  // Controller per i campi di testo
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
 
@@ -28,6 +30,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
     final Size screenSize = MediaQuery.of(context).size;
     final double screenHeight = screenSize.height;
     final double screenWidth = screenSize.width;
+    // Usa la dimensione minore (altezza o larghezza) come riferimento per le scale
     final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
 
     final double titleFontSize = referenceSize * 0.075;
@@ -36,6 +39,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
     final double smallSpacing = screenHeight * 0.015;
     final double _ = screenHeight * 0.04;
 
+    // Accesso all'AuthProvider
     final authProvider = Provider.of<AuthProvider>(context);
     final Color buttonColor = ColorPalette.primaryDarkButtonBlue;
 
@@ -53,6 +57,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
 
       body: Stack(
         children: [
+          // Sfondo con gradiente e bolle decorative
           Container(
             height: double.infinity,
             width: double.infinity,
@@ -64,10 +69,12 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
               ),
             ),
           ),
+
+          // Contenuto Principale
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: SingleChildScrollView(
+              child: SingleChildScrollView( // Permette lo scroll se la tastiera copre i campi
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -85,9 +92,17 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                     ),
                     SizedBox(height: screenHeight * 0.10),
 
-                    _buildTextField("Email", _emailController, isPassword: false, contentVerticalPadding: 16, fontSize: contentFontSize),
+                    // Campo Email
+                    _buildTextField(
+                        "Email",
+                        _emailController,
+                        isPassword: false,
+                        contentVerticalPadding: 16,
+                        fontSize: contentFontSize
+                    ),
                     SizedBox(height: smallSpacing),
 
+                    // Campo Password
                     _buildTextField(
                         "Password",
                         _passController,
@@ -96,6 +111,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                         fontSize: contentFontSize
                     ),
 
+                    // Messaggio di Errore
                     if (authProvider.errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 15),
@@ -111,15 +127,18 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
 
                     SizedBox(height: screenHeight * 0.15),
 
+                    // Bottone Accedi
                     SizedBox(
                       height: referenceSize * 0.12,
                       child: ElevatedButton(
+                        // Disabilita il bottone se il provider è in caricamento
                         onPressed: authProvider.isLoading
                             ? null
                             : () async {
                           final navigator = Navigator.of(context);
                           final messenger = ScaffoldMessenger.of(context);
 
+                          // Validazione base dei campi
                           if (_emailController.text.isEmpty || _passController.text.isEmpty) {
                             messenger.showSnackBar(
                               const SnackBar(content: Text("Inserisci email e password")),
@@ -127,10 +146,12 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                             return;
                           }
 
+                          // 1. Chiamata al metodo login dell'AuthProvider
                           bool success = await authProvider.login(
                             _emailController.text,
                             _passController.text,
                           );
+                          // 2. Se il login ha successo, naviga alla Home e rimuove tutte le schermate precedenti
                           if (success) {
                             navigator.pushAndRemoveUntil(
                               MaterialPageRoute(
@@ -139,7 +160,11 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                   (route) => false,
                             );
                           }
+                          // Se fallisce, l'AuthProvider aggiorna errorMessage
+                          // e il widget lo mostra automaticamente
                         },
+
+                        // Stile del Bottone
                         style: ElevatedButton.styleFrom(
                           backgroundColor: buttonColor,
                           foregroundColor: Colors.white,
@@ -148,6 +173,8 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                           ),
                           side: const BorderSide(color: Colors.white12, width: 1),
                         ),
+
+                        // Contenuto del bottone
                         child: authProvider.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
                             : Text(
@@ -172,6 +199,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
     );
   }
 
+  // Widget Helper per costruire i campi di testo
   Widget _buildTextField(
       String hint,
       TextEditingController controller, {
@@ -179,12 +207,14 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
         double contentVerticalPadding = 20,
         required double fontSize
       }) {
+    // Determina se il testo deve essere oscurato
     bool obscureText = isPassword ? !_isPasswordVisible : false;
 
     return TextField(
       controller: controller,
       obscureText: obscureText,
       style: TextStyle(color: Colors.black, fontSize: fontSize),
+
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.white,
@@ -194,11 +224,13 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
           horizontal: 25,
           vertical: contentVerticalPadding,
         ),
+
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide.none,
         ),
 
+        // Icona per la visibilità della password
         suffixIcon: isPassword
             ? IconButton(
           icon: Icon(

@@ -5,6 +5,8 @@ import 'package:frontend/ui/screens/auth/registration_screen.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata di Caricamento
+// Gestisce l'inizializzazione dell'app e il tentativo di auto-login.
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
 
@@ -13,12 +15,13 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
+  // Future che conterrà il risultato del tentativo di auto-login
   late Future<void> _autoLoginFuture;
 
   @override
   void initState() {
     super.initState();
-    // Avviamo il tentativo di auto-login appena il widget viene inizializzato.
+    // Avvia il tentativo di auto-login appena il widget viene inizializzato.
     _autoLoginFuture = Provider.of<AuthProvider>(context, listen: false).tryAutoLogin();
   }
 
@@ -57,6 +60,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
               const Spacer(),
 
+              // Logo dell'app
               Image.asset(
                 'assets/logo.png',
                 width: logoSize,
@@ -66,6 +70,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
               const Spacer(),
 
+              // Messaggio principale di caricamento
               Text(
                 'Preparazione del\nsistema in corso...',
                 textAlign: TextAlign.center,
@@ -77,6 +82,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
               ),
 
               SizedBox(height: screenHeight * 0.02),
+
+              // Messaggi secondari e suggerimenti
               Text(
                 'Accedo alla tua posizione...\nResta al sicuro.\nConnessione ai servizi di emergenza...',
                 textAlign: TextAlign.center,
@@ -89,13 +96,14 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
               const Spacer(),
 
+              // Suggerimento extra
               Text(
                 'Consiglio: non andare nel panico.',
                 style: TextStyle(color: Colors.white70, fontSize: secondaryTextFontSize),
               ),
               SizedBox(height: screenHeight * 0.015),
 
-              //Animazione caricamento della barra
+              //Animazione caricamento
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
                 duration: const Duration(seconds: 3),
@@ -108,10 +116,12 @@ class _LoadingScreenState extends State<LoadingScreen> {
                     borderRadius: BorderRadius.circular(10),
                   );
                 },
+
+                // Azione eseguita al termine dell'animazione
                 onEnd: () async {
                   await _autoLoginFuture;
 
-                  if (!context.mounted) return;
+                  if (!context.mounted) return; // Controllo di sicurezza
 
                   final authProvider = Provider.of<AuthProvider>(context, listen: false);
 

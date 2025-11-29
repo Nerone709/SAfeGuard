@@ -1,22 +1,5 @@
 import 'package:flutter/material.dart';
 
-/*
-* Heyo
-*
-* Questa è la palette della app
-* Questi commenti saranno eliminati dopo l'unificazione e la rielaborazione
-* dei file citati sotto
-* Ho incluso ogni codice esadecimale dichiarato manualmente nei file,
-* bisogna andare in ognuno e sostituirlo con un riferimento da questa lista,
-* così si può fare un refactor dopo e rinominare tutti i colori uguali, tenendo
-* quelli che andrebbero separati separati
-*
-* Consiglio: sono tutti ordinati così come appaiono nella lista estesa dei file
-* nella cartella ui, spero non sia troppo uno sbatti trovare i colori
-* corrispondenti <3
-* */
-
-
 class ColorPalette {
   // Costruttore privato per impedire l'istanziamento
   ColorPalette._();

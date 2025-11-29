@@ -4,6 +4,7 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/auth/verification_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata di Registrazione tramite Email e Password
 class EmailRegisterScreen extends StatefulWidget {
   const EmailRegisterScreen({super.key});
 
@@ -15,6 +16,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
   // 1. Chiave globale per validare tutto il form insieme
   final _formKey = GlobalKey<FormState>();
 
+  // Controller per i campi di testo
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
   final TextEditingController _repeatPassController = TextEditingController();
@@ -30,7 +32,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Variabili per il layout responsive
+    // Variabili per la responsività
     final Size screenSize = MediaQuery.of(context).size;
     final double screenHeight = screenSize.height;
     final double screenWidth = screenSize.width;
@@ -43,11 +45,14 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
     final double smallSpacing = screenHeight * 0.015;
     final double largeSpacing = screenHeight * 0.05;
 
+    // Accesso all'AuthProvider
     final authProvider = Provider.of<AuthProvider>(context);
     final Color buttonColor = ColorPalette.primaryDarkButtonBlue;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+
+      // Header
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -59,7 +64,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
 
       body: Stack(
         children: [
-          // Sfondo con immagine
+          // Sfondo con immagine e colore
           Container(
             height: double.infinity,
             width: double.infinity,
@@ -71,11 +76,13 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
               ),
             ),
           ),
+
+          // Contenuto e ScrollView
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
               child: SingleChildScrollView(
-                //  FORM: Avvolge i campi per gestire la validazione
+                // Widget Form: Avvolge i campi per gestire la validazione unificata
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -120,8 +127,9 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                         _emailController,
                         fontSize: contentFontSize,
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.isEmpty) {
                             return "Inserisci l'email";
+                          }
                           return null;
                         },
                       ),
@@ -133,10 +141,12 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                         isPassword: true,
                         fontSize: contentFontSize,
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.isEmpty) {
                             return "Inserisci la password";
+                          }
                           if (value.length < 6) return "Minimo 6 caratteri";
                           if (value.length > 12) return "Massimo 12 caratteri";
+                          // Regex per almeno 1 Maiuscola, 1 Numero, 1 Carattere Speciale
                           if (!RegExp(
                             r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#%^&*(),.?":{}|<>_])',
                           ).hasMatch(value)) {
@@ -153,8 +163,9 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                         isPassword: true,
                         fontSize: contentFontSize,
                         validator: (value) {
-                          if (value != _passController.text)
+                          if (value != _passController.text) {
                             return "Le password non coincidono";
+                          }
                           return null;
                         },
                       ),
@@ -175,17 +186,19 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
 
                       SizedBox(height: largeSpacing),
 
+                      // Bottone Continua
                       SizedBox(
                         height: referenceSize * 0.12,
                         child: ElevatedButton(
+                          // Disabilita il bottone se in caricamento
                           onPressed: authProvider.isLoading
                               ? null
                               : () async {
-                                  //Validazione degli elementi
+                                  // 1. Esegue la validazione su tutti i campi del Form
                                   if (_formKey.currentState!.validate()) {
                                     final navigator = Navigator.of(context);
 
-                                    // Chiamata al Provider
+                                    // 2. Chiamata al metodo register dell'AuthProvider
                                     bool success = await authProvider.register(
                                       _emailController.text.trim(),
                                       _passController.text,
@@ -193,17 +206,20 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                                       _surnameController.text.trim(),
                                     );
 
-                                    // Navigazione se successo
+                                    // 3. Navigazione se la registrazione (e l'invio OTP) ha successo
                                     if (success && context.mounted) {
                                       navigator.push(
                                         MaterialPageRoute(
                                           builder: (context) =>
+                                              // Naviga alla schermata per inserire l'OTP
                                               const VerificationScreen(),
                                         ),
                                       );
                                     }
                                   }
                                 },
+
+                          // Stile del Bottone
                           style: ElevatedButton.styleFrom(
                             backgroundColor: buttonColor,
                             foregroundColor: Colors.white,
@@ -215,6 +231,8 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                               width: 1,
                             ),
                           ),
+
+                          // Contenuto del bottone
                           child: authProvider.isLoading
                               ? const CircularProgressIndicator(
                                   color: Colors.white,
@@ -241,7 +259,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
     );
   }
 
-  //Widget per gli errori nei campi
+  // Widget Helper per costruire i campi di testo con validazione (TextFormField)
   Widget _buildTextFormField(
     String hint,
     TextEditingController controller, {
@@ -255,7 +273,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
-      validator: validator,
+      validator: validator, // Passa la funzione di validazione
       style: TextStyle(color: Colors.black, fontSize: fontSize),
 
       decoration: InputDecoration(
@@ -268,6 +286,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
           vertical: contentVerticalPadding,
         ),
 
+        // Stile del bordo normale
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide.none,
@@ -282,6 +301,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
           borderSide: const BorderSide(color: Colors.redAccent, width: 2),
         ),
 
+        // Stile del testo di errore
         errorStyle: const TextStyle(
           color: Colors.redAccent,
           fontWeight: FontWeight.bold,
@@ -289,6 +309,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
           backgroundColor: Colors.black54,
         ),
 
+        // Icona per la visibilità della password
         suffixIcon: isPassword
             ? IconButton(
                 icon: Icon(

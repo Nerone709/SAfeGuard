@@ -7,9 +7,12 @@ import 'package:frontend/ui/screens/home/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata Principale di Accesso
+// Offre diverse opzioni di login (Social, Email, Telefono).
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
+  // Widget Helper per costruire i bottoni Social/Classici
   Widget _buildSocialButton({
     required String text,
     required Color backgroundColor,
@@ -43,6 +46,8 @@ class LoginScreen extends StatelessWidget {
               Image.asset(imagePath, height: fontSize * 1.5)
             else if (icon != null)
               Icon(icon, color: iconColor ?? textColor, size: fontSize * 1.5),
+
+            // Testo del Bottone centrato
             Expanded(
               child: Center(
                 child: Text(
@@ -63,6 +68,7 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Accesso all'AuthProvider (per le chiamate di login)
     final authProvider = Provider.of<AuthProvider>(context);
     final Color darkBlue = ColorPalette.backgroundDeepBlue;
 
@@ -78,6 +84,7 @@ class LoginScreen extends StatelessWidget {
     final double buttonTextFontSize = referenceSize * 0.04;
 
     return Scaffold(
+
       appBar: AppBar(
         backgroundColor: darkBlue,
         elevation: 0,
@@ -97,15 +104,20 @@ class LoginScreen extends StatelessWidget {
             ),
           ),
         ),
+
+        // Logo al centro
         title: Image.asset(
           'assets/logo.png',
           height: screenHeight * 0.05,
           errorBuilder: (c, e, s) =>
           const Icon(Icons.shield, color: Colors.white),
         ),
+
+        // Pulsante "Skip" (Salta Login)
         actions: [
           TextButton(
             onPressed: () {
+              // Naviga alla Home senza autenticazione
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) => const HomeScreen()),
               );
@@ -123,6 +135,7 @@ class LoginScreen extends StatelessWidget {
 
       body: Stack(
         children: [
+          // Sfondo
           Container(
             height: double.infinity,
             width: double.infinity,
@@ -133,6 +146,8 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
           ),
+
+          // Contenuto principale
           SafeArea(
             child: Column(
               children: [
@@ -141,7 +156,7 @@ class LoginScreen extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(25, 5, 25, 10),
                   child: Row(
                     children: [
-                      //Area testo
+                      // Area testo e titoli
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -202,6 +217,8 @@ class LoginScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
+
+                        // Bottone Login Apple
                         _buildSocialButton(
                           text: "Continua con Apple",
                           icon: Icons.apple,
@@ -219,6 +236,7 @@ class LoginScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
 
+                        // Bottone Login Google
                         _buildSocialButton(
                           text: "Continua con Google",
                           imagePath: 'assets/googleIcon.png',
@@ -237,6 +255,7 @@ class LoginScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
 
+                        // Bottone Login Email
                         _buildSocialButton(
                           text: "Continua con Email",
                           icon: Icons.alternate_email,
@@ -253,6 +272,7 @@ class LoginScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
 
+                        // Bottone Login Telefono
                         _buildSocialButton(
                           text: "Continua con Telefono",
                           icon: Icons.phone,
@@ -270,7 +290,7 @@ class LoginScreen extends StatelessWidget {
 
                         SizedBox(height: screenHeight * 0.05),
 
-                        // Parte bassa, vai a registrazione
+                        // Link Registrazione
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

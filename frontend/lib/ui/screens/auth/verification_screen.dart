@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata di Verifica OTP
+// Permette all'utente di inserire il codice OTP ricevuto per completare la registrazione/accesso.
 class VerificationScreen extends StatefulWidget {
   const VerificationScreen({super.key});
 
@@ -26,6 +28,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   @override
   void dispose() {
+    // Rilascia le risorse dei controller e focus node
     for (var c in _codeControllers) {
       c.dispose();
     }
@@ -35,7 +38,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
     super.dispose();
   }
 
-  // Unisce i 6 numeri in una stringa unica
+  // Unisce i 6 numeri inseriti in una stringa unica per l'invio al backend
   String _getVerificationCode() => _codeControllers.map((c) => c.text).join();
 
   @override
@@ -54,14 +57,16 @@ class _VerificationScreenState extends State<VerificationScreen> {
     final double largeSpacing = screenHeight * 0.04;
     final double buttonHeight = referenceSize * 0.12;
 
-
+    // Ascolto dell'AuthProvider per stato, errori e timer
     final authProvider = Provider.of<AuthProvider>(context);
-    final double viewHeight =
-        MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top;
+
+    // Altezza disponibile per lo scroll, tenendo conto della SafeArea
+    final double viewHeight = MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top;
 
     return Scaffold(
       backgroundColor: darkBluePrimary,
       body: Container(
+        // Sfondo con gradiente
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -80,6 +85,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: verticalSpacing / 2),
+
                     // Tasto Indietro
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
@@ -107,7 +113,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     // Griglia di input (6 Cifre)
                     _buildVerificationCodeInput(context, inputCodeFontSize),
 
-                    // Messaggio di Errore dal Provider (se il codice server è errato)
+                    // Messaggio di errore dal Provider
                     if (authProvider.errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 20),
@@ -131,6 +137,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                             ? null
                             : () async {
                           final code = _getVerificationCode();
+                          // Validazione lato client: codice completo a 6 cifre
                           if (code.length < 6) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -144,21 +151,25 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           final navigator = Navigator.of(context);
                           final messenger = ScaffoldMessenger.of(context);
 
-                          // Chiamata al Provider -> Server
+                          // Chiamata al Provider per la verifica
                           bool success = await authProvider.verifyCode(code);
 
                           if (success && context.mounted) {
                             messenger.showSnackBar(
                               const SnackBar(content: Text("Verifica riuscita!")),
                             );
+                            // Naviga alla schermata di Login/Home e rimuove tutte le schermate precedenti
                             navigator.pushAndRemoveUntil(
                               MaterialPageRoute(
+                                // Dopo la verifica, l'utente accede o torna al Login
                                 builder: (context) => const LoginScreen(),
                               ),
                                   (route) => false,
                             );
                           }
                         },
+
+                        // Stile del bottone
                         style: ElevatedButton.styleFrom(
                           backgroundColor: darkBlueButton,
                           foregroundColor: textWhite,
@@ -167,6 +178,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           ),
                           elevation: 5,
                         ),
+
+                        // Contenuto del bottone
                         child: authProvider.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
                             : Text(
@@ -193,12 +206,13 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           SizedBox(height: verticalSpacing / 4),
                           GestureDetector(
                             onTap: () {
+                              // Permetti il rinvio solo se il timer è a zero
                               if (authProvider.secondsRemaining == 0) {
-                                authProvider.resendOtp(); // Usato resendOtp dal provider
+                                authProvider.resendOtp(); // Usato resendOtp del provider
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text("Nuovo codice inviato!")),
                                 );
-                                // Resetta i campi
+                                // Resetta i campi e il focus
                                 for (var c in _codeControllers) {
                                   c.clear();
                                 }
@@ -210,6 +224,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                   ? "Invia di nuovo il codice"
                                   : "Rinvia il codice in (0:${authProvider.secondsRemaining.toString().padLeft(2, '0')})",
                               style: TextStyle(
+                                // Colore condizionale in base al timer
                                 color: authProvider.secondsRemaining == 0
                                     ? textWhite
                                     : textWhite.withValues(alpha: 0.5),
@@ -237,14 +252,17 @@ class _VerificationScreenState extends State<VerificationScreen> {
     );
   }
 
+  // Widget Helper per la Griglia di input del Codice OTP
   Widget _buildVerificationCodeInput(BuildContext context, double inputCodeFontSize) {
     return Column(
       children: [
+        // Prima riga
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: List.generate(3, (index) => _buildCodeBox(index, context, inputCodeFontSize)),
         ),
         SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+        // Seconda riga
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: List.generate(3, (index) => _buildCodeBox(index + 3, context, inputCodeFontSize)),
@@ -253,17 +271,20 @@ class _VerificationScreenState extends State<VerificationScreen> {
     );
   }
 
+  // Widget Helper per la singola Casella di input
   Widget _buildCodeBox(int index, BuildContext context, double inputCodeFontSize) {
+    // Calcola la dimensione della casella per adattarsi allo schermo
     final boxSize = (MediaQuery.of(context).size.width - 40) / 7;
 
-    // Keyboard listener per intercettare il backspace
+    // Usa KeyboardListener per gestire in modo esplicito il tasto Backspace
     return KeyboardListener(
-      focusNode: FocusNode(), // Nodo fittizio per il listener
+      focusNode: FocusNode(),
       onKeyEvent: (KeyEvent event) {
         if (event is KeyDownEvent) {
           if (event.logicalKey == LogicalKeyboardKey.backspace) {
-            // Se voglio cancellare un numero lo cancello e vado alla "casella" dell'otp precedente
+            // Se la casella è vuota e viene premuto backspace, sposta il focus alla casella precedente
             if (_codeControllers[index].text.isEmpty && index > 0) {
+              // Cancella il contenuto della casella precedente per consistenza
               _codeFocusNodes[index - 1].requestFocus();
             }
           }
@@ -291,6 +312,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
 
+              // Limita l'input ad una sola cifra e solo a numeri
               inputFormatters: [
                 LengthLimitingTextInputFormatter(1),
                 FilteringTextInputFormatter.digitsOnly,
@@ -308,18 +330,13 @@ class _VerificationScreenState extends State<VerificationScreen> {
               ),
 
               onChanged: (value) {
+                // Logica per spostare il focus automaticamente
                 if (value.length == 1) {
-                  // Ogni volta che inserisco un numero all'otp, vado avanti passando il focus alla casella successiva
+                  // Se viene inserita una cifra, sposta il focus in avanti
                   if (index < 5) {
                     FocusScope.of(context).requestFocus(_codeFocusNodes[index + 1]);
                   } else {
-                    FocusScope.of(context).unfocus(); // Non ci sono più numeri da inserire
-                  }
-                } else if (value.isEmpty) {
-                  // Cancellazione: Sposta il focus al campo precedente
-                  if (index > 0) {
-                    // Questa logica viene gestita dal RawKeyboardListener
-                    // ma la manteniamo qui per il comportamento standard di Android/iOS
+                    FocusScope.of(context).unfocus(); // Se è l'ultima casella, nasconde la tastiera
                   }
                 }
               },

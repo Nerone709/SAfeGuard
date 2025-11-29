@@ -5,6 +5,8 @@ import 'package:frontend/ui/screens/auth/phone_register_screen.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata Principale di Registrazione
+// Offre diverse opzioni per creare un nuovo account.
 class RegistrationScreen extends StatelessWidget {
   const RegistrationScreen({super.key});
 
@@ -44,12 +46,16 @@ class RegistrationScreen extends StatelessWidget {
             ),
           ),
         ),
+
+        // Logo
         title: Image.asset(
           'assets/logo.png',
           height: screenHeight * 0.05,
           errorBuilder: (c, e, s) =>
           const Icon(Icons.shield, color: Colors.white),
         ),
+
+        // Pulsante Skip
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pushReplacement(
@@ -68,6 +74,7 @@ class RegistrationScreen extends StatelessWidget {
 
       body: Stack(
         children: [
+          // Sfondo
           Container(
             height: double.infinity,
             width: double.infinity,
@@ -78,15 +85,19 @@ class RegistrationScreen extends StatelessWidget {
               ),
             ),
           ),
+
+          // Contenuto Principale
           SafeArea(
             child: Column(
               children: [
                 SizedBox(height: verticalSpacing * 2),
 
+                // Area Mascotte e Titoli
                 Padding(
                   padding: const EdgeInsets.fromLTRB(25, 5, 25, 10),
                   child: Row(
                     children: [
+                      // Mascotte
                       Image.asset(
                         'assets/stylizedMascot.png',
                         width: mascotSize,
@@ -95,6 +106,8 @@ class RegistrationScreen extends StatelessWidget {
                             Icon(Icons.shield, size: mascotSize, color: darkBlue),
                       ),
                       const SizedBox(width: 20),
+
+                      // Area Testo
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -141,7 +154,7 @@ class RegistrationScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        //Continua con apple
+                        // Bottone Registrazione Apple
                         _buildSocialButton(
                           text: "Continua con Apple",
                           icon: Icons.apple,
@@ -151,6 +164,7 @@ class RegistrationScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
 
+                        // Bottone Registrazione Google
                         _buildSocialButton(
                           text: "Continua con Google",
                           imagePath: 'assets/googleIcon.png',
@@ -159,8 +173,9 @@ class RegistrationScreen extends StatelessWidget {
                           iconColor: Colors.red,
                           fontSize: buttonTextFontSize,
                         ),
-
                         SizedBox(height: verticalSpacing),
+
+                        // Bottone Registrazione Email
                         _buildSocialButton(
                           text: "Continua con Email",
                           icon: Icons.alternate_email,
@@ -177,6 +192,7 @@ class RegistrationScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
 
+                        // Bottone Registrazione Telefono
                         _buildSocialButton(
                           text: "Continua con Telefono",
                           icon: Icons.phone,
@@ -191,9 +207,9 @@ class RegistrationScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-
                         SizedBox(height: screenHeight * 0.05),
 
+                        // Link Login
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -232,6 +248,7 @@ class RegistrationScreen extends StatelessWidget {
     );
   }
 
+  // Widget Helper per costruire i bottoni Social/Classici
   Widget _buildSocialButton({
     required String text,
     required Color backgroundColor,
@@ -265,6 +282,8 @@ class RegistrationScreen extends StatelessWidget {
               Image.asset(imagePath, height: fontSize * 1.5)
             else if (icon != null)
               Icon(icon, color: iconColor ?? textColor, size: fontSize * 1.5),
+
+            // Testo centrato
             Expanded(
               child: Center(
                 child: Text(

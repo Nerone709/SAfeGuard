@@ -4,6 +4,7 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata di Login tramite Numero di Telefono e Password.
 class PhoneLoginScreen extends StatefulWidget {
   const PhoneLoginScreen({super.key});
 
@@ -12,6 +13,7 @@ class PhoneLoginScreen extends StatefulWidget {
 }
 
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
+  // Controller con valore iniziale preimpostato per il prefisso italiano
   final TextEditingController _phoneController = TextEditingController(
     text: "+39",
   );
@@ -37,11 +39,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     final double verticalPadding = screenHeight * 0.04;
     final double smallSpacing = screenHeight * 0.015;
 
+    // Accesso all'AuthProvider
     final authProvider = Provider.of<AuthProvider>(context);
     final Color buttonColor = ColorPalette.primaryDarkButtonBlue;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+
+      // Header con bottone indietro
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -53,6 +58,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
       body: Stack(
         children: [
+          // Sfondo
           Container(
             height: double.infinity,
             width: double.infinity,
@@ -64,6 +70,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               ),
             ),
           ),
+
+          // Contenuto principale
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
@@ -88,7 +96,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     // Input telefono
                     TextField(
                       controller: _phoneController,
-                      keyboardType: TextInputType.phone,
+                      keyboardType: TextInputType.phone, // Tastiera ottimizzata per numeri di telefono
                       style: TextStyle(color: Colors.black, fontSize: contentFontSize),
                       decoration: InputDecoration(
                         filled: true,
@@ -106,6 +114,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     ),
                     SizedBox(height: smallSpacing),
 
+                    // Input Password
                     _buildTextField(
                         "Password",
                         _passController,
@@ -114,6 +123,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         fontSize: contentFontSize
                     ),
 
+                    // Messaggio di errore del provider
                     if (authProvider.errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 20),
@@ -126,6 +136,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
                     SizedBox(height: screenHeight * 0.15),
 
+                    // Bottone Continua
                     SizedBox(
                       height: referenceSize * 0.12,
                       child: ElevatedButton(
@@ -142,17 +153,19 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                             return;
                           }
 
+                          // Chiamata specifica per il login tramite telefono
                           bool success = await authProvider.loginPhone(
                             phone,
                             _passController.text,
                           );
 
+                          // Navigazione in caso di successo
                           if (success) {
                             navigator.pushAndRemoveUntil(
                               MaterialPageRoute(
                                 builder: (context) => const HomeScreen(),
                               ),
-                                  (route) => false,
+                                  (route) => false, // Rimuove lo stack di navigazione
                             );
                           }
                         },
@@ -166,6 +179,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           ),
                           side: const BorderSide(color: Colors.white12, width: 1),
                         ),
+                        // Contenuto del bottone
                         child: authProvider.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
                             : Text(
@@ -189,6 +203,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     );
   }
 
+  // Widget Helper per costruire i campi di testo
   Widget _buildTextField(
       String hint,
       TextEditingController controller, {

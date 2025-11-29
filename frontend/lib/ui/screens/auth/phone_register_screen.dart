@@ -4,6 +4,7 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/auth/verification_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata di Registrazione tramite Telefono
 class PhoneRegisterScreen extends StatefulWidget {
   const PhoneRegisterScreen({super.key});
 
@@ -12,10 +13,12 @@ class PhoneRegisterScreen extends StatefulWidget {
 }
 
 class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
+  // Controller per il telefono (preimpostato su +39)
   final TextEditingController _phoneController = TextEditingController(text: "+39");
   final TextEditingController _passController = TextEditingController();
   final TextEditingController _repeatPassController = TextEditingController();
 
+  // Controller per i dati anagrafici
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
 
@@ -28,7 +31,7 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Variabili di responsività
+    // Variabili per la responsività
     final Size screenSize = MediaQuery.of(context).size;
     final double screenHeight = screenSize.height;
     final double screenWidth = screenSize.width;
@@ -44,6 +47,8 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+
+      // Header con bottone indietro
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -52,8 +57,10 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
+
       body: Stack(
         children: [
+          // Sfondo
           Container(
             height: double.infinity,
             width: double.infinity,
@@ -65,6 +72,8 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
               ),
             ),
           ),
+
+          // Contenuto principale
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
@@ -85,6 +94,7 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                     ),
                     SizedBox(height: largeSpacing),
 
+                    // Campi Anagrafici
                     _buildTextField("Nome", _nameController, isPassword: false, contentVerticalPadding: 12, fontSize: contentFontSize),
                     SizedBox(height: smallSpacing),
 
@@ -110,11 +120,13 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                     ),
                     SizedBox(height: smallSpacing),
 
+                    // Password
                     _buildTextField("Password", _passController, isPassword: true, contentVerticalPadding: 12, fontSize: contentFontSize),
                     SizedBox(height: smallSpacing),
 
                     _buildTextField("Ripeti Password", _repeatPassController, isPassword: true, contentVerticalPadding: 12, fontSize: contentFontSize),
 
+                    // Messaggio di errore del provider
                     if (authProvider.errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 20),
@@ -141,6 +153,7 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                           final cognome = _surnameController.text.trim();
                           final password = _passController.text;
 
+                          // Validazione base lato client
                           if (phone.isEmpty || phone.length < 5) {
                             messenger.showSnackBar(const SnackBar(content: Text("Inserisci un numero valido")));
                             return;
@@ -158,6 +171,7 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                             return;
                           }
 
+                          // 1. Avvia l'autenticazione telefonica (che registra l'utente e invia l'OTP)
                           bool success = await authProvider.startPhoneAuth(
                               phone,
                               password: password,
@@ -165,16 +179,22 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                               cognome: cognome
                           );
 
+                          // 2. Navigazione in caso di successo
                           if (success && mounted) {
+                            // Invia l'utente alla schermata di verifica OTP
                             navigator.push(MaterialPageRoute(builder: (context) => const VerificationScreen()));
                           }
                         },
+
+                        // Stile del bottone
                         style: ElevatedButton.styleFrom(
                           backgroundColor: buttonColor,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                           side: const BorderSide(color: Colors.white12, width: 1),
                         ),
+
+                        // Contenuto del bottone
                         child: authProvider.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
                             : Text(
@@ -197,6 +217,7 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
     );
   }
 
+  // Widget Helper per costruire i campi di testo
   Widget _buildTextField(String hint, TextEditingController controller, {required bool isPassword, double contentVerticalPadding = 20, required double fontSize}) {
     bool obscureText = isPassword ? !_isPasswordVisible : false;
 
