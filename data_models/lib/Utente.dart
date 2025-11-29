@@ -21,15 +21,15 @@ class Utente extends UtenteGenerico {
   // Costruttore Unificato
   Utente({
     // Campi ereditati da UtenteGenerico
-    required int id,
-    String? passwordHash,
-    String? email,
-    String? telefono,
-    String? nome,
-    String? cognome,
-    DateTime? dataDiNascita,
-    String? cittaDiNascita,
-    String? iconaProfilo,
+    required int super.id,
+    super.passwordHash,
+    super.email,
+    super.telefono,
+    super.nome,
+    super.cognome,
+    super.dataDiNascita,
+    super.cittaDiNascita,
+    super.iconaProfilo,
 
     // Campi specifici (Opzionali per deserializzazione)
     Permesso? permessi,
@@ -46,19 +46,7 @@ class Utente extends UtenteGenerico {
        notifiche = notifiche ?? Notifica(),
        allergie = allergie ?? const [],
        medicinali = medicinali ?? const [],
-       contattiEmergenza = contattiEmergenza ?? const [],
-       // I dati base sono passati al costruttore del padre (UtenteGenerico)
-       super(
-         id: id,
-         passwordHash: passwordHash,
-         email: email,
-         telefono: telefono,
-         nome: nome,
-         cognome: cognome,
-         dataDiNascita: dataDiNascita,
-         cittaDiNascita: cittaDiNascita,
-         iconaProfilo: iconaProfilo,
-       );
+       contattiEmergenza = contattiEmergenza ?? const [];
 
   // Metodo copyWith Avanzato
   // Gestisce la creazione di una copia mutata, includendo sia i campi locali

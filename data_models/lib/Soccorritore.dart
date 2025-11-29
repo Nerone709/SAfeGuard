@@ -7,25 +7,17 @@ import 'UtenteGenerico.dart';
 class Soccorritore extends UtenteGenerico {
   // Costruttore principale non nominato: Delega a 'super' e forza il flag.
   Soccorritore({
-    required int id,
-    required String email,
+    required int super.id,
+    required String super.email,
     String? passwordHash,
-    String? telefono,
-    String? nome,
-    String? cognome,
-    DateTime? dataDiNascita,
-    String? cittaDiNascita,
-    String? iconaProfilo,
+    super.telefono,
+    super.nome,
+    super.cognome,
+    super.dataDiNascita,
+    super.cittaDiNascita,
+    super.iconaProfilo,
   }) : super(
-         id: id,
-         email: email,
          passwordHash: passwordHash ?? '',
-         telefono: telefono,
-         nome: nome,
-         cognome: cognome,
-         dataDiNascita: dataDiNascita,
-         cittaDiNascita: cittaDiNascita,
-         iconaProfilo: iconaProfilo,
          // Punto Chiave: Forza il flag isSoccorritore a true nella classe base.
          isSoccorritore: true,
        );
