@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../../providers/medical_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata Gestione Condizioni Mediche
+// Permette all'utente di attivare/disattivare specifiche condizioni/disabilità.
 class CondizioniMedicheScreen extends StatefulWidget {
   const CondizioniMedicheScreen({super.key});
 
@@ -15,7 +17,7 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
   @override
   void initState() {
     super.initState();
-    // Carica i dati dal DB all'avvio della schermata
+    // Carica i dati dal MedicalProvider all'avvio della schermata
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MedicalProvider>(context, listen: false).loadCondizioni();
     });
@@ -32,7 +34,7 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            //Header
+            // Header con bottone indietro
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Row(
@@ -72,7 +74,7 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
 
             const SizedBox(height: 30),
 
-            // Card switch
+            // Card con la lista degli switch
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -84,22 +86,25 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(25.0),
 
-                  // Consumer
+                  // Consumer: Ascolta le modifiche nel MedicalProvider
                   child: Consumer<MedicalProvider>(
                     builder: (context, provider, child) {
                       if (provider.isLoading) {
                         return const Center(child: CircularProgressIndicator());
                       }
 
+                      // Ottiene l'oggetto Condizioni Mediche
                       final cond = provider.condizioni;
 
                       return ListView(
                         children: [
+                          // Switch 1: Disabilità motorie
                           _buildSwitchTile(
                             "Disabilità motorie",
                             cond.disabilitaMotorie,
                                 (val) {
                               provider.updateCondizioni(
+                                  // Crea un nuovo oggetto CondizioniMediche con il campo aggiornato
                                   cond.copyWith(disabilitaMotorie: val)
                               );
                             },
@@ -107,6 +112,7 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
                           ),
                           const SizedBox(height: 10),
 
+                          // Switch 2: Disabilità visive
                           _buildSwitchTile(
                             "Disabilità visive",
                             cond.disabilitaVisive,
@@ -119,6 +125,7 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
                           ),
                           const SizedBox(height: 10),
 
+                          // Switch 3: Disabilità uditive
                           _buildSwitchTile(
                             "Disabilità uditive",
                             cond.disabilitaUditive,
@@ -131,6 +138,7 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
                           ),
                           const SizedBox(height: 10),
 
+                          // Switch 4: Disabilità intellettive
                           _buildSwitchTile(
                             "Disabilità intellettive",
                             cond.disabilitaIntellettive,
@@ -143,6 +151,7 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
                           ),
                           const SizedBox(height: 10),
 
+                          // Switch 5: Disabilità psichiche
                           _buildSwitchTile(
                             "Disabilità psichiche",
                             cond.disabilitaPsichiche,
@@ -167,7 +176,7 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
     );
   }
 
-  //Il widget per costruire le varie selezioni
+  //Widget Helper: Tile con Switch
   Widget _buildSwitchTile(
       String title,
       bool value,

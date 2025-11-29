@@ -8,6 +8,8 @@ import 'package:frontend/ui/screens/map/map_screen.dart';
 import 'package:frontend/ui/screens/reports/reports_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata Principale
+// Gestisce la navigazione tra le sezioni dell'app, adattandosi al fattore di forma.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -18,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
+  // Lista dei widget/schermate visualizzati
   final List<Widget> _pages = [
     const HomePageContent(),       // 0. HOME
     const ReportsScreen(),         // 1. REPORT
@@ -32,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const ProfileSettingsScreen(), // 4. IMPOSTAZIONI
   ];
 
+  // Callback per aggiornare l'indice quando viene premuta un'icona
   void _onTabChange(int index) {
     setState(() {
       _currentIndex = index;
@@ -40,13 +44,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Accesso allo stato del ruolo utente per personalizzare i colori
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
+    // Colori di sfondo e selezione dinamici
     final backgroundColor = isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundDarkBlue;
     final selectedColor = isRescuer ? ColorPalette.backgroundDarkBlue : ColorPalette.primaryOrange;
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        // Logica per determinare se è un layout desktop/wide
         final bool isDesktop = constraints.maxWidth >= 1100;
 
         return Scaffold(
@@ -99,6 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
 
+              // Divisore verticale tra sidebar e contenuto
               if (isDesktop)
                 const VerticalDivider(thickness: 1, width: 1),
 
@@ -108,8 +116,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Center(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
+                        // Limita la larghezza massima del contenuto per schermi grandi,
+                        // tranne per la mappa che può occupare tutto lo spazio.
                         maxWidth: _currentIndex == 2 ? double.infinity : 1200,
                       ),
+                      // Mostra solo la pagina corrispondente all'indice selezionato
                       child: IndexedStack(
                         index: _currentIndex,
                         children: _pages,

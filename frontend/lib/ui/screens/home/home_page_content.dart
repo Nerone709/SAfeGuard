@@ -9,6 +9,8 @@ import 'package:frontend/providers/emergency_provider.dart';
 import 'package:frontend/ui/widgets/emergency_notification.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Contenuto della Pagina Home
+// Layout principale della schermata Home che adatta i contenuti al ruolo utente.
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});
 
@@ -18,8 +20,10 @@ class HomePageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Accesso ai provider per lo stato globale
     final isRescuer = context.watch<AuthProvider>().isRescuer;
     final hasActiveAlert = context.watch<EmergencyProvider>().isSendingSos;
+
     final size = MediaQuery.of(context).size;
     final double screenWidth = size.width;
     final bool isWideScreen = screenWidth > 600;
@@ -32,7 +36,7 @@ class HomePageContent extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 0. Notifica
+          // Notifica di Emergenza Attiva
           if (hasActiveAlert) ...[
             Padding(
               padding: const EdgeInsets.only(top: 8.0, bottom: 10.0),
@@ -48,13 +52,13 @@ class HomePageContent extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          // 2. Pulsante contatti
+          // 2. Pulsante contatti (Mostrato solo per i Cittadini)
           if (!isRescuer) ...[
             _buildEmergencyContactsButton(context, isWideScreen),
             const SizedBox(height: 10),
           ],
 
-          // 3. Sos button
+          // 3. Pulsante SOS
           Expanded(
             flex: 3,
             child: Center(
@@ -80,8 +84,7 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
-  // --- WIDGETS ---
-
+  // Placeholder visivo per la Mappa
   Widget _buildMapPlaceholder(bool isWideScreen) {
     return Container(
       width: double.infinity,
@@ -126,8 +129,11 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
+  // Pulsante "Contatti di Emergenza" o "Registrati"
   Widget _buildEmergencyContactsButton(BuildContext context, bool isWideScreen) {
     final isLogged = context.watch<AuthProvider>().isLogged;
+
+    // Stile del pulsante
     final buttonStyle = ElevatedButton.styleFrom(
       backgroundColor: isLogged ? amberOrange : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -138,6 +144,7 @@ class HomePageContent extends StatelessWidget {
       elevation: 5,
     );
 
+    // Stile del testo
     final textStyle = TextStyle(
       color: darkBlue,
       fontWeight: FontWeight.bold,
@@ -147,6 +154,7 @@ class HomePageContent extends StatelessWidget {
       fit: BoxFit.scaleDown,
       child: ElevatedButton(
         onPressed: () {
+          // Naviga a Contatti Emergenza se loggato, altrimenti a Registrazione
           final route = isLogged
               ? MaterialPageRoute(builder: (_) => const ContattiEmergenzaScreen())
               : MaterialPageRoute(builder: (_) => const RegistrationScreen());
@@ -156,8 +164,10 @@ class HomePageContent extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Icona mostrata solo se loggato
             if(isLogged) Icon(Icons.person_pin_circle, color: darkBlue, size: isWideScreen ? 34 : 24),
             if(isLogged) const SizedBox(width: 10),
+            // Testo che cambia in base allo stato di login
             Text(isLogged ? "Contatti di Emergenza" : "Registrati", style: textStyle),
           ],
         ),
@@ -165,6 +175,7 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
+  // Sezione del Pulsante SOS
   Widget _buildSosSection(BuildContext context) {
     final isLogged = context.watch<AuthProvider>().isLogged;
     if (!isLogged) {
@@ -173,6 +184,7 @@ class HomePageContent extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
+        // Naviga alla schermata di conferma SOS
         Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const ConfirmEmergencyScreen()),
         );
@@ -197,6 +209,7 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
+  // Menu a discesa per le emergenze specifiche
   Widget _buildSpecificEmergency(BuildContext context, bool isWideScreen) {
     return SizedBox(
       width: isWideScreen ? 500 : double.infinity,
@@ -211,6 +224,7 @@ class HomePageContent extends StatelessWidget {
           ],
           onSelected: (item) {
             ScaffoldMessenger.of(context).showSnackBar(
+              // Placeholder per la logica di gestione dell'emergenza specifica selezionata
               SnackBar(content: Text("Selezionato: ${item.label}"), backgroundColor: Colors.black),
             );
           }
@@ -218,8 +232,7 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
-  // costruzione della notifica
   Widget _buildEmergencyNotification() {
-    return EmergencyNotification();
+    return const EmergencyNotification();
   }
 }

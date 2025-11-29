@@ -12,19 +12,15 @@ class ConfirmEmergencyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Variabili per la responsività
+    // Variabili per la responsività
     final size = MediaQuery.of(context).size;
     final double screenWidth = size.width;
     final bool isWideScreen = screenWidth > 600;
 
-    // Dimensione dei font dinamiche
+    // Dimensione dei font dinamiche basate sulla larghezza dello schermo
     final double titleSize = isWideScreen ? 60 : 45;
     final double subTitleSize = isWideScreen ? 26 : 20;
-
-    // Testo legale: 14 su mobile -> 20 su tablet
     final double legalTextSize = isWideScreen ? 20 : 14;
-
-    // Tasto Annulla: 24 su mobile -> 35 su tablet
     final double cancelTextSize = isWideScreen ? 35 : 24;
 
     // Larghezza slider
@@ -46,14 +42,14 @@ class ConfirmEmergencyScreen extends StatelessWidget {
                 child: Center(
                   child: AspectRatio(
                     aspectRatio: 1,
-                    child: _buildSosImage(),
+                    child: _buildSosImage(), // Helper per l'immagine
                   ),
                 ),
               ),
 
               SizedBox(height: isWideScreen ? 40 : 20),
 
-              // 2. Testi
+              // 2. Testi di Titolo e Istruzione
               Column(
                 children: [
                   Text(
@@ -81,28 +77,31 @@ class ConfirmEmergencyScreen extends StatelessWidget {
 
               const SizedBox(height: 50),
 
-              // 3. Slider
+              // 3. Slider di Conferma
               Center(
                 child: SwipeToConfirm(
                   width: sliderWidth,
                   height: isWideScreen ? 80 : 70,
                   onConfirm: () {
-                    Navigator.of(context).pop();
+                    // Logica eseguita dopo lo swipe completato
+                    Navigator.of(context).pop(); // Chiude la schermata di conferma
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text("SOS INVIATO!"),
                         backgroundColor: Colors.black,
                       ),
                     );
+                    // Qui andrebbe la vera logica di invio dell'SOS al provider/server
                   },
                 ),
               ),
 
               const Spacer(flex: 1),
 
-              // 4. Footer
+              // 4. Footer (Testo Legale e Pulsante Annulla)
               Column(
                 children: [
+                  // Avviso legale (procurato allarme)
                   Text(
                     "Ricorda che il procurato allarme verso le autorità è\nperseguibile per legge ai sensi dell'art. 658 del c.p.",
                     textAlign: TextAlign.center,
@@ -113,6 +112,7 @@ class ConfirmEmergencyScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 15),
+                  // Pulsante Annulla
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text(
@@ -135,6 +135,7 @@ class ConfirmEmergencyScreen extends StatelessWidget {
     );
   }
 
+  // Helper per l'immagine del pulsante SOS
   Widget _buildSosImage() {
     return Container(
       decoration: const BoxDecoration(
