@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 
+import '../config/RescuerConfig.dart';
 import '../repositories/UserRepository.dart';
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
@@ -11,15 +12,6 @@ import 'package:data_models/Permesso.dart';
 import 'package:data_models/Notifica.dart';
 import 'package:data_models/Condizione.dart';
 import 'package:data_models/ContattoEmergenza.dart';
-
-// Lista domini Soccorritori (Allineata con LoginService e RegisterService)
-const List<String> rescuerDomains = [
-  '@soccorritore.com',
-  '@soccorritore.gmail',
-  '@crocerossa.it',
-  '@118.it',
-  '@protezionecivile.it',
-];
 
 class ProfileService {
   // Dipendenza dal Repository per l'accesso ai dati
@@ -45,7 +37,7 @@ class ProfileService {
         data.remove('passwordHash');
 
         // 3. Logica di classificazione
-        final bool isSoccorritore = rescuerDomains.any((domain) => email.toLowerCase().endsWith(domain));
+        final bool isSoccorritore = RescuerConfig.isSoccorritore(email);
 
         if (isSoccorritore) {
           data['isSoccorritore'] = true; // Assicura il flag corretto
@@ -109,39 +101,62 @@ class ProfileService {
     try {
       final Map<String, dynamic> updates = {};
 
-      // 1. Aggiornamenti campi semplici (solo se presenti)
+      // Necessario per confrontare l'email attuale con quella nuova
+      final currentUserData = await _userRepository.findUserById(userId);
+      if (currentUserData == null) return false;
+
+      final String currentEmail = (currentUserData['email'] as String? ?? '').toLowerCase();
+
+      // 1. Aggiornamenti campi semplici
       if (nome != null) updates['nome'] = nome;
       if (cognome != null) updates['cognome'] = cognome;
       if (citta != null) updates['cittaDiNascita'] = citta;
       if (dataNascita != null) updates['dataDiNascita'] = dataNascita.toIso8601String();
 
-      // 2. Logica Email (Lowercase + Controllo Duplicati)
+      // 2. Logica Email
       if (email != null && email.isNotEmpty) {
-        final normalizedEmail = email.toLowerCase();
+        final normalizedNewEmail = email.toLowerCase();
 
-        // Verifica se l'email è già usata da un ALTRO utente
-        final existingUser = await _userRepository.findUserByEmail(normalizedEmail);
-        if (existingUser != null && existingUser['id'] != userId) {
-          print("Errore: Email $normalizedEmail già in uso.");
-          return false;
+        // CONTROLLO CRITICO: Procedi solo se l'email è CAMBIATA
+        if (normalizedNewEmail != currentEmail) {
+
+          // A. Sicurezza Domini Riservati
+          // Blocca solo se stai cambiando email VERSO un dominio soccorritore
+          if (RescuerConfig.isSoccorritore(normalizedNewEmail)) {
+            print("Errore: Impossibile passare a un'email istituzionale riservata.");
+            return false;
+          }
+
+          // B. Controllo Duplicati
+          // Verifica se la NUOVA email è usata da qualcun altro
+          final existingUser = await _userRepository.findUserByEmail(normalizedNewEmail);
+          if (existingUser != null) {
+            print("Errore: Email $normalizedNewEmail già in uso.");
+            return false;
+          }
+
+          // Se passa i controlli, aggiungiamo il campo da aggiornare
+          updates['email'] = normalizedNewEmail;
         }
-        updates['email'] = normalizedEmail;
       }
 
-      // 3. Logica Telefono (No Spazi + Controllo Duplicati)
+      // 3. Logica Telefono (Simile all'email: controlla duplicati solo se cambia)
       if (telefono != null && telefono.isNotEmpty) {
         final cleanPhone = telefono.replaceAll(' ', '');
+        final currentPhone = (currentUserData['telefono'] as String?) ?? '';
 
-        // Verifica se il telefono è già usato da un altro utente
-        final existingUser = await _userRepository.findUserByPhone(cleanPhone);
-        if (existingUser != null && existingUser['id'] != userId) {
-          print("Errore: Telefono $cleanPhone già in uso.");
-          return false;
+        // Controlla solo se il numero è diverso da quello attuale
+        if (cleanPhone != currentPhone) {
+          final existingUser = await _userRepository.findUserByPhone(cleanPhone);
+          if (existingUser != null && existingUser['id'] != userId) {
+            print("Errore: Telefono $cleanPhone già in uso.");
+            return false;
+          }
+          updates['telefono'] = cleanPhone;
         }
-        updates['telefono'] = cleanPhone;
       }
 
-      // Esegue l'update solo se ci sono modifiche valide
+      // Esegue l'update solo se ci sono modifiche reali
       if (updates.isNotEmpty) {
         await _userRepository.updateUserGeneric(userId, updates);
       }
@@ -212,7 +227,7 @@ class ProfileService {
         print("🆕 Inizializzazione profilo default...");
 
         final String email = existingUser['email'] ?? '';
-        final bool isSoccorritore = rescuerDomains.any((domain) => email.toLowerCase().endsWith(domain));
+        final bool isSoccorritore = RescuerConfig.isSoccorritore(email);
 
         // Crea gli oggetti modello con i valori di default
         final defaultPermessi = Permesso(

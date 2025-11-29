@@ -7,17 +7,9 @@ import 'package:http/http.dart' as http;
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
 import 'package:data_models/UtenteGenerico.dart';
+import '../config/RescuerConfig.dart';
 import '../repositories/UserRepository.dart';
 import 'JWTService.dart';
-
-// Lista domini Soccorritori (Allineata con RegisterService e ProfileService)
-const List<String> rescuerDomains = [
-  '@soccorritore.com',
-  '@soccorritore.gmail',
-  '@crocerossa.it',
-  '@118.it',
-  '@protezionecivile.it',
-];
 
 class LoginService {
   // Dipendenze: Repository per il DB e Service per la verifica
@@ -39,7 +31,7 @@ class LoginService {
 
   // Helper per verificare se un'email appartiene a un soccorritore
   bool _isSoccorritore(String email) {
-    return rescuerDomains.any((domain) => email.toLowerCase().endsWith(domain));
+    return RescuerConfig.isSoccorritore(email);
   }
 
   // Login con Google
