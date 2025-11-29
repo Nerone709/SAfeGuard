@@ -31,9 +31,9 @@ class RegisterService {
   }
 
   Future<UtenteGenerico> register(
-      Map<String, dynamic> requestData,
-      String password,
-      ) async {
+    Map<String, dynamic> requestData,
+    String password,
+  ) async {
     final email = requestData['email'] as String?;
     final telefono = requestData['telefono'] as String?;
     final nome = requestData['nome'] as String?;
@@ -47,13 +47,31 @@ class RegisterService {
     if (nome == null || cognome == null) {
       throw Exception('Nome e Cognome sono obbligatori.');
     }
+    if (password.isEmpty) {
+      throw Exception('Password obbligatoria.');
+    }
+
+    // Lunghezza 6-12
+    if (password.length < 6 || password.length > 12) {
+      throw Exception('La password deve essere lunga tra 6 e 12 caratteri.');
+    }
+
+    // Complessità (Maiuscola + Numero + Speciale)
+    if (!RegExp(
+      r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%^&*(),.?":{}|<>_])',
+    ).hasMatch(password)) {
+      throw Exception(
+        'La password non rispetta i criteri di sicurezza (Maiuscola, Numero, Speciale).',
+      );
+    }
 
     // 2. Validazione Unicità
     // Controlla se l'email o il telefono sono già registrati nel DataBase
     if (email != null && await _userRepository.findUserByEmail(email) != null) {
       throw Exception('Utente con questa email è già registrato.');
     }
-    if (telefono != null && await _userRepository.findUserByPhone(telefono) != null) {
+    if (telefono != null &&
+        await _userRepository.findUserByPhone(telefono) != null) {
       throw Exception('Utente con questo telefono è già registrato.');
     }
 
@@ -69,7 +87,9 @@ class RegisterService {
     // 4. Classificazione Utente
     bool isSoccorritore = false;
     if (email != null) {
-      isSoccorritore = rescuerDomains.any((domain) => email.toLowerCase().endsWith(domain));
+      isSoccorritore = rescuerDomains.any(
+        (domain) => email.toLowerCase().endsWith(domain),
+      );
     }
     requestData['isSoccorritore'] = isSoccorritore;
 

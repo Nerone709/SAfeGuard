@@ -39,15 +39,35 @@ class RegisterController {
       requestData.remove('password');
       requestData.remove('confermaPassword');
 
-      if ((email == null || email.isEmpty) && (telefono == null || telefono.isEmpty)) {
+      if ((email == null || email.isEmpty) &&
+          (telefono == null || telefono.isEmpty)) {
         return _badRequest('Inserisci Email o Numero di Telefono.');
       }
+      //Controlli sul campo Password
 
       if (password == null || password.isEmpty) {
         return _badRequest('Password obbligatoria.');
       }
 
-      if (confermaPassword != null && password != confermaPassword) {
+      if (password.length < 6 || password.length > 12) {
+        return _badRequest(
+          'La password deve essere lunga tra 6 e 12 caratteri.',
+        );
+      }
+
+      if (!RegExp(
+        r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%^&*(),.?":{}|<>_])',
+      ).hasMatch(password)) {
+        return _badRequest(
+          'La password deve contenere almeno: 1 Maiuscola, 1 Numero e 1 Carattere Speciale.',
+        );
+      }
+
+      if (confermaPassword == null || confermaPassword.isEmpty) {
+        return _badRequest('Inserisci la conferma della password.');
+      }
+
+      if (password != confermaPassword) {
         return _badRequest('Le password non coincidono');
       }
 
@@ -57,18 +77,24 @@ class RegisterController {
 
       // 2. Chiamata al RegisterService
       // Delega la creazione dell'utente, l'hashing della password e il salvataggio nel DB.
-      final UtenteGenerico user = await _registerService.register(requestData, password);
+      final UtenteGenerico user = await _registerService.register(
+        requestData,
+        password,
+      );
 
       // 3. Avvio del processo di verifica (OTP email)
       if (email != null && (telefono == null || telefono.isEmpty)) {
         final String otpCode = _generateOTP();
         // Salva l'OTP nel database in attesa di verifica
-        await Firestore.instance.collection('email_verifications').document(email).set({
-          'otp': otpCode,
-          'email': email,
-          'created_at': DateTime.now().toIso8601String(),
-          'is_verified': false,
-        });
+        await Firestore.instance
+            .collection('email_verifications')
+            .document(email)
+            .set({
+              'otp': otpCode,
+              'email': email,
+              'created_at': DateTime.now().toIso8601String(),
+              'is_verified': false,
+            });
       }
 
       // Rimuove l'hash della password prima di inviare i dati utente al frontend
@@ -79,7 +105,6 @@ class RegisterController {
       };
 
       return Response.ok(jsonEncode(responseBody), headers: _headers);
-
     } catch (e) {
       final msg = e.toString().replaceFirst('Exception: ', '');
       return _badRequest(msg);
