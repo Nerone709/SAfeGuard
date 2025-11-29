@@ -4,6 +4,7 @@ import 'package:frontend/ui/screens/auth/phone_login_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/auth/registration_screen.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
+import 'package:frontend/ui/widgets/blue_seahorse.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 import 'package:frontend/ui/widgets/google_logo.dart';
@@ -24,7 +25,9 @@ class LoginScreen extends StatelessWidget {
     final Size screenSize = MediaQuery.of(context).size;
     final double screenHeight = screenSize.height;
     final double screenWidth = screenSize.width;
-    final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
+    final double referenceSize = screenHeight < screenWidth
+        ? screenHeight
+        : screenWidth;
     final double verticalSpacing = screenHeight * 0.015;
     final double mascotSize = referenceSize * 0.22;
     final double titleFontSize = referenceSize * 0.065;
@@ -60,7 +63,7 @@ class LoginScreen extends StatelessWidget {
           'assets/logo.png',
           height: screenHeight * 0.05,
           errorBuilder: (c, e, s) =>
-          const Icon(Icons.shield, color: Colors.white),
+              const Icon(Icons.shield, color: Colors.white),
         ),
 
         // Pulsante "Skip" (Salta Login)
@@ -117,7 +120,10 @@ class LoginScreen extends StatelessWidget {
                             ),
                             SizedBox(height: verticalSpacing),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 1),
                                 borderRadius: BorderRadius.circular(8),
@@ -126,9 +132,9 @@ class LoginScreen extends StatelessWidget {
                                 "Accedi per connetterti alla rete di emergenza",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    color: darkBlue,
-                                    fontSize: subtitleFontSize,
-                                    fontWeight: FontWeight.bold
+                                  color: darkBlue,
+                                  fontSize: subtitleFontSize,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
@@ -141,13 +147,7 @@ class LoginScreen extends StatelessWidget {
                       // Mascotte specchiata
                       Transform.flip(
                         flipX: true,
-                        child: Image.asset(
-                          'assets/stylizedMascot.png',
-                          width: mascotSize,
-                          color: darkBlue,
-                          errorBuilder: (c, e, s) =>
-                              Icon(Icons.shield, size: mascotSize, color: darkBlue),
-                        ),
+                        child: BlueSeahorse(size: mascotSize),
                       ),
                     ],
                   ),
@@ -160,20 +160,26 @@ class LoginScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-
                         // Bottone Login Apple
                         _buildSocialButton(
                           text: "Continua con Apple",
-                          icon: Icon(Icons.apple, color: Colors.white, size: iconSize),
+                          icon: Icon(
+                            Icons.apple,
+                            color: Colors.white,
+                            size: iconSize,
+                          ),
                           iconSize: iconSize,
                           backgroundColor: Colors.black,
                           textColor: Colors.white,
                           fontSize: buttonTextFontSize,
                           onTap: () async {
-                            final success = await authProvider.signInWithApple();
+                            final success = await authProvider
+                                .signInWithApple();
                             if (success && context.mounted) {
                               Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                MaterialPageRoute(
+                                  builder: (context) => const HomeScreen(),
+                                ),
                               );
                             }
                           },
@@ -189,10 +195,13 @@ class LoginScreen extends StatelessWidget {
                           textColor: Colors.black,
                           fontSize: buttonTextFontSize,
                           onTap: () async {
-                            final success = await authProvider.signInWithGoogle();
+                            final success = await authProvider
+                                .signInWithGoogle();
                             if (success && context.mounted) {
                               Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                MaterialPageRoute(
+                                  builder: (context) => const HomeScreen(),
+                                ),
                               );
                             }
                           },
@@ -202,7 +211,11 @@ class LoginScreen extends StatelessWidget {
                         // Bottone Login Email
                         _buildSocialButton(
                           text: "Continua con Email",
-                          icon: Icon(Icons.alternate_email, color: darkBlue, size: iconSize),
+                          icon: Icon(
+                            Icons.alternate_email,
+                            color: darkBlue,
+                            size: iconSize,
+                          ),
                           iconSize: iconSize,
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
@@ -219,7 +232,11 @@ class LoginScreen extends StatelessWidget {
                         // Bottone Login Telefono
                         _buildSocialButton(
                           text: "Continua con Telefono",
-                          icon: Icon(Icons.phone, color: darkBlue, size: iconSize),
+                          icon: Icon(
+                            Icons.phone,
+                            color: darkBlue,
+                            size: iconSize,
+                          ),
                           iconSize: iconSize,
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
@@ -247,7 +264,7 @@ class LoginScreen extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                  const RegistrationScreen(),
+                                      const RegistrationScreen(),
                                 ),
                               ),
 

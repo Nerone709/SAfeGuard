@@ -4,6 +4,7 @@ import 'package:frontend/ui/screens/auth/login_screen.dart';
 import 'package:frontend/ui/screens/auth/phone_register_screen.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
+import 'package:frontend/ui/widgets/blue_seahorse.dart';
 import 'package:frontend/ui/widgets/google_logo.dart';
 import 'package:provider/provider.dart';
 
@@ -17,7 +18,6 @@ class RegistrationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final authProvider = Provider.of<AuthProvider>(context);
     final Color darkBlue = ColorPalette.backgroundDeepBlue;
 
@@ -25,7 +25,9 @@ class RegistrationScreen extends StatelessWidget {
     final Size screenSize = MediaQuery.of(context).size;
     final double screenHeight = screenSize.height;
     final double screenWidth = screenSize.width;
-    final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
+    final double referenceSize = screenHeight < screenWidth
+        ? screenHeight
+        : screenWidth;
     final double verticalSpacing = screenHeight * 0.015;
     final double mascotSize = referenceSize * 0.22;
     final double titleFontSize = referenceSize * 0.065;
@@ -62,7 +64,7 @@ class RegistrationScreen extends StatelessWidget {
           'assets/logo.png',
           height: screenHeight * 0.05,
           errorBuilder: (c, e, s) =>
-          const Icon(Icons.shield, color: Colors.white),
+              const Icon(Icons.shield, color: Colors.white),
         ),
 
         // Pulsante Skip
@@ -101,15 +103,8 @@ class RegistrationScreen extends StatelessWidget {
                   child: Row(
                     children: [
                       // Mascotte
-                      Image.asset(
-                        'assets/stylizedMascot.png',
-                        width: mascotSize,
-                        color: darkBlue,
-                        errorBuilder: (c, e, s) =>
-                            Icon(Icons.shield, size: mascotSize, color: darkBlue),
-                      ),
+                      BlueSeahorse(size: mascotSize),
                       const SizedBox(width: 20),
-
                       // Area Testo
                       Expanded(
                         child: Column(
@@ -128,7 +123,10 @@ class RegistrationScreen extends StatelessWidget {
                             ),
                             SizedBox(height: verticalSpacing),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.8),
                                 borderRadius: BorderRadius.circular(8),
@@ -137,9 +135,9 @@ class RegistrationScreen extends StatelessWidget {
                                 "Registrati per connetterti alla rete di emergenza",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    color: darkBlue,
-                                    fontSize: subtitleFontSize,
-                                    fontWeight: FontWeight.bold
+                                  color: darkBlue,
+                                  fontSize: subtitleFontSize,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
@@ -160,7 +158,11 @@ class RegistrationScreen extends StatelessWidget {
                         // Bottone Registrazione Apple
                         _buildSocialButton(
                           text: "Continua con Apple",
-                          icon: Icon(Icons.apple, color: Colors.white, size: iconSize),
+                          icon: Icon(
+                            Icons.apple,
+                            color: Colors.white,
+                            size: iconSize,
+                          ),
                           backgroundColor: Colors.black,
                           textColor: Colors.white,
                           fontSize: buttonTextFontSize,
@@ -178,10 +180,13 @@ class RegistrationScreen extends StatelessWidget {
                           fontSize: buttonTextFontSize,
                           iconSize: iconSize,
                           onTap: () async {
-                            final success = await authProvider.signInWithGoogle();
+                            final success = await authProvider
+                                .signInWithGoogle();
                             if (success && context.mounted) {
                               Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                MaterialPageRoute(
+                                  builder: (context) => const HomeScreen(),
+                                ),
                               );
                             }
                           },
@@ -191,7 +196,11 @@ class RegistrationScreen extends StatelessWidget {
                         // Bottone Registrazione Email
                         _buildSocialButton(
                           text: "Continua con Email",
-                          icon: Icon(Icons.alternate_email, color: darkBlue, size: iconSize),
+                          icon: Icon(
+                            Icons.alternate_email,
+                            color: darkBlue,
+                            size: iconSize,
+                          ),
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           fontSize: buttonTextFontSize,
@@ -208,7 +217,11 @@ class RegistrationScreen extends StatelessWidget {
                         // Bottone Registrazione Telefono
                         _buildSocialButton(
                           text: "Continua con Telefono",
-                          icon: Icon(Icons.phone, color: darkBlue, size: iconSize),
+                          icon: Icon(
+                            Icons.phone,
+                            color: darkBlue,
+                            size: iconSize,
+                          ),
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           fontSize: buttonTextFontSize,
