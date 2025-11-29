@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 /*
 * Heyo
+*
 * Questa è la palette della app
 * Questi commenti saranno eliminati dopo l'unificazione e la rielaborazione
 * dei file citati sotto
