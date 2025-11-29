@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/ui/screens/auth/verification_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
@@ -145,15 +146,24 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                             return;
                           }
 
-                          bool success = await authProvider.login(
-                            _emailController.text,
+                          String result = await authProvider.login(
+                            _emailController.text.trim(),
                             _passController.text,
                           );
                           // 2. Se il login ha successo, naviga alla Home e rimuove tutte le schermate precedenti
-                          if (success) {
+                          if (result == 'success') {
+                            // Login OK -> Home
                             navigator.pushAndRemoveUntil(
                               MaterialPageRoute(builder: (context) => const HomeScreen()),
                                   (route) => false,
+                            );
+                          } else if (result == 'verification_needed') {
+                            // Login Bloccato -> Verifica OTP
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Account non verificato. Inserisci il codice inviato via email.")),
+                            );
+                            navigator.push(
+                              MaterialPageRoute(builder: (context) => const VerificationScreen()),
                             );
                           }
                         },

@@ -92,34 +92,73 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Login con Email
-  Future<bool> login(String email, String password) async {
+  Future<String> login(String email, String password) async {
     _setLoading(true);
     try {
-      //Delega ad AuthRepository
       final response = await _authRepository.login(email: email, password: password);
-      await _saveSession(response);
+
+      // CASO 1: Login Successo
+      if (response.containsKey('token')) {
+        await _saveSession(response);
+        _setLoading(false);
+        return 'success';
+      }
+      // CASO 2: Utente Non Verificato
+      else if (response['error'] == 'USER_NOT_VERIFIED') {
+        // Dati temporanei per permettere l'invio/verifica OTP
+        _tempEmail = email;
+        _tempPassword = password;
+
+        // await resendOtp();
+
+        _setLoading(false);
+        return 'verification_needed';
+      }
+
       _setLoading(false);
-      return true;
+      return 'failed';
+
     } catch (e) {
       _errorMessage = _cleanError(e);
       _setLoading(false);
-      return false;
+      return 'failed';
     }
   }
 
   // Login con Telefono
-  Future<bool> loginPhone(String phone, String password) async {
+  Future<String> loginPhone(String phone, String password) async {
     _setLoading(true);
     try {
-      //Delega ad AuthRepository
+      // Delega ad AuthRepository
       final response = await _authRepository.login(phone: phone, password: password);
-      await _saveSession(response);
+
+      // CASO 1: Login avvenuto con successo (il token è presente)
+      if (response.containsKey('token')) {
+        await _saveSession(response);
+        _setLoading(false);
+        return 'success';
+      }
+      // CASO 2: Utente corretto ma non verificato
+      else if (response['error'] == 'USER_NOT_VERIFIED') {
+        // Dati temporanei necessari per la verifica e il rinvio OTP
+        _tempPhone = phone;
+        _tempPassword = password;
+        _tempEmail = null; // Residui di email
+
+        //await resendOtp();
+
+        _setLoading(false);
+        return 'verification_needed';
+      }
+
+      // Caso fallback
       _setLoading(false);
-      return true;
+      return 'failed';
+
     } catch (e) {
       _errorMessage = _cleanError(e);
       _setLoading(false);
-      return false;
+      return 'failed';
     }
   }
 
