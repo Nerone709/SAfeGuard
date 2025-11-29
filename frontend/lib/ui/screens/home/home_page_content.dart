@@ -9,6 +9,8 @@ import 'package:frontend/providers/emergency_provider.dart';
 import 'package:frontend/ui/widgets/emergency_notification.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+import '../../widgets/sos_button.dart';
+
 // Contenuto della Pagina Home
 // Layout principale della schermata Home che adatta i contenuti al ruolo utente.
 class HomePageContent extends StatelessWidget {
@@ -184,7 +186,6 @@ class HomePageContent extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        // Naviga alla schermata di conferma SOS
         Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const ConfirmEmergencyScreen()),
         );
@@ -200,11 +201,9 @@ class HomePageContent extends StatelessWidget {
               offset: const Offset(0, 5),
             )
           ],
-          image: const DecorationImage(
-            image: AssetImage('assets/sosbutton.png'),
-            fit: BoxFit.contain,
-          ),
         ),
+        // Inserimento pulsante
+        child: const SosButton(),
       ),
     );
   }

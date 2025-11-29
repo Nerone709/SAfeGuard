@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:frontend/ui/widgets/swipe_to_confirm.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+import '../../widgets/sos_button.dart';
+
 // Schermata di Conferma Emergenza (SOS)
 // Presenta un'interfaccia ad alto contrasto (rosso) e richiede uno swipe per confermare l'allarme.
 class ConfirmEmergencyScreen extends StatelessWidget {
@@ -135,16 +137,9 @@ class ConfirmEmergencyScreen extends StatelessWidget {
     );
   }
 
-  // Helper per l'immagine del pulsante SOS
+  // Helper per il pulsante SOS
   Widget _buildSosImage() {
-    return Container(
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        image: DecorationImage(
-          image: AssetImage('assets/sosbutton.png'),
-          fit: BoxFit.contain,
-        ),
-      ),
-    );
+    // Restituisce direttamente il widget disegnato
+    return const SosButton();
   }
 }

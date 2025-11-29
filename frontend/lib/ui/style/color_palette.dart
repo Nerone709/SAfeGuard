@@ -67,6 +67,9 @@ class ColorPalette {
   /// Rosso scuro sangue. Sfondo dello swipe.
   static const Color swipeDarkRed = Color(0xFF8B1D1D);
 
+  /// Rosso scuro per il bottone SOS
+  static const Color sosDarkRed = Color(0xFFB71C1C);
+
 
   // Varie (Gialli, Ciani)
 
