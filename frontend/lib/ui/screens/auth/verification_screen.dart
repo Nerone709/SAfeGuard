@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+import '../../widgets/bubble_background.dart';
+
 // Schermata di Verifica OTP
 // Permette all'utente di inserire il codice OTP ricevuto per completare la registrazione/accesso.
 class VerificationScreen extends StatefulWidget {
@@ -60,194 +62,210 @@ class _VerificationScreenState extends State<VerificationScreen> {
     // Ascolto dell'AuthProvider per stato, errori e timer
     final authProvider = Provider.of<AuthProvider>(context);
 
-    // Altezza disponibile per lo scroll, tenendo conto della SafeArea
-    final double viewHeight = MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top;
-
     return Scaffold(
+      // 1. BLOCCA IL RIDIMENSIONAMENTO DELLO SFONDO
+      resizeToAvoidBottomInset: false,
       backgroundColor: darkBluePrimary,
-      body: Container(
-        // Sfondo con gradiente
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [darkBluePrimary, ColorPalette.gradientDeepBlue],
+
+      body: Stack(
+        // 2. FORZA LO STACK A RIEMPIRE LO SCHERMO
+        fit: StackFit.expand,
+        children: [
+          // 3. SFONDO CON BOLLE TYPE 3 (Fisso)
+          const Positioned.fill(
+            child: BubbleBackground(type: BubbleType.type3),
           ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            // Usato il viewHeight per garantire che lo scroll sia corretto anche con la tastiera
-            child: SizedBox(
-              height: viewHeight,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: verticalSpacing / 2),
 
-                    // Tasto Indietro
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
-                      onPressed: () => Navigator.pop(context),
+          // Contenuto Scrollabile
+          SafeArea(
+            // LayoutBuilder ci dà l'altezza totale disponibile dello schermo
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  // Gestione padding tastiera
+                  padding: EdgeInsets.only(
+                      left: 20,
+                      right: 20,
+                      bottom: MediaQuery.of(context).viewInsets.bottom + 20
+                  ),
+                  // ConstrainedBox + IntrinsicHeight servono per far funzionare lo Spacer()
+                  // all'interno di una SingleChildScrollView
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-
-                    SizedBox(height: verticalSpacing),
-
-                    // Titoli
-                    Text(
-                      "Codice di verifica",
-                      style: TextStyle(
-                        color: textWhite,
-                        fontSize: titleFontSize,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: verticalSpacing),
-                    Text(
-                      "Abbiamo inviato un codice OTP.\nInseriscilo per verificare la tua identità.",
-                      style: TextStyle(color: textWhite, fontSize: subtitleFontSize, height: 1.5),
-                    ),
-                    SizedBox(height: largeSpacing),
-
-                    // Griglia di input (6 Cifre)
-                    _buildVerificationCodeInput(context, inputCodeFontSize),
-
-                    // Messaggio di errore dal Provider
-                    if (authProvider.errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Center(
-                          child: Text(
-                            authProvider.errorMessage!,
-                            style: const TextStyle(color: Colors.redAccent, fontSize: 16),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-
-                    const Spacer(),
-
-                    // Bottone verifica
-                    SizedBox(
-                      width: double.infinity,
-                      height: buttonHeight,
-                      child: ElevatedButton(
-                        onPressed: authProvider.isLoading
-                            ? null
-                            : () async {
-                          final code = _getVerificationCode();
-                          // Validazione lato client: codice completo a 6 cifre
-                          if (code.length < 6) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Inserisci il codice completo a 6 cifre"),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                            return;
-                          }
-
-                          final navigator = Navigator.of(context);
-                          final messenger = ScaffoldMessenger.of(context);
-
-                          // Chiamata al Provider per la verifica
-                          bool success = await authProvider.verifyCode(code);
-
-                          if (success && context.mounted) {
-                            messenger.showSnackBar(
-                              const SnackBar(content: Text("Verifica riuscita!")),
-                            );
-                            // Naviga alla schermata di Login/Home e rimuove tutte le schermate precedenti
-                            navigator.pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                // Dopo la verifica, l'utente accede o torna al Login
-                                builder: (context) => const LoginScreen(),
-                              ),
-                                  (route) => false,
-                            );
-                          }
-                        },
-
-                        // Stile del bottone
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: darkBlueButton,
-                          foregroundColor: textWhite,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          elevation: 5,
-                        ),
-
-                        // Contenuto del bottone
-                        child: authProvider.isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : Text(
-                          "VERIFICA",
-                          style: TextStyle(
-                            fontSize: buttonFontSize,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: verticalSpacing),
-
-                    // Timer rinvio codice
-                    Center(
+                    child: IntrinsicHeight(
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "Non hai ricevuto il codice?",
-                            style: TextStyle(color: textWhite, fontSize: subtitleFontSize * 0.8),
+                          SizedBox(height: verticalSpacing / 2),
+
+                          // Tasto Indietro
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
+                            onPressed: () => Navigator.pop(context),
                           ),
-                          SizedBox(height: verticalSpacing / 4),
-                          GestureDetector(
-                            onTap: () {
-                              // Permetti il rinvio solo se il timer è a zero
-                              if (authProvider.secondsRemaining == 0) {
-                                authProvider.resendOtp(); // Usato resendOtp del provider
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text("Nuovo codice inviato!")),
-                                );
-                                // Resetta i campi e il focus
-                                for (var c in _codeControllers) {
-                                  c.clear();
+
+                          SizedBox(height: verticalSpacing),
+
+                          // Titoli
+                          Text(
+                            "Codice di verifica",
+                            style: TextStyle(
+                              color: textWhite,
+                              fontSize: titleFontSize,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: verticalSpacing),
+                          Text(
+                            "Abbiamo inviato un codice OTP.\nInseriscilo per verificare la tua identità.",
+                            style: TextStyle(color: textWhite, fontSize: subtitleFontSize, height: 1.5),
+                          ),
+                          SizedBox(height: largeSpacing),
+
+                          // Griglia di input (6 Cifre)
+                          _buildVerificationCodeInput(context, inputCodeFontSize),
+
+                          // Messaggio di errore dal Provider
+                          if (authProvider.errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 20),
+                              child: Center(
+                                child: Text(
+                                  authProvider.errorMessage!,
+                                  style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+
+                          // Spacer: spinge il contenuto successivo in fondo
+                          const Spacer(),
+
+                          // Bottone verifica
+                          SizedBox(
+                            width: double.infinity,
+                            height: buttonHeight,
+                            child: ElevatedButton(
+                              onPressed: authProvider.isLoading
+                                  ? null
+                                  : () async {
+                                final code = _getVerificationCode();
+                                // Validazione lato client: codice completo a 6 cifre
+                                if (code.length < 6) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Inserisci il codice completo a 6 cifre"),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  return;
                                 }
-                                _codeFocusNodes[0].requestFocus();
-                              }
-                            },
-                            child: Text(
-                              authProvider.secondsRemaining == 0
-                                  ? "Invia di nuovo il codice"
-                                  : "Rinvia il codice in (0:${authProvider.secondsRemaining.toString().padLeft(2, '0')})",
-                              style: TextStyle(
-                                // Colore condizionale in base al timer
-                                color: authProvider.secondsRemaining == 0
-                                    ? textWhite
-                                    : textWhite.withValues(alpha: 0.5),
-                                fontSize: subtitleFontSize * 0.8,
-                                fontStyle: FontStyle.italic,
-                                decoration: TextDecoration.underline,
-                                decorationColor: authProvider.secondsRemaining == 0
-                                    ? textWhite
-                                    : textWhite.withValues(alpha: 0.5),
+
+                                final navigator = Navigator.of(context);
+                                final messenger = ScaffoldMessenger.of(context);
+
+                                // Chiamata al Provider per la verifica
+                                bool success = await authProvider.verifyCode(code);
+
+                                if (success && context.mounted) {
+                                  messenger.showSnackBar(
+                                    const SnackBar(content: Text("Verifica riuscita!")),
+                                  );
+                                  // Naviga alla schermata di Login/Home e rimuove tutte le schermate precedenti
+                                  navigator.pushAndRemoveUntil(
+                                    MaterialPageRoute(
+                                      // Dopo la verifica, l'utente accede o torna al Login
+                                      builder: (context) => const LoginScreen(),
+                                    ),
+                                        (route) => false,
+                                  );
+                                }
+                              },
+
+                              // Stile del bottone
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: darkBlueButton,
+                                foregroundColor: textWhite,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                elevation: 5,
+                              ),
+
+                              // Contenuto del bottone
+                              child: authProvider.isLoading
+                                  ? const CircularProgressIndicator(color: Colors.white)
+                                  : Text(
+                                "VERIFICA",
+                                style: TextStyle(
+                                  fontSize: buttonFontSize,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.5,
+                                ),
                               ),
                             ),
                           ),
-                          SizedBox(height: verticalSpacing / 4),
+
+                          SizedBox(height: verticalSpacing),
+
+                          // Timer rinvio codice
+                          Center(
+                            child: Column(
+                              children: [
+                                Text(
+                                  "Non hai ricevuto il codice?",
+                                  style: TextStyle(color: textWhite, fontSize: subtitleFontSize * 0.8),
+                                ),
+                                SizedBox(height: verticalSpacing / 4),
+                                GestureDetector(
+                                  onTap: () {
+                                    // Permetti il rinvio solo se il timer è a zero
+                                    if (authProvider.secondsRemaining == 0) {
+                                      authProvider.resendOtp(); // Usato resendOtp del provider
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text("Nuovo codice inviato!")),
+                                      );
+                                      // Resetta i campi e il focus
+                                      for (var c in _codeControllers) {
+                                        c.clear();
+                                      }
+                                      _codeFocusNodes[0].requestFocus();
+                                    }
+                                  },
+                                  child: Text(
+                                    authProvider.secondsRemaining == 0
+                                        ? "Invia di nuovo il codice"
+                                        : "Rinvia il codice in (0:${authProvider.secondsRemaining.toString().padLeft(2, '0')})",
+                                    style: TextStyle(
+                                      // Colore condizionale in base al timer
+                                      color: authProvider.secondsRemaining == 0
+                                          ? textWhite
+                                          : textWhite.withValues(alpha: 0.5),
+                                      fontSize: subtitleFontSize * 0.8,
+                                      fontStyle: FontStyle.italic,
+                                      decoration: TextDecoration.underline,
+                                      decorationColor: authProvider.secondsRemaining == 0
+                                          ? textWhite
+                                          : textWhite.withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: verticalSpacing / 4),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: verticalSpacing / 2),
                         ],
                       ),
                     ),
-                    SizedBox(height: verticalSpacing / 2),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             ),
           ),
-        ),
+        ],
       ),
     );
   }

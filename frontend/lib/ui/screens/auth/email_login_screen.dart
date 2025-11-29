@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
+import '../../widgets/bubble_background.dart';
 
 // Schermata di Login tramite Email e Password.
 class EmailLoginScreen extends StatefulWidget {
@@ -30,22 +31,24 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
     final Size screenSize = MediaQuery.of(context).size;
     final double screenHeight = screenSize.height;
     final double screenWidth = screenSize.width;
-    // Usa la dimensione minore (altezza o larghezza) come riferimento per le scale
     final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
 
     final double titleFontSize = referenceSize * 0.075;
     final double contentFontSize = referenceSize * 0.045;
     final double verticalPadding = screenHeight * 0.04;
     final double smallSpacing = screenHeight * 0.015;
-    final double _ = screenHeight * 0.04;
 
-    // Accesso all'AuthProvider
     final authProvider = Provider.of<AuthProvider>(context);
     final Color buttonColor = ColorPalette.primaryDarkButtonBlue;
 
     return Scaffold(
+      // 1. IMPORTANTE: Impedisce allo sfondo di deformarsi/salire quando esce la tastiera
+      resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
-      //Header
+
+      // Imposta un colore di sicurezza per evitare flash bianchi
+      backgroundColor: ColorPalette.backgroundDeepBlue,
+
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -56,25 +59,24 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
       ),
 
       body: Stack(
+        // 2. Assicura che lo Stack occupi sempre tutto lo spazio disponibile
+        fit: StackFit.expand,
         children: [
-          // Sfondo con gradiente e bolle decorative
-          Container(
-            height: double.infinity,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: ColorPalette.backgroundDeepBlue,
-              image: DecorationImage(
-                image: AssetImage('assets/backgroundBubbles3.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
+          // Sfondo: Ora rimarrà fisso e a tutto schermo
+          const Positioned.fill(
+            child: BubbleBackground(type: BubbleType.type3),
           ),
 
           // Contenuto Principale
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: SingleChildScrollView( // Permette lo scroll se la tastiera copre i campi
+              // Gestione scroll e tastiera
+              child: SingleChildScrollView(
+                // 3. Aggiunta padding per spingere il contenuto su quando esce la tastiera
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 20
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -111,7 +113,6 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                         fontSize: contentFontSize
                     ),
 
-                    // Messaggio di Errore
                     if (authProvider.errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 15),
@@ -131,14 +132,12 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                     SizedBox(
                       height: referenceSize * 0.12,
                       child: ElevatedButton(
-                        // Disabilita il bottone se il provider è in caricamento
                         onPressed: authProvider.isLoading
                             ? null
                             : () async {
                           final navigator = Navigator.of(context);
                           final messenger = ScaffoldMessenger.of(context);
 
-                          // Validazione base dei campi
                           if (_emailController.text.isEmpty || _passController.text.isEmpty) {
                             messenger.showSnackBar(
                               const SnackBar(content: Text("Inserisci email e password")),
@@ -146,7 +145,6 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                             return;
                           }
 
-                          // 1. Chiamata al metodo login dell'AuthProvider
                           bool success = await authProvider.login(
                             _emailController.text,
                             _passController.text,
@@ -154,17 +152,11 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                           // 2. Se il login ha successo, naviga alla Home e rimuove tutte le schermate precedenti
                           if (success) {
                             navigator.pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                builder: (context) => const HomeScreen(),
-                              ),
+                              MaterialPageRoute(builder: (context) => const HomeScreen()),
                                   (route) => false,
                             );
                           }
-                          // Se fallisce, l'AuthProvider aggiorna errorMessage
-                          // e il widget lo mostra automaticamente
                         },
-
-                        // Stile del Bottone
                         style: ElevatedButton.styleFrom(
                           backgroundColor: buttonColor,
                           foregroundColor: Colors.white,
@@ -173,8 +165,6 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                           ),
                           side: const BorderSide(color: Colors.white12, width: 1),
                         ),
-
-                        // Contenuto del bottone
                         child: authProvider.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
                             : Text(

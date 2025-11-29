@@ -7,6 +7,7 @@ import 'package:frontend/ui/screens/home/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 import 'package:frontend/ui/widgets/google_logo.dart';
+import '../../widgets/bubble_background.dart';
 
 // Schermata Principale di Accesso
 // Offre diverse opzioni di login (Social, Email, Telefono).
@@ -85,15 +86,8 @@ class LoginScreen extends StatelessWidget {
       body: Stack(
         children: [
           // Sfondo
-          Container(
-            height: double.infinity,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/backgroundBubbles2.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
+          const Positioned.fill(
+            child: BubbleBackground(type: BubbleType.type2),
           ),
 
           // Contenuto principale

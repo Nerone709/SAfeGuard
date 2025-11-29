@@ -8,6 +8,7 @@ import 'package:frontend/ui/widgets/google_logo.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/auth_provider.dart';
+import '../../widgets/bubble_background.dart';
 
 // Schermata Principale di Registrazione
 // Offre diverse opzioni per creare un nuovo account.
@@ -84,15 +85,8 @@ class RegistrationScreen extends StatelessWidget {
       body: Stack(
         children: [
           // Sfondo
-          Container(
-            height: double.infinity,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/backgroundBubbles1.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
+          const Positioned.fill(
+            child: BubbleBackground(type: BubbleType.type1),
           ),
 
           // Contenuto Principale
@@ -136,7 +130,7 @@ class RegistrationScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(

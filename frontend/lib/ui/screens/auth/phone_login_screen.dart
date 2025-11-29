@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
+import '../../widgets/bubble_background.dart';
 
 // Schermata di Login tramite Numero di Telefono e Password.
 class PhoneLoginScreen extends StatefulWidget {
@@ -44,7 +45,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     final Color buttonColor = ColorPalette.primaryDarkButtonBlue;
 
     return Scaffold(
+      // 1. BLOCCA IL RIDIMENSIONAMENTO DELLO SFONDO
+      resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
+      backgroundColor: ColorPalette.backgroundDeepBlue, // Colore di sicurezza
 
       // Header con bottone indietro
       appBar: AppBar(
@@ -57,18 +61,12 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       ),
 
       body: Stack(
+        // 2. FORZA LO STACK A RIEMPIRE LO SCHERMO
+        fit: StackFit.expand,
         children: [
           // Sfondo
-          Container(
-            height: double.infinity,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: ColorPalette.backgroundDeepBlue,
-              image: DecorationImage(
-                image: AssetImage('assets/backgroundBubbles3.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
+          const Positioned.fill(
+            child: BubbleBackground(type: BubbleType.type3),
           ),
 
           // Contenuto principale
@@ -76,6 +74,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
               child: SingleChildScrollView(
+                // 3. GESTIONE SPAZIO TASTIERA MANUALE
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 20
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [

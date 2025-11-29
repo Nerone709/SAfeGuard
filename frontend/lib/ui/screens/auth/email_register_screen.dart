@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/auth/verification_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
+import '../../widgets/bubble_background.dart';
 
 // Schermata di Registrazione tramite Email e Password
 class EmailRegisterScreen extends StatefulWidget {
@@ -50,7 +51,10 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
     final Color buttonColor = ColorPalette.primaryDarkButtonBlue;
 
     return Scaffold(
+      // 1. BLOCCA IL RIDIMENSIONAMENTO DELLO SFONDO
+      resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
+      backgroundColor: ColorPalette.backgroundDeepBlue,
 
       // Header
       appBar: AppBar(
@@ -63,18 +67,12 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
       ),
 
       body: Stack(
+        // 2. FORZA LO STACK A RIEMPIRE LO SCHERMO
+        fit: StackFit.expand,
         children: [
-          // Sfondo con immagine e colore
-          Container(
-            height: double.infinity,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: ColorPalette.backgroundDeepBlue,
-              image: DecorationImage(
-                image: AssetImage('assets/backgroundBubbles3.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
+          // Sfondo fisso
+          const Positioned.fill(
+            child: BubbleBackground(type: BubbleType.type3),
           ),
 
           // Contenuto e ScrollView
@@ -82,6 +80,11 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
               child: SingleChildScrollView(
+                // 3. GESTIONE SPAZIO TASTIERA MANUALE
+                // Spinge il contenuto su quando esce la tastiera
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 20
+                ),
                 // Widget Form: Avvolge i campi per gestire la validazione unificata
                 child: Form(
                   key: _formKey,
@@ -194,30 +197,30 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                           onPressed: authProvider.isLoading
                               ? null
                               : () async {
-                                  // 1. Esegue la validazione su tutti i campi del Form
-                                  if (_formKey.currentState!.validate()) {
-                                    final navigator = Navigator.of(context);
+                            // 1. Esegue la validazione su tutti i campi del Form
+                            if (_formKey.currentState!.validate()) {
+                              final navigator = Navigator.of(context);
 
-                                    // 2. Chiamata al metodo register dell'AuthProvider
-                                    bool success = await authProvider.register(
-                                      _emailController.text.trim(),
-                                      _passController.text,
-                                      _nameController.text.trim(),
-                                      _surnameController.text.trim(),
-                                    );
+                              // 2. Chiamata al metodo register dell'AuthProvider
+                              bool success = await authProvider.register(
+                                _emailController.text.trim(),
+                                _passController.text,
+                                _nameController.text.trim(),
+                                _surnameController.text.trim(),
+                              );
 
-                                    // 3. Navigazione se la registrazione (e l'invio OTP) ha successo
-                                    if (success && context.mounted) {
-                                      navigator.push(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              // Naviga alla schermata per inserire l'OTP
-                                              const VerificationScreen(),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
+                              // 3. Navigazione se la registrazione (e l'invio OTP) ha successo
+                              if (success && context.mounted) {
+                                navigator.push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                    // Naviga alla schermata per inserire l'OTP
+                                    const VerificationScreen(),
+                                  ),
+                                );
+                              }
+                            }
+                          },
 
                           // Stile del Bottone
                           style: ElevatedButton.styleFrom(
@@ -235,15 +238,15 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                           // Contenuto del bottone
                           child: authProvider.isLoading
                               ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
+                            color: Colors.white,
+                          )
                               : Text(
-                                  "CONTINUA",
-                                  style: TextStyle(
-                                    fontSize: referenceSize * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                            "CONTINUA",
+                            style: TextStyle(
+                              fontSize: referenceSize * 0.05,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
 
@@ -261,13 +264,13 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
 
   // Widget Helper per costruire i campi di testo con validazione (TextFormField)
   Widget _buildTextFormField(
-    String hint,
-    TextEditingController controller, {
-    bool isPassword = false,
-    double contentVerticalPadding = 20,
-    required double fontSize,
-    String? Function(String?)? validator,
-  }) {
+      String hint,
+      TextEditingController controller, {
+        bool isPassword = false,
+        double contentVerticalPadding = 20,
+        required double fontSize,
+        String? Function(String?)? validator,
+      }) {
     bool obscureText = isPassword ? !_isPasswordVisible : false;
 
     return TextFormField(
@@ -312,13 +315,13 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
         // Icona per la visibilità della password
         suffixIcon: isPassword
             ? IconButton(
-                icon: Icon(
-                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                  color: Colors.grey,
-                  size: fontSize * 1.5,
-                ),
-                onPressed: _togglePasswordVisibility,
-              )
+          icon: Icon(
+            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+            color: Colors.grey,
+            size: fontSize * 1.5,
+          ),
+          onPressed: _togglePasswordVisibility,
+        )
             : null,
       ),
     );
