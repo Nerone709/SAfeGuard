@@ -111,8 +111,8 @@ class AuthProvider extends ChangeNotifier {
         // Dati temporanei per permettere l'invio/verifica OTP
         _tempEmail = email;
         _tempPassword = password;
-
-        // await resendOtp();
+        startTimer();
+        await resendOtp();
 
         _setLoading(false);
         return 'verification_needed';
@@ -149,8 +149,8 @@ class AuthProvider extends ChangeNotifier {
         _tempPhone = phone;
         _tempPassword = password;
         _tempEmail = null; // Residui di email
-
-        //await resendOtp();
+        startTimer();
+        await resendOtp();
 
         _setLoading(false);
         return 'verification_needed';
@@ -274,26 +274,32 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       // Logica per rinviare il codice basata sull'ultima modalità usata
-      if (_tempEmail != null &&
-          _tempPassword != null &&
-          _tempNome != null &&
-          _tempCognome != null) {
-        //Delega ad AuthRepository
+      if (_tempEmail != null && _tempPassword != null) {
+        // Usiamo dei placeholder per soddisfare la richiesta, tanto il backend
+        // riconoscerà l'email esistente e aggiornerà solo l'OTP.
+        final String nomeToSend = _tempNome ?? "Utente";
+        final String cognomeToSend = _tempCognome ?? "Generico";
+
+        // Delega ad AuthRepository
         await _authRepository.register(
           _tempEmail!,
           _tempPassword!,
-          _tempNome!,
-          _tempCognome!,
+          nomeToSend,
+          cognomeToSend,
         );
         startTimer();
         _errorMessage = null;
       } else if (_tempPhone != null) {
-        // Rinvia OTP Telefono
+        // Gestione fallback per Nome e Cognome (come per l'email)
+        final String nomeToSend = _tempNome ?? "Utente";
+        final String cognomeToSend = _tempCognome ?? "Generico";
+
+        // Rinvia OTP Telefono con i dati completi
         await _authRepository.sendPhoneOtp(
           _tempPhone!,
           password: _tempPassword,
-          nome: _tempNome,
-          cognome: _tempCognome,
+          nome: nomeToSend,
+          cognome: cognomeToSend,
         );
         startTimer();
         _errorMessage = null;

@@ -249,49 +249,58 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                     fontSize: subtitleFontSize * 0.8,
                                   ),
                                 ),
-                                SizedBox(height: verticalSpacing / 4),
-                                GestureDetector(
-                                  onTap: () {
-                                    // Permetti il rinvio solo se il timer è a zero
-                                    if (authProvider.secondsRemaining == 0) {
-                                      authProvider
-                                          .resendOtp(); // Usato resendOtp del provider
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            "Nuovo codice inviato!",
-                                          ),
-                                        ),
-                                      );
-                                      // Resetta i campi e il focus
-                                      for (var c in _codeControllers) {
-                                        c.clear();
-                                      }
-                                      _codeFocusNodes[0].requestFocus();
-                                    }
-                                  },
-                                  child: Text(
-                                    authProvider.secondsRemaining == 0
-                                        ? "Invia di nuovo il codice"
-                                        : "Rinvia il codice in (0:${authProvider.secondsRemaining.toString().padLeft(2, '0')})",
-                                    style: TextStyle(
-                                      // Colore condizionale in base al timer
-                                      color: authProvider.secondsRemaining == 0
-                                          ? textWhite
-                                          : textWhite.withValues(alpha: 0.5),
-                                      fontSize: subtitleFontSize * 0.8,
-                                      fontStyle: FontStyle.italic,
+                                const SizedBox(height: 5),
+
+                                // Uso di TextButton per feedback grafico
+                                TextButton(
+                                  // Se il timer > 0, onPressed è null -> Il bottone diventa grigio automaticamente.
+                                  // Se il timer == 0, attiviamo la funzione.
+                                  onPressed: authProvider.secondsRemaining > 0
+                                      ? null
+                                      : () async {
+                                          // Resetta i campi graficamente
+                                          for (var c in _codeControllers) {
+                                            c.clear();
+                                          }
+                                          // Focus sulla prima casella
+                                          if (_codeFocusNodes.isNotEmpty) {
+                                            _codeFocusNodes[0].requestFocus();
+                                          }
+
+                                          // Chiama la logica
+                                          await authProvider.resendOtp();
+
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  "Nuovo codice inviato!",
+                                                ),
+                                                backgroundColor: Colors.green,
+                                              ),
+                                            );
+                                          }
+                                        },
+                                  style: TextButton.styleFrom(
+                                    // Colore quando attivo
+                                    foregroundColor: Colors.white,
+                                    // Colore quando disabilitato (timer attivo)
+                                    disabledForegroundColor: Colors.white
+                                        .withValues(alpha: 0.5),
+                                    textStyle: TextStyle(
+                                      fontSize: subtitleFontSize * 0.9,
+                                      fontWeight: FontWeight.bold,
                                       decoration: TextDecoration.underline,
-                                      decorationColor:
-                                          authProvider.secondsRemaining == 0
-                                          ? textWhite
-                                          : textWhite.withValues(alpha: 0.5),
                                     ),
                                   ),
+                                  child: Text(
+                                    authProvider.secondsRemaining == 0
+                                        ? "INVIA DI NUOVO IL CODICE"
+                                        : "Rinvia tra ${authProvider.secondsRemaining}s",
+                                  ),
                                 ),
-                                SizedBox(height: verticalSpacing / 4),
                               ],
                             ),
                           ),

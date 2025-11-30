@@ -156,7 +156,8 @@ class LoginService {
 
     // Verifica dello stato Attivo/Verificato
     // Se l'utente ha la password corretta ma non ha verificato l'account
-    final bool isVerified = (userData['isVerified'] == true) || (userData['attivo'] == true);
+    final bool isVerified =
+        (userData['isVerified'] == true) || (userData['attivo'] == true);
     if (!isVerified) {
       // Lanciamo un'eccezione specifica che il Controller catturerà
       throw Exception('USER_NOT_VERIFIED');

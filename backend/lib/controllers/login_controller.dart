@@ -59,7 +59,7 @@ class LoginController {
           body: jsonEncode({
             'success': false,
             'error': 'USER_NOT_VERIFIED',
-            'message': 'Account non verificato. Inserisci il codice OTP.'
+            'message': 'Account non verificato. Inserisci il codice OTP.',
           }),
           headers: _headers,
         );
