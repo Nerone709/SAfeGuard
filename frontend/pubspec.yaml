@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
 
   flutter_svg: ^2.2.3 # Aggiunto per supporto SVG
+  flutter_native_splash: ^2.4.7
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -79,7 +80,6 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/logo.png
-    - assets/stylizedMascot.png
     - assets/cavalluccio.png
     - assets/cavalluccioSoccorritore.png
 
@@ -109,11 +109,20 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_native_splash:
+  color: "#12345A" # Colore di sfondo
+  image: "assets/logo.png" # Percorso della tua immagine
+  android_12:
+    image: "assets/logo.png" # Specifico per Android 12+ che gestisce le icone diversamente
+    color: "#12345A"
+  fullscreen: true # Nascondere barra di stato
+
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/logo.png"
-  min_sdk_android: 21
-  adaptive_icon_background: "#041528"
+
+  # Configurazione Adattiva:
+  adaptive_icon_background: "#12345A" # Colore dietro lo scudo
   adaptive_icon_foreground: "assets/logo.png"
-  remove_alpha_ios: true
