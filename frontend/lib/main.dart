@@ -1,82 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/providers/notification_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-import 'services/user_api_service.dart';
-import 'package:data_models/user.dart';
+import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/providers/medical_provider.dart';
+import 'package:frontend/providers/emergency_provider.dart';
+import 'package:frontend/providers/permission_provider.dart';
+import 'package:frontend/ui/screens/auth/loading_screen.dart';
 
-void main() {
+// Funzione Main: Punto di partenza dell'Applicazione
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(const MyApp());
+  // Inizializza Firebase
+  await Firebase.initializeApp();
+
+  runApp(
+    // Utilizza MultiProvider per iniettare più Provider nell'albero dei widget
+    MultiProvider(
+      providers: [
+        // Lista dei Change Notifier Provider resi disponibili a tutta l'app
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => MedicalProvider()),
+        ChangeNotifierProvider(create: (_) => EmergencyProvider()),
+        ChangeNotifierProvider(create: (_) => PermissionProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+      ],
+      // Il widget radice dell'applicazione
+      child: const SAfeGuard(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+// Widget Radice dell'Applicazione
+class SAfeGuard extends StatelessWidget {
+  const SAfeGuard({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'SafeGuard',
+      // Rimuove il banner di debug
       debugShowCheckedModeBanner: false,
-      home: const UserScreen(),
-    );
-  }
-}
-
-class UserScreen extends StatefulWidget {
-  const UserScreen({super.key});
-
-  @override
-  UserScreenState createState() => UserScreenState();
-}
-
-class UserScreenState extends State<UserScreen> {
-  final UserApiService _apiService = UserApiService();
-  late Future<User> _userFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _userFuture = _apiService.fetchUser(1);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('App Flutter (Front-end)')),
-      body: Center(
-        child: FutureBuilder<User>(
-          future: _userFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
-            } else if (snapshot.hasError) {
-              return Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Errore di connessione: ${snapshot.error}',
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
-              );
-            } else if (snapshot.hasData) {
-              final user = snapshot.data!;
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Dati Ricevuti dal Back-end:',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Text('ID: ${user.id}'),
-                  Text('Nome: ${user.name}'),
-                  Text('Email: ${user.email}'),
-                ],
-              );
-            }
-            return const Text('In attesa di dati...');
-          },
-        ),
-      ),
+      // La schermata iniziale che gestirà il reindirizzamento (login/home)
+      home: const LoadingScreen(),
     );
   }
 }

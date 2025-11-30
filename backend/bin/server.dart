@@ -1,77 +1,102 @@
 import 'dart:io';
-import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
+import 'package:shelf_router/shelf_router.dart';
 import 'package:dotenv/dotenv.dart';
+import 'package:firedart/firedart.dart';
 
-// Importa il modello di dati comune (p. es. la classe User)
-import 'package:data_models/user.dart';
-
-// Importa il middleware per la gestione CORS
-import 'package:shelf_cors_headers/shelf_cors_headers.dart';
-
-// Funzione di gestione (handler) per le richieste HTTP
-Response _userHandler(Request request) {
-  // Esegue il routing solo per l'URL specifico atteso: /api/v1/user/1
-  if (request.url.pathSegments.join('/') == 'api/v1/user/1') {
-    // 1. LOGICA DI BACK-END: Recupera i dati dell'utente (simulato da un DB)
-    final userFromDatabase = User(
-      id: 1,
-      name: 'Giovanni',
-      email: 'giovanni@unisa.it',
-    );
-
-    // 2. SERIALIZZAZIONE: Converte l'oggetto Dart (User) in una stringa JSON
-    // Si usa il metodo .toJson() del modello seguito da json.encode()
-    final jsonBody = json.encode(userFromDatabase.toJson());
-
-    // 3. RISPOSTA HTTP: Invia il JSON con l'header 'Content-Type' corretto
-    return Response.ok(jsonBody, headers: {'Content-Type': 'application/json'});
-  }
-
-  // Risposta di errore per endpoint non corrispondenti
-  return Response.notFound('Endpoint non trovato');
-}
+import 'package:backend/controllers/login_controller.dart';
+import 'package:backend/controllers/register_controller.dart';
+import 'package:backend/controllers/verification_controller.dart';
+import 'package:backend/controllers/profile_controller.dart';
+import 'package:backend/controllers/auth_guard.dart';
 
 void main() async {
-  // Mappa di configurazione predefinita per il middleware CORS
-  // Permette l'accesso da tutte le origini ('*') per i test
-  final defaultHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Content-Type': 'application/json',
-  };
+  // 1. Configurazione ambiente
+  // Carica le variabili dal file .env e determina la porta del server
+  var env = DotEnv(includePlatformEnvironment: true)..load();
+  final portStr = Platform.environment['PORT'] ?? env['PORT'] ?? '8080';
+  final int port = int.parse(portStr);
 
-  // Crea una Pipeline per incanalare i middleware e l'handler
-  final handler = const Pipeline()
-      .addMiddleware(
-        logRequests(),
-      ) // Middleware per loggare le richieste sulla console
-      .addMiddleware(
-        corsHeaders(headers: defaultHeaders),
-      ) // Applica il middleware CORS con gli header predefiniti
-      .addHandler(
-        _userHandler,
-      ); // Aggiunge l'handler finale che gestisce la logica di business
+  // Recupera l'ID del database e ferma l'app in assenza
+  final projectId =
+      Platform.environment['FIREBASE_PROJECT_ID'] ?? env['FIREBASE_PROJECT_ID'];
 
-  final port = int.parse(Platform.environment['PORT'] ?? '8080');
-  // Avvia il server HTTP sulla porta e interfaccia specificate
-  final server = await io.serve(handler, InternetAddress.anyIPv4, port);
-  print(
-    'Server Back-end in ascolto su http://${server.address.host}:${server.port}',
-  );
-
-  // Inizializza l'istanza
-  final dotEnv = DotEnv();
-
-  if (File('.env').existsSync()) {
-    dotEnv.load(); // Carica solo se il file c'è
-    print('Configurazione caricata da .env');
-  } else {
-    print('File .env non trovato, skip caricamento.');
+  if (projectId == null) {
+    print('❌ ERRORE CRITICO: Variabile FIREBASE_PROJECT_ID mancante.');
+    exit(1);
   }
 
-  // Cerca la variabile prima nel .env, se non c'è (o .env non caricato) cerca nel sistema
-  final dbUrl = dotEnv['DATABASE_URL'] ?? Platform.environment['DATABASE_URL'];
+  // 2. DataBase
+  // Inizializzazione client Firestore
+  Firestore.initialize(projectId);
+  print('🔥 Firestore inizializzato: $projectId');
 
-  print('DB URL: $dbUrl');
+  // 3. Controllers
+  // Istanzia le classi che contengono la logica di business
+  final loginController = LoginController();
+  final registerController = RegisterController();
+  final verifyController = VerificationController();
+  final profileController = ProfileController();
+  final authGuard = AuthGuard();
+
+  // 4. Rounting pubblico
+  // Router principale per endpoint accessibili a tutti
+  final app = Router();
+
+  app.post('/api/auth/login', loginController.handleLoginRequest);
+  app.post('/api/auth/google', loginController.handleGoogleLoginRequest);
+  app.post('/api/auth/apple', loginController.handleAppleLoginRequest);
+  app.post('/api/auth/register', registerController.handleRegisterRequest);
+  app.post('/api/verify', verifyController.handleVerificationRequest);
+  app.get('/health', (Request request) => Response.ok('OK'));
+
+  // 5. Routing Protetto
+  // Sotto-router dedicato alle operazioni sull'utente loggato
+  final profileApi = Router();
+
+  // Lettura dati
+  profileApi.get(
+    '/',
+    profileController.getProfile,
+  ); // Nota: il path base è già /api/profile
+
+  // Modifica dati
+  profileApi.put('/anagrafica', profileController.updateAnagrafica);
+  profileApi.put('/permessi', profileController.updatePermessi);
+  profileApi.put('/condizioni', profileController.updateCondizioni);
+  profileApi.put('/notifiche', profileController.updateNotifiche);
+  profileApi.put('/password', profileController.updatePassword);
+
+  // Aggiunta elementi a liste
+  profileApi.post('/allergie', profileController.addAllergia);
+  profileApi.post('/medicinali', profileController.addMedicinale);
+  profileApi.post('/contatti', profileController.addContatto);
+
+  // Rimozione elementi o cancellazione account
+  profileApi.delete('/allergie', profileController.removeAllergia);
+  profileApi.delete('/medicinali', profileController.removeMedicinale);
+  profileApi.delete('/contatti', profileController.removeContatto);
+  profileApi.delete(
+    '/',
+    profileController.deleteAccount,
+  ); // DELETE sull'utente stesso
+
+  // 6. Mounting & Middleware
+  // Collega il router profilo a '/api/profile'
+  // Passa attraverso il controller AuthGuard per controllare il token di sessione
+  app.mount(
+    '/api/profile',
+    Pipeline().addMiddleware(authGuard.middleware).addHandler(profileApi.call),
+  );
+
+  // 7. Pipeline Server
+  // Aggiunge il logging delle richieste a tutte le chiamate
+  final handler = Pipeline().addMiddleware(logRequests()).addHandler(app.call);
+
+  // 8. Avvio Server
+  // Mette in ascolto il server sull'indirizzo IPv4 e porta configurata
+  final server = await io.serve(handler, InternetAddress.anyIPv4, port);
+
+  print(' Server in ascolto su http://${server.address.host}:${server.port}');
 }

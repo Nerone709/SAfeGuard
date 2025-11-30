@@ -31,12 +31,24 @@ dependencies:
   flutter:
     sdk: flutter
 
+  flutter_svg: ^2.2.3 # Aggiunto per supporto SVG
+  flutter_native_splash: ^2.4.7
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  provider: ^6.1.2
 
   # Pacchetto necessario per le chiamate HTTP
   http: ^1.1.0
+
+  # Per salvare il token e i dati login sul telefono
+  shared_preferences: ^2.3.2
+
+  google_sign_in: ^6.1.0
+  sign_in_with_apple: ^6.1.0
+  firebase_core: ^3.0.0
+  firebase_auth: ^5.0.0
 
   # dipendenza comune
   data_models:
@@ -45,6 +57,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -65,9 +78,11 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/logo.png
+    - assets/cavalluccio.png
+    - assets/cavalluccioSoccorritore.png
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -94,3 +109,20 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_native_splash:
+  color: "#12345A" # Colore di sfondo
+  image: "assets/logo.png" # Percorso della tua immagine
+  android_12:
+    image: "assets/logo.png" # Specifico per Android 12+ che gestisce le icone diversamente
+    color: "#12345A"
+  fullscreen: true # Nascondere barra di stato
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/logo.png"
+
+  # Configurazione Adattiva:
+  adaptive_icon_background: "#12345A" # Colore dietro lo scudo
+  adaptive_icon_foreground: "assets/logo.png"

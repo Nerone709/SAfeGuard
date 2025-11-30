@@ -1,9 +1,12 @@
-// ** File: lib/data_models/UtenteGenerico.dart ** (Manuale)
+// Modello: UtenteGenerico
+// Classe base che definisce i campi anagrafici e di autenticazione comuni
+// a tutti gli utenti del sistema (cittadini normali e soccorritori).
 
 class UtenteGenerico {
+  final int? id;
   final String? email;
   final String? telefono;
-  final String? passwordHash; // Ora campo pubblico (gestito manualmente)
+  final String? passwordHash;
 
   final String? nome;
   final String? cognome;
@@ -11,16 +14,21 @@ class UtenteGenerico {
   final String? cittaDiNascita;
   final String? iconaProfilo;
 
-  // Costruttore principale NON NOMINATO (Accetta tutti i campi)
+  final bool isSoccorritore;
+
+  // Costruttore principale
+  // Usato internamente e come target per i costruttori nominati e il fromJson.
   UtenteGenerico({
+    this.id,
     this.email,
     this.telefono,
-    required this.passwordHash, // Obbligatorio per login
+    required this.passwordHash,
     this.nome,
     this.cognome,
     this.dataDiNascita,
     this.cittaDiNascita,
     this.iconaProfilo,
+    this.isSoccorritore = false,
   }) : assert(
          email != null || telefono != null,
          'Devi fornire almeno email o telefono per UtenteGenerico',
@@ -28,6 +36,7 @@ class UtenteGenerico {
 
   // Costruttore 1: Autenticazione tramite Email
   UtenteGenerico.conEmail(
+    int? id,
     String email,
     String passwordHash, {
     String? telefono,
@@ -36,7 +45,10 @@ class UtenteGenerico {
     DateTime? dataDiNascita,
     String? cittaDiNascita,
     String? iconaProfilo,
+    bool isSoccorritore = false,
   }) : this(
+         // Delega al costruttore principale
+         id: id,
          passwordHash: passwordHash,
          email: email,
          telefono: telefono,
@@ -45,10 +57,12 @@ class UtenteGenerico {
          dataDiNascita: dataDiNascita,
          cittaDiNascita: cittaDiNascita,
          iconaProfilo: iconaProfilo,
+         isSoccorritore: isSoccorritore,
        );
 
   // Costruttore 2: Autenticazione tramite Telefono
   UtenteGenerico.conTelefono(
+    int? id,
     String telefono,
     String passwordHash, {
     String? email,
@@ -57,7 +71,10 @@ class UtenteGenerico {
     DateTime? dataDiNascita,
     String? cittaDiNascita,
     String? iconaProfilo,
+    bool isSoccorritore = false,
   }) : this(
+         // Delega al costruttore principale
+         id: id,
          passwordHash: passwordHash,
          email: email,
          telefono: telefono,
@@ -66,14 +83,16 @@ class UtenteGenerico {
          dataDiNascita: dataDiNascita,
          cittaDiNascita: cittaDiNascita,
          iconaProfilo: iconaProfilo,
+         isSoccorritore: isSoccorritore,
        );
 
-  //  DESERIALIZZAZIONE MANUALE (JSON -> Oggetto)
+  // Deserializzazione (da JSON a Model): Factory per ricostruire l'oggetto da una Map JSON.
   factory UtenteGenerico.fromJson(Map<String, dynamic> json) {
-    // Si assume che passwordHash non sia inviato dal Backend al Frontend
     return UtenteGenerico(
+      id: json['id'] as int?,
       email: json['email'] as String?,
       telefono: json['telefono'] as String?,
+      // Se 'passwordHash' manca, usa un fallback
       passwordHash: json['passwordHash'] as String? ?? 'HASH_NON_RICEVUTO',
       nome: json['nome'] as String?,
       cognome: json['cognome'] as String?,
@@ -82,12 +101,15 @@ class UtenteGenerico {
           : null,
       cittaDiNascita: json['cittaDiNascita'] as String?,
       iconaProfilo: json['iconaProfilo'] as String?,
+      // Lettura del booleano, default false se manca
+      isSoccorritore: json['isSoccorritore'] as bool? ?? false,
     );
   }
 
-  // SERIALIZZAZIONE MANUALE (Oggetto -> JSON)
+  // Serializzazione (Da Model a JSON): Converte l'oggetto in una Map JSON.
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'email': email,
       'telefono': telefono,
       'passwordHash': passwordHash,
@@ -96,6 +118,7 @@ class UtenteGenerico {
       'dataDiNascita': dataDiNascita?.toIso8601String(),
       'cittaDiNascita': cittaDiNascita,
       'iconaProfilo': iconaProfilo,
+      'isSoccorritore': isSoccorritore,
     };
   }
 }
