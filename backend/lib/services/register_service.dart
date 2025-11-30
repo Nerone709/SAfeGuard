@@ -31,21 +31,46 @@ class RegisterService {
     final nome = requestData['nome'] as String?;
     final cognome = requestData['cognome'] as String?;
 
+    // 1. Variabile per tracciare se stiamo aggiornando un utente esistente (rinvio OTP)
+    bool isUpdate = false;
+
     if (email != null) {
       final existingUser = await _userRepository.findUserByEmail(email);
       if (existingUser != null) {
-        // MODIFICA: Se esiste MA non è verificato, procediamo (è un re-tentativo)
-        final bool isVerified = existingUser['isVerified'] == true || existingUser['attivo'] == true;
+        final bool isVerified =
+            existingUser['isVerified'] == true ||
+            existingUser['attivo'] == true;
+
         if (isVerified) {
           throw Exception('Utente con questa email è già registrato.');
         } else {
-          // Se non è verificato, riusiamo questo ID per aggiornare i dati
+          // Se non è verificato, riusiamo questo ID e segniamo come update
           requestData['id'] = existingUser['id'];
+          isUpdate = true;
         }
       }
     }
 
-    // 1. Validazione Campi
+    // 2. Controllo esistenza per TELEFONO
+    // Eseguiamo questo controllo solo se non abbiamo già trovato l'utente via email
+    if (!isUpdate && telefono != null) {
+      final existingUserPhone = await _userRepository.findUserByPhone(telefono);
+      if (existingUserPhone != null) {
+        final bool isVerified =
+            existingUserPhone['isVerified'] == true ||
+            existingUserPhone['attivo'] == true;
+
+        if (isVerified) {
+          throw Exception('Utente con questo telefono è già registrato.');
+        } else {
+          // Trovato utente non verificato con questo telefono: prepariamo l'update
+          requestData['id'] = existingUserPhone['id'];
+          isUpdate = true;
+        }
+      }
+    }
+
+    // --- Validazione Campi (Rimane invariata) ---
     if (password.isEmpty || (email == null && telefono == null)) {
       throw Exception('Devi fornire Password e almeno Email o Telefono.');
     }
@@ -71,12 +96,17 @@ class RegisterService {
       );
     }
 
-    // 2. Validazione Unicità
-    // Controlla se l'email o il telefono sono già registrati nel DataBase
-    if (email != null && await _userRepository.findUserByEmail(email) != null) {
+    // 3. Validazione Unicità Finale
+    // Saltiamo i controlli se è un update (!isUpdate)
+    if (!isUpdate &&
+        email != null &&
+        await _userRepository.findUserByEmail(email) != null) {
       throw Exception('Utente con questa email è già registrato.');
     }
-    if (telefono != null &&
+
+    // Questo ora verrà saltato se abbiamo impostato isUpdate nel punto 2
+    if (!isUpdate &&
+        telefono != null &&
         await _userRepository.findUserByPhone(telefono) != null) {
       throw Exception('Utente con questo telefono è già registrato.');
     }
@@ -85,19 +115,20 @@ class RegisterService {
     // Sostituisce la password in chiaro con l'hash
     requestData['passwordHash'] = _hashPassword(password);
 
-    // Imposta campi di stato iniziali
-    requestData['id'] = 0;
+    // Se è un update, manteniamo l'ID esistente, altrimenti 0
+    if (!isUpdate) {
+      requestData['id'] = 0;
+    }
+
     requestData['isVerified'] = false;
     requestData['attivo'] = false;
 
-    // 4. Classificazione Utente
     bool isSoccorritore = false;
     if (email != null) {
       isSoccorritore = RescuerConfig.isSoccorritore(email);
     }
     requestData['isSoccorritore'] = isSoccorritore;
 
-    // 5. Creazione Oggetto Modello
     final UtenteGenerico newUser;
     if (isSoccorritore) {
       newUser = Soccorritore.fromJson(requestData);
@@ -105,20 +136,18 @@ class RegisterService {
       newUser = Utente.fromJson(requestData);
     }
 
-    // 6. Salvataggio nel DataBase
     final savedUser = await _userRepository.saveUser(newUser);
 
-    // 7. Avvio Verifica Telefono (se presente)
+    // Gestione invio SMS se necessario (Rimane invariato)
     if (savedUser.telefono != null && savedUser.telefono!.isNotEmpty) {
       try {
-        // Delega al VerificationService l'invio dell'OTP
         await _verificationService.startPhoneVerification(savedUser.telefono!);
       } catch (e) {
-        // Registra l'errore SMS, ma non blocca la registrazione (l'utente può riprovare)
         print("Errore durante l'invio dell'SMS: $e");
       }
     }
 
+    // Nota: L'OTP Email viene generato nel Controller, non qui.
     return savedUser;
   }
 }

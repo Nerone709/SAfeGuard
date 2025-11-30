@@ -59,16 +59,16 @@ class VerificationController {
         // Aggiornamente stato utente
         // Trova l'utente corrispondente usando l'email/telefono
         final usersQuery = await Firestore.instance
-            .collection('utenti')
+            .collection('users')
             .where(fieldNameForQuery, isEqualTo: docId)
             .get();
 
         if (usersQuery.isNotEmpty) {
           final userDoc = usersQuery.first;
           await Firestore.instance
-              .collection('utenti')
+              .collection('users')
               .document(userDoc.id)
-              .update({'attivo': true, 'email_verified': true});
+              .update({'attivo': true, 'isVerified': true});
         }
 
         //  Cancelliazzione dell'OTP usato
