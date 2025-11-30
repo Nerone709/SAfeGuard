@@ -76,218 +76,214 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
 
           // Contenuto principale
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: SingleChildScrollView(
-                // 3. GESTIONE SPAZIO TASTIERA MANUALE
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(height: verticalPadding),
+            child: Column(
+              children: [
+                // 1. PARTE SCORREVOLE (Campi)
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(height: verticalPadding),
 
-                    Text(
-                      "Registrazione",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: titleFontSize,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    SizedBox(height: largeSpacing),
+                        Text(
+                          "Registrazione",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: titleFontSize,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        SizedBox(height: largeSpacing),
 
-                    // Campi Anagrafici
-                    _buildTextField(
-                      "Nome",
-                      _nameController,
-                      isPassword: false,
-                      contentVerticalPadding: 12,
-                      fontSize: contentFontSize,
-                    ),
-                    SizedBox(height: smallSpacing),
-
-                    _buildTextField(
-                      "Cognome",
-                      _surnameController,
-                      isPassword: false,
-                      contentVerticalPadding: 12,
-                      fontSize: contentFontSize,
-                    ),
-                    SizedBox(height: smallSpacing),
-
-                    // Input telefono
-                    TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: contentFontSize,
-                      ),
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        hintText: "+39 ...",
-                        hintStyle: TextStyle(
-                          color: Colors.grey,
+                        // Campi Anagrafici
+                        _buildTextField(
+                          "Nome",
+                          _nameController,
+                          isPassword: false,
+                          contentVerticalPadding: 12,
                           fontSize: contentFontSize,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 25,
-                          vertical: 12,
+                        SizedBox(height: smallSpacing),
+
+                        _buildTextField(
+                          "Cognome",
+                          _surnameController,
+                          isPassword: false,
+                          contentVerticalPadding: 12,
+                          fontSize: contentFontSize,
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: smallSpacing),
+                        SizedBox(height: smallSpacing),
 
-                    // Password
-                    _buildTextField(
-                      "Password",
-                      _passController,
-                      isPassword: true,
-                      contentVerticalPadding: 12,
-                      fontSize: contentFontSize,
-                    ),
-                    SizedBox(height: smallSpacing),
-
-                    _buildTextField(
-                      "Ripeti Password",
-                      _repeatPassController,
-                      isPassword: true,
-                      contentVerticalPadding: 12,
-                      fontSize: contentFontSize,
-                    ),
-
-                    // Messaggio di errore del provider
-                    if (authProvider.errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Text(
-                          authProvider.errorMessage!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.bold,
+                        // Input telefono
+                        TextField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: contentFontSize,
+                          ),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            hintText: "+39 ...",
+                            hintStyle: TextStyle(
+                              color: Colors.grey,
+                              fontSize: contentFontSize,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 25,
+                              vertical: 12,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide.none,
+                            ),
                           ),
                         ),
-                      ),
+                        SizedBox(height: smallSpacing),
 
-                    SizedBox(height: largeSpacing),
+                        // Password
+                        _buildTextField(
+                          "Password",
+                          _passController,
+                          isPassword: true,
+                          contentVerticalPadding: 12,
+                          fontSize: contentFontSize,
+                        ),
+                        SizedBox(height: smallSpacing),
 
-                    // Bottone registrati
-                    SizedBox(
-                      height: referenceSize * 0.12,
-                      child: ElevatedButton(
-                        onPressed: authProvider.isLoading
-                            ? null
-                            : () async {
-                                final navigator = Navigator.of(context);
-                                final messenger = ScaffoldMessenger.of(context);
-                                final phone = _phoneController.text
-                                    .trim()
-                                    .replaceAll(' ', '');
-                                final nome = _nameController.text.trim();
-                                final cognome = _surnameController.text.trim();
-                                final password = _passController.text;
-
-                                // Validazione base lato client
-                                if (phone.isEmpty || phone.length < 5) {
-                                  messenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Inserisci un numero valido",
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                if (nome.isEmpty || cognome.isEmpty) {
-                                  messenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Nome e Cognome obbligatori",
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                if (password != _repeatPassController.text) {
-                                  messenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Le password non coincidono",
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                if (password.isEmpty) {
-                                  messenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text("Inserisci una password"),
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                // 1. Avvia l'autenticazione telefonica (che registra l'utente e invia l'OTP)
-                                bool success = await authProvider
-                                    .startPhoneAuth(
-                                      phone,
-                                      password: password,
-                                      nome: nome,
-                                      cognome: cognome,
-                                    );
-
-                                // 2. Navigazione in caso di successo
-                                if (success && mounted) {
-                                  // Invia l'utente alla schermata di verifica OTP
-                                  navigator.push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const VerificationScreen(),
-                                    ),
-                                  );
-                                }
-                              },
-
-                        // Stile del bottone
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: buttonColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          side: const BorderSide(
-                            color: Colors.white12,
-                            width: 1,
-                          ),
+                        _buildTextField(
+                          "Ripeti Password",
+                          _repeatPassController,
+                          isPassword: true,
+                          contentVerticalPadding: 12,
+                          fontSize: contentFontSize,
                         ),
 
-                        // Contenuto del bottone
-                        child: authProvider.isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : Text(
-                                "REGISTRATI",
-                                style: TextStyle(
-                                  fontSize: referenceSize * 0.05,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        // Messaggio di errore del provider
+                        if (authProvider.errorMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 20),
+                            child: Text(
+                              authProvider.errorMessage!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontWeight: FontWeight.bold,
                               ),
-                      ),
+                            ),
+                          ),
+
+                        // Spazio extra in fondo per non coprire l'ultimo campo
+                        const SizedBox(height: 20),
+                      ],
                     ),
-                    SizedBox(height: verticalPadding),
-                  ],
+                  ),
                 ),
-              ),
+
+                // 2. PARTE FISSA (Bottone REGISTRATI)
+                Container(
+                  padding: EdgeInsets.only(
+                    left: 25.0,
+                    right: 25.0,
+                    top: 10.0,
+                    // Gestione padding tastiera
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                  ),
+                  child: SizedBox(
+                    height: referenceSize * 0.12,
+                    width: 200.0,
+                    child: ElevatedButton(
+                      onPressed: authProvider.isLoading
+                          ? null
+                          : () async {
+                              final navigator = Navigator.of(context);
+                              final messenger = ScaffoldMessenger.of(context);
+                              final phone = _phoneController.text
+                                  .trim()
+                                  .replaceAll(' ', '');
+                              final nome = _nameController.text.trim();
+                              final cognome = _surnameController.text.trim();
+                              final password = _passController.text;
+
+                              // Validazione base
+                              if (phone.isEmpty || phone.length < 5) {
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Inserisci un numero valido"),
+                                  ),
+                                );
+                                return;
+                              }
+                              if (nome.isEmpty || cognome.isEmpty) {
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Nome e Cognome obbligatori"),
+                                  ),
+                                );
+                                return;
+                              }
+                              if (password != _repeatPassController.text) {
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Le password non coincidono"),
+                                  ),
+                                );
+                                return;
+                              }
+                              if (password.isEmpty) {
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Inserisci una password"),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              // Start Auth
+                              bool success = await authProvider.startPhoneAuth(
+                                phone,
+                                password: password,
+                                nome: nome,
+                                cognome: cognome,
+                              );
+
+                              if (success && mounted) {
+                                navigator.push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const VerificationScreen(),
+                                  ),
+                                );
+                              }
+                            },
+
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: buttonColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        side: const BorderSide(color: Colors.white12, width: 1),
+                      ),
+
+                      child: authProvider.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              "REGISTRATI",
+                              style: TextStyle(
+                                fontSize: referenceSize * 0.05,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

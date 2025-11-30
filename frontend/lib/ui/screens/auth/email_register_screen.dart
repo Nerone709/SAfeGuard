@@ -75,186 +75,198 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
             child: BubbleBackground(type: BubbleType.type3),
           ),
 
-          // Contenuto e ScrollView
+          // Contenuto
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: SingleChildScrollView(
-                // 3. GESTIONE SPAZIO TASTIERA MANUALE
-                // Spinge il contenuto su quando esce la tastiera
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-                ),
-                // Widget Form: Avvolge i campi per gestire la validazione unificata
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(height: verticalPadding),
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    // Widget Form: Avvolge i campi per gestire la validazione unificata
+                    child: Form(
+                      key: _formKey,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SizedBox(height: verticalPadding),
 
-                      Text(
-                        "Registrazione",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: titleFontSize,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-
-                      SizedBox(height: largeSpacing),
-
-                      _buildTextFormField(
-                        "Nome",
-                        _nameController,
-                        fontSize: contentFontSize,
-                        validator: (value) => value == null || value.isEmpty
-                            ? "Inserisci il nome"
-                            : null,
-                      ),
-                      SizedBox(height: smallSpacing),
-
-                      _buildTextFormField(
-                        "Cognome",
-                        _surnameController,
-                        fontSize: contentFontSize,
-                        validator: (value) => value == null || value.isEmpty
-                            ? "Inserisci il cognome"
-                            : null,
-                      ),
-                      SizedBox(height: smallSpacing),
-
-                      _buildTextFormField(
-                        "Email",
-                        _emailController,
-                        fontSize: contentFontSize,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Inserisci l'email";
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: smallSpacing),
-
-                      _buildTextFormField(
-                        "Password",
-                        _passController,
-                        isPassword: true,
-                        fontSize: contentFontSize,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Inserisci la password";
-                          }
-                          if (value.length < 6) return "Minimo 6 caratteri";
-                          if (value.length > 12) return "Massimo 12 caratteri";
-                          // Regex per almeno 1 Maiuscola, 1 Numero, 1 Carattere Speciale
-                          if (!RegExp(
-                            r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#%^&*(),.?":{}|<>_])',
-                          ).hasMatch(value)) {
-                            return "Serve: 1 Maiuscola, 1 Numero, 1 Speciale";
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: smallSpacing),
-
-                      _buildTextFormField(
-                        "Ripeti Password",
-                        _repeatPassController,
-                        isPassword: true,
-                        fontSize: contentFontSize,
-                        validator: (value) {
-                          if (value != _passController.text) {
-                            return "Le password non coincidono";
-                          }
-                          return null;
-                        },
-                      ),
-
-                      // Messaggio errore generico dal Server (es. Email già usata)
-                      if (authProvider.errorMessage != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15),
-                          child: Text(
-                            authProvider.errorMessage!,
-                            style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontWeight: FontWeight.bold,
+                            Text(
+                              "Registrazione",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: titleFontSize,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
 
-                      SizedBox(height: largeSpacing),
+                            SizedBox(height: largeSpacing),
 
-                      // Bottone Continua
-                      SizedBox(
-                        height: referenceSize * 0.12,
-                        child: ElevatedButton(
-                          // Disabilita il bottone se in caricamento
-                          onPressed: authProvider.isLoading
-                              ? null
-                              : () async {
-                                  // 1. Esegue la validazione su tutti i campi del Form
-                                  if (_formKey.currentState!.validate()) {
-                                    final navigator = Navigator.of(context);
-
-                                    // 2. Chiamata al metodo register dell'AuthProvider
-                                    bool success = await authProvider.register(
-                                      _emailController.text.trim(),
-                                      _passController.text,
-                                      _nameController.text.trim(),
-                                      _surnameController.text.trim(),
-                                    );
-
-                                    // 3. Navigazione se la registrazione (e l'invio OTP) ha successo
-                                    if (success && context.mounted) {
-                                      navigator.push(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              // Naviga alla schermata per inserire l'OTP
-                                              const VerificationScreen(),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
-
-                          // Stile del Bottone
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: buttonColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
+                            _buildTextFormField(
+                              "Nome",
+                              _nameController,
+                              fontSize: contentFontSize,
+                              validator: (value) =>
+                                  value == null || value.isEmpty
+                                  ? "Inserisci il nome"
+                                  : null,
                             ),
-                            side: const BorderSide(
-                              color: Colors.white12,
-                              width: 1,
-                            ),
-                          ),
+                            SizedBox(height: smallSpacing),
 
-                          // Contenuto del bottone
-                          child: authProvider.isLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
-                              : Text(
-                                  "CONTINUA",
-                                  style: TextStyle(
-                                    fontSize: referenceSize * 0.05,
+                            _buildTextFormField(
+                              "Cognome",
+                              _surnameController,
+                              fontSize: contentFontSize,
+                              validator: (value) =>
+                                  value == null || value.isEmpty
+                                  ? "Inserisci il cognome"
+                                  : null,
+                            ),
+                            SizedBox(height: smallSpacing),
+
+                            _buildTextFormField(
+                              "Email",
+                              _emailController,
+                              fontSize: contentFontSize,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Inserisci l'email";
+                                }
+                                return null;
+                              },
+                            ),
+                            SizedBox(height: smallSpacing),
+
+                            _buildTextFormField(
+                              "Password",
+                              _passController,
+                              isPassword: true,
+                              fontSize: contentFontSize,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Inserisci la password";
+                                }
+                                if (value.length < 6) {
+                                  return "Minimo 6 caratteri";
+                                }
+                                if (value.length > 12) {
+                                  return "Massimo 12 caratteri";
+                                }
+                                // Regex per almeno 1 Maiuscola, 1 Numero, 1 Carattere Speciale
+                                if (!RegExp(
+                                  r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#%^&*(),.?":{}|<>_])',
+                                ).hasMatch(value)) {
+                                  return "Serve: 1 Maiuscola, 1 Numero, 1 Speciale";
+                                }
+                                return null;
+                              },
+                            ),
+                            SizedBox(height: smallSpacing),
+
+                            _buildTextFormField(
+                              "Ripeti Password",
+                              _repeatPassController,
+                              isPassword: true,
+                              fontSize: contentFontSize,
+                              validator: (value) {
+                                if (value != _passController.text) {
+                                  return "Le password non coincidono";
+                                }
+                                return null;
+                              },
+                            ),
+
+                            // Messaggio errore generico dal Server (es. Email già usata)
+                            if (authProvider.errorMessage != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 15),
+                                child: Text(
+                                  authProvider.errorMessage!,
+                                  style: const TextStyle(
+                                    color: Colors.redAccent,
                                     fontWeight: FontWeight.bold,
                                   ),
+                                  textAlign: TextAlign.center,
                                 ),
+                              ),
+
+                            // Spazio extra in fondo per non coprire l'ultimo campo
+                            const SizedBox(height: 20),
+                          ],
                         ),
                       ),
-
-                      SizedBox(height: verticalPadding),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+
+                // 3. GESTIONE SPAZIO TASTIERA MANUALE (Applicata al contenitore del bottone)
+                Container(
+                  padding: EdgeInsets.only(
+                    left: 25.0,
+                    right: 25.0,
+                    top: 10.0,
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                  ),
+                  child: SizedBox(
+                    height: referenceSize * 0.12,
+                    width: 200.0,
+
+                    // Bottone Continua
+                    child: ElevatedButton(
+                      // Disabilita il bottone se in caricamento
+                      onPressed: authProvider.isLoading
+                          ? null
+                          : () async {
+                              // 1. Esegue la validazione su tutti i campi del Form
+                              if (_formKey.currentState!.validate()) {
+                                final navigator = Navigator.of(context);
+
+                                // 2. Chiamata al metodo register dell'AuthProvider
+                                bool success = await authProvider.register(
+                                  _emailController.text.trim(),
+                                  _passController.text,
+                                  _nameController.text.trim(),
+                                  _surnameController.text.trim(),
+                                );
+
+                                // 3. Navigazione se la registrazione (e l'invio OTP) ha successo
+                                if (success && context.mounted) {
+                                  navigator.push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          // Naviga alla schermata per inserire l'OTP
+                                          const VerificationScreen(),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+
+                      // Stile del Bottone
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: buttonColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        side: const BorderSide(color: Colors.white12, width: 1),
+                      ),
+
+                      // Contenuto del bottone
+                      child: authProvider.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              "REGISTRA",
+                              style: TextStyle(
+                                fontSize: referenceSize * 0.05,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

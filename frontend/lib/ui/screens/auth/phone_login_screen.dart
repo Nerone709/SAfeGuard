@@ -73,174 +73,179 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
           // Contenuto principale
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: SingleChildScrollView(
-                // 3. GESTIONE SPAZIO TASTIERA MANUALE
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(height: verticalPadding),
+            child: Column(
+              children: [
+                // 1. PARTE SCORREVOLE (Titolo + Campi)
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(height: verticalPadding),
 
-                    Text(
-                      "Accedi",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: titleFontSize,
-                        fontWeight: FontWeight.w900,
-                        height: 1.2,
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.10),
+                        Text(
+                          "Accedi",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: titleFontSize,
+                            fontWeight: FontWeight.w900,
+                            height: 1.2,
+                          ),
+                        ),
 
-                    // Input telefono
-                    TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType
-                          .phone, // Tastiera ottimizzata per numeri di telefono
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: contentFontSize,
-                      ),
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        hintStyle: TextStyle(
-                          color: Colors.grey,
+                        SizedBox(height: screenHeight * 0.10),
+
+                        // Input telefono
+                        TextField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: contentFontSize,
+                          ),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            hintStyle: TextStyle(
+                              color: Colors.grey,
+                              fontSize: contentFontSize,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 25,
+                              vertical: 16,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: smallSpacing),
+
+                        // Input Password
+                        _buildTextField(
+                          "Password",
+                          _passController,
+                          isPassword: true,
+                          contentVerticalPadding: 16,
                           fontSize: contentFontSize,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 25,
-                          vertical: 16,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: smallSpacing),
 
-                    // Input Password
-                    _buildTextField(
-                      "Password",
-                      _passController,
-                      isPassword: true,
-                      contentVerticalPadding: 16,
-                      fontSize: contentFontSize,
-                    ),
-
-                    // Messaggio di errore del provider
-                    if (authProvider.errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Text(
-                          authProvider.errorMessage!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-
-                    SizedBox(height: screenHeight * 0.15),
-
-                    // Bottone Continua
-                    SizedBox(
-                      height: referenceSize * 0.12,
-                      child: ElevatedButton(
-                        onPressed: authProvider.isLoading
-                            ? null
-                            : () async {
-                                final navigator = Navigator.of(context);
-                                final messenger = ScaffoldMessenger.of(context);
-                                final phone = _phoneController.text.trim();
-                                final password = _passController.text;
-
-                                if (phone.isEmpty || password.isEmpty) {
-                                  messenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Inserisci telefono e password",
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                // Gestione dei 3 stati (Successo, Verifica Necessaria, Fallimento)
-                                String result = await authProvider.loginPhone(
-                                  phone,
-                                  password,
-                                );
-
-                                if (!context.mounted) return;
-
-                                if (result == 'success') {
-                                  // CASO 1: Login Riuscito -> Home
-                                  navigator.pushAndRemoveUntil(
-                                    MaterialPageRoute(
-                                      builder: (context) => const HomeScreen(),
-                                    ),
-                                    (route) =>
-                                        false, // Rimuove lo stack di navigazione
-                                  );
-                                } else if (result == 'verification_needed') {
-                                  // CASO 2: Non Verificato -> Schermata OTP
-                                  messenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Account non verificato. Inserisci il codice OTP inviato.",
-                                      ),
-                                      backgroundColor: Colors.orange,
-                                    ),
-                                  );
-                                  navigator.push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const VerificationScreen(),
-                                    ),
-                                  );
-                                }
-                                // CASO 3: Fallito (Gestito dall'errorMessage del provider visualizzato sopra)
-                              },
-
-                        //Pulsante per andare avanti
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: buttonColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          side: const BorderSide(
-                            color: Colors.white12,
-                            width: 1,
-                          ),
-                        ),
-                        // Contenuto del bottone
-                        child: authProvider.isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : Text(
-                                "CONTINUA",
-                                style: TextStyle(
-                                  fontSize: referenceSize * 0.07,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.0,
-                                ),
+                        // Messaggio di errore del provider
+                        if (authProvider.errorMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 20),
+                            child: Text(
+                              authProvider.errorMessage!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontWeight: FontWeight.bold,
                               ),
-                      ),
+                            ),
+                          ),
+
+                        // Spazio extra per evitare che l'ultimo campo sia coperto
+                        const SizedBox(height: 20),
+                      ],
                     ),
-                    SizedBox(height: verticalPadding),
-                  ],
+                  ),
                 ),
-              ),
+
+                // 2. PARTE FISSA (Bottone CONTINUA)
+                Container(
+                  padding: EdgeInsets.only(
+                    left: 25.0,
+                    right: 25.0,
+                    top: 10.0,
+                    // Gestione padding tastiera
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                  ),
+                  child: SizedBox(
+                    height: referenceSize * 0.12,
+                    width: 200.0,
+                    child: ElevatedButton(
+                      onPressed: authProvider.isLoading
+                          ? null
+                          : () async {
+                              final navigator = Navigator.of(context);
+                              final messenger = ScaffoldMessenger.of(context);
+                              final phone = _phoneController.text.trim();
+                              final password = _passController.text;
+
+                              if (phone.isEmpty || password.isEmpty) {
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Inserisci telefono e password",
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              // Gestione login
+                              String result = await authProvider.loginPhone(
+                                phone,
+                                password,
+                              );
+
+                              if (!context.mounted) return;
+
+                              if (result == 'success') {
+                                // CASO 1: Login Riuscito -> Home
+                                navigator.pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                    builder: (context) => const HomeScreen(),
+                                  ),
+                                  (route) => false,
+                                );
+                              } else if (result == 'verification_needed') {
+                                // CASO 2: Non Verificato -> Schermata OTP
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Account non verificato. Inserisci il codice OTP inviato.",
+                                    ),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                                navigator.push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const VerificationScreen(),
+                                  ),
+                                );
+                              }
+                            },
+
+                      // Stile del Bottone
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: buttonColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        side: const BorderSide(color: Colors.white12, width: 1),
+                      ),
+                      // Contenuto del bottone
+                      child: authProvider.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              "CONTINUA",
+                              style: TextStyle(
+                                fontSize: referenceSize * 0.05,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
