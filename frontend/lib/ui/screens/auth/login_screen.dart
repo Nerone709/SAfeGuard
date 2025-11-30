@@ -172,16 +172,14 @@ class LoginScreen extends StatelessWidget {
                           backgroundColor: Colors.black,
                           textColor: Colors.white,
                           fontSize: buttonTextFontSize,
-                          onTap: () async {
-                            final success = await authProvider
-                                .signInWithApple();
-                            if (success && context.mounted) {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => const HomeScreen(),
-                                ),
-                              );
-                            }
+                          onTap: () {
+                            // Mostra lo SnackBar quando il pulsante viene premuto
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Funzionalità non ancora implementata"),
+                                duration: Duration(seconds: 2), // Durata di visualizzazione
+                              ),
+                            );
                           },
                         ),
                         SizedBox(height: verticalSpacing),
