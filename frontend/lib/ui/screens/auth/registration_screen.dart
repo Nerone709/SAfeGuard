@@ -21,22 +21,6 @@ class RegistrationScreen extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final Color darkBlue = ColorPalette.backgroundDeepBlue;
 
-    // Variabili per la responsività
-    final Size screenSize = MediaQuery.of(context).size;
-    final double screenHeight = screenSize.height;
-    final double screenWidth = screenSize.width;
-    final double referenceSize = screenHeight < screenWidth
-        ? screenHeight
-        : screenWidth;
-    final double verticalSpacing = screenHeight * 0.015;
-    final double mascotSize = referenceSize * 0.22;
-    final double titleFontSize = referenceSize * 0.065;
-    final double subtitleFontSize = referenceSize * 0.035;
-    final double buttonTextFontSize = referenceSize * 0.04;
-
-    // Dimensione standard per le icone nei pulsanti (basata sul testo)
-    final double iconSize = buttonTextFontSize * 1.5;
-
     //Header
     return Scaffold(
       appBar: AppBar(
@@ -62,7 +46,7 @@ class RegistrationScreen extends StatelessWidget {
         // Logo
         title: Image.asset(
           'assets/logo.png',
-          height: screenHeight * 0.05,
+          height: 40,
           errorBuilder: (c, e, s) =>
               const Icon(Icons.shield, color: Colors.white),
         ),
@@ -84,51 +68,65 @@ class RegistrationScreen extends StatelessWidget {
         ],
       ),
 
-      body: Stack(
-        children: [
-          // Sfondo
-          const Positioned.fill(
-            child: BubbleBackground(type: BubbleType.type1),
-          ),
+      // Layout builder per gestire l'orientamento del dispositivo
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final double width = constraints.maxWidth;
+          final double height = constraints.maxHeight;
+          final bool isLandscape = width > height;
 
-          // Contenuto Principale
-          SafeArea(
-            child: Column(
-              children: [
-                SizedBox(height: verticalSpacing * 2),
+          // Dimensioni di base
+          final double referenceSize = isLandscape ? height : width;
+          final double buttonFontSize = referenceSize * 0.04;
+          final double iconSize = buttonFontSize * 1.5;
 
-                // Area Mascotte e Titoli
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(25, 5, 25, 10),
-                  child: Row(
-                    children: [
-                      // Mascotte
-                      BlueSeahorse(size: mascotSize),
-                      const SizedBox(width: 20),
-                      // Area Testo
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: BubbleBackground(
+                  type: isLandscape ? BubbleType.type4 : BubbleType.type1,
+                ),
+              ),
+
+              // Gestione del layout per dispositivi posti in orizzontale
+              if (isLandscape) ...[
+                Row(
+                  children: [
+                    // Mascotte e Testi
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          BlueSeahorse(size: height * 0.3),
+                          SizedBox(height: height * 0.05),
+
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
                               "Benvenuto in\nSAfeGuard",
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: darkBlue,
-                                fontSize: titleFontSize,
+                                fontSize: height * 0.08,
                                 fontWeight: FontWeight.w900,
                                 height: 1.2,
                               ),
                             ),
-                            SizedBox(height: verticalSpacing),
-                            Container(
+                          ),
+
+                          SizedBox(height: height * 0.02),
+
+                          // Sottotitolo
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.8),
+                                color: Colors.white.withValues(alpha: 1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -136,154 +134,227 @@ class RegistrationScreen extends StatelessWidget {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: darkBlue,
-                                  fontSize: subtitleFontSize,
+                                  fontSize: height * 0.035,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Pulsanti
+                    Expanded(
+                      flex: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildButtonsList(
+                              context,
+                              authProvider,
+                              darkBlue,
+                              buttonFontSize,
+                              iconSize,
+                              isLandscape: true,
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+                // Gestione del layout per dispositivi posti in verticale
+              ] else ...[
+                Column(
+                  children: [
+                    SizedBox(height: height * 0.02),
 
-                //Zona pulsanti
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        // Bottone Registrazione Apple
-                        _buildSocialButton(
-                          text: "Continua con Apple",
-                          icon: Icon(
-                            Icons.apple,
-                            color: Colors.white,
-                            size: iconSize,
-                          ),
-                          backgroundColor: Colors.black,
-                          textColor: Colors.white,
-                          fontSize: buttonTextFontSize,
-                          iconSize: iconSize,
-                          onTap: () {
-                            // Mostra lo SnackBar quando il pulsante viene premuto
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  "Funzionalità non ancora implementata",
+                    // Mascotte e Titoli
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(25, 5, 25, 10),
+                      child: Row(
+                        children: [
+                          BlueSeahorse(size: width * 0.22),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                Text(
+                                  "Benvenuto in\nSAfeGuard",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: darkBlue,
+                                    fontSize: width * 0.065,
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.2,
+                                  ),
                                 ),
-                                duration: Duration(
-                                  seconds: 2,
-                                ), // Durata di visualizzazione
-                              ),
-                            );
-                          },
-                        ),
-                        SizedBox(height: verticalSpacing),
-
-                        // Bottone Registrazione Google
-                        _buildSocialButton(
-                          text: "Continua con Google",
-                          // Qui richiama il widget dal file esterno importato
-                          icon: ChromeLogoIcon(size: iconSize),
-                          backgroundColor: Colors.white,
-                          textColor: Colors.black,
-                          fontSize: buttonTextFontSize,
-                          iconSize: iconSize,
-                          onTap: () async {
-                            final success = await authProvider
-                                .signInWithGoogle();
-                            if (success && context.mounted) {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => const HomeScreen(),
+                                SizedBox(height: height * 0.015),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    "Registrati per connetterti alla rete di emergenza",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: darkBlue,
+                                      fontSize: width * 0.035,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
-                              );
-                            }
-                          },
-                        ),
-                        SizedBox(height: verticalSpacing),
-
-                        // Bottone Registrazione Email
-                        _buildSocialButton(
-                          text: "Continua con Email",
-                          icon: Icon(
-                            Icons.alternate_email,
-                            color: darkBlue,
-                            size: iconSize,
-                          ),
-                          backgroundColor: Colors.white,
-                          textColor: Colors.black,
-                          fontSize: buttonTextFontSize,
-                          iconSize: iconSize,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const EmailRegisterScreen(),
+                              ],
                             ),
                           ),
-                        ),
-                        SizedBox(height: verticalSpacing),
+                        ],
+                      ),
+                    ),
 
-                        // Bottone Registrazione Telefono
-                        _buildSocialButton(
-                          text: "Continua con Telefono",
-                          icon: Icon(
-                            Icons.phone,
-                            color: darkBlue,
-                            size: iconSize,
-                          ),
-                          backgroundColor: Colors.white,
-                          textColor: Colors.black,
-                          fontSize: buttonTextFontSize,
-                          iconSize: iconSize,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const PhoneRegisterScreen(),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.05),
-
-                        // Link Login
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                    // Zona pulsanti (in basso)
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            const Text(
-                              "Hai già un account? ",
-                              style: TextStyle(color: Colors.white),
+                            _buildButtonsList(
+                              context,
+                              authProvider,
+                              darkBlue,
+                              buttonFontSize,
+                              iconSize,
+                              isLandscape: false,
                             ),
-                            GestureDetector(
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const LoginScreen(),
-                                ),
-                              ),
-
-                              child: const Text(
-                                "Login",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
+                            SizedBox(height: height * 0.05),
                           ],
                         ),
-                        SizedBox(height: verticalSpacing * 2),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // Metodo Helper per lista pulsanti
+  Widget _buildButtonsList(
+    BuildContext context,
+    AuthProvider authProvider,
+    Color darkBlue,
+    double fontSize,
+    double iconSize, {
+    required bool isLandscape,
+  }) {
+    final double spacing = isLandscape ? 10.0 : 15.0;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildSocialButton(
+          text: "Continua con Apple",
+          icon: Icon(Icons.apple, color: Colors.white, size: iconSize),
+          backgroundColor: Colors.black,
+          textColor: Colors.white,
+          fontSize: fontSize,
+          iconSize: iconSize,
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Funzionalità non ancora implementata"),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          },
+        ),
+        SizedBox(height: spacing),
+
+        _buildSocialButton(
+          text: "Continua con Google",
+          icon: ChromeLogoIcon(size: iconSize),
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+          fontSize: fontSize,
+          iconSize: iconSize,
+          onTap: () async {
+            final success = await authProvider.signInWithGoogle();
+            if (success && context.mounted) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+            }
+          },
+        ),
+        SizedBox(height: spacing),
+
+        _buildSocialButton(
+          text: "Continua con Email",
+          icon: Icon(Icons.alternate_email, color: darkBlue, size: iconSize),
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+          fontSize: fontSize,
+          iconSize: iconSize,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const EmailRegisterScreen(),
             ),
           ),
-        ],
-      ),
+        ),
+        SizedBox(height: spacing),
+
+        _buildSocialButton(
+          text: "Continua con Telefono",
+          icon: Icon(Icons.phone, color: darkBlue, size: iconSize),
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+          fontSize: fontSize,
+          iconSize: iconSize,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const PhoneRegisterScreen(),
+            ),
+          ),
+        ),
+        SizedBox(height: isLandscape ? 10 : 30),
+
+        // Link Login
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              "Hai già un account? ",
+              style: TextStyle(color: Colors.white),
+            ),
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+              ),
+              child: const Text(
+                "Login",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -297,7 +368,7 @@ class RegistrationScreen extends StatelessWidget {
     VoidCallback? onTap,
     required double fontSize,
   }) {
-    final double buttonHeight = fontSize * 3.5;
+    final double buttonHeight = fontSize * 3.0;
 
     return SizedBox(
       width: double.infinity,
@@ -316,7 +387,6 @@ class RegistrationScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             const SizedBox(width: 10),
-
             // Renderizza direttamente il widget passato
             icon,
 
@@ -332,7 +402,6 @@ class RegistrationScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             // Bilanciamento visivo a destra (dimensione icona + padding)
             SizedBox(width: iconSize + 10),
           ],

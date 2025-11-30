@@ -45,11 +45,9 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
     final Color buttonColor = ColorPalette.primaryDarkButtonBlue;
 
     return Scaffold(
-      // 1. IMPORTANTE: Impedisce allo sfondo di deformarsi/salire quando esce la tastiera
+      // 1. Impedisce allo sfondo di deformarsi quando esce la tastiera
       resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
-
-      // Imposta un colore di sicurezza per evitare flash bianchi
       backgroundColor: ColorPalette.backgroundDeepBlue,
 
       appBar: AppBar(
@@ -62,158 +60,161 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
       ),
 
       body: Stack(
-        // 2. Assicura che lo Stack occupi sempre tutto lo spazio disponibile
         fit: StackFit.expand,
         children: [
-          // Sfondo: Ora rimarrà fisso e a tutto schermo
+          // Sfondo fisso
           const Positioned.fill(
             child: BubbleBackground(type: BubbleType.type3),
           ),
 
           // Contenuto Principale
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              // Gestione scroll e tastiera
-              child: SingleChildScrollView(
-                // 3. Aggiunta padding per spingere il contenuto su quando esce la tastiera
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(height: verticalPadding),
+            child: Column(
+              children: [
+                // 1. PARTE SCORREVOLE (Titolo + Campi)
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(height: verticalPadding),
 
-                    Text(
-                      "Accedi",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: titleFontSize,
-                        fontWeight: FontWeight.w900,
-                        height: 1.2,
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.10),
-
-                    // Campo Email
-                    _buildTextField(
-                      "Email",
-                      _emailController,
-                      isPassword: false,
-                      contentVerticalPadding: 16,
-                      fontSize: contentFontSize,
-                    ),
-                    SizedBox(height: smallSpacing),
-
-                    // Campo Password
-                    _buildTextField(
-                      "Password",
-                      _passController,
-                      isPassword: true,
-                      contentVerticalPadding: 16,
-                      fontSize: contentFontSize,
-                    ),
-
-                    if (authProvider.errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 15),
-                        child: Text(
-                          authProvider.errorMessage!,
-                          style: const TextStyle(
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Text(
+                          "Accedi",
                           textAlign: TextAlign.center,
-                        ),
-                      ),
-
-                    SizedBox(height: screenHeight * 0.15),
-
-                    // Bottone Accedi
-                    SizedBox(
-                      height: referenceSize * 0.12,
-                      child: ElevatedButton(
-                        onPressed: authProvider.isLoading
-                            ? null
-                            : () async {
-                                final navigator = Navigator.of(context);
-                                final messenger = ScaffoldMessenger.of(context);
-
-                                if (_emailController.text.isEmpty ||
-                                    _passController.text.isEmpty) {
-                                  messenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Inserisci email e password",
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                // --- INIZIO ASYNC GAP ---
-                                String result = await authProvider.login(
-                                  _emailController.text.trim(),
-                                  _passController.text,
-                                );
-                                // --- FINE ASYNC GAP ---
-
-                                if (result == 'success') {
-                                  navigator.pushAndRemoveUntil(
-                                    MaterialPageRoute(
-                                      builder: (context) => const HomeScreen(),
-                                    ),
-                                    (route) => false,
-                                  );
-                                } else if (result == 'verification_needed') {
-                                  messenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Account non verificato. Inserisci il codice inviato via email.",
-                                      ),
-                                    ),
-                                  );
-
-                                  navigator.push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const VerificationScreen(),
-                                    ),
-                                  );
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: buttonColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          side: const BorderSide(
-                            color: Colors.white12,
-                            width: 1,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: titleFontSize,
+                            fontWeight: FontWeight.w900,
+                            height: 1.2,
                           ),
                         ),
-                        child: authProvider.isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : Text(
-                                "ACCEDI",
-                                style: TextStyle(
-                                  fontSize: referenceSize * 0.07,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.0,
-                                ),
+
+                        SizedBox(height: screenHeight * 0.10),
+
+                        // Campo Email
+                        _buildTextField(
+                          "Email",
+                          _emailController,
+                          isPassword: false,
+                          contentVerticalPadding: 16,
+                          fontSize: contentFontSize,
+                        ),
+                        SizedBox(height: smallSpacing),
+
+                        // Campo Password
+                        _buildTextField(
+                          "Password",
+                          _passController,
+                          isPassword: true,
+                          contentVerticalPadding: 16,
+                          fontSize: contentFontSize,
+                        ),
+
+                        // Messaggio di errore
+                        if (authProvider.errorMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 15),
+                            child: Text(
+                              authProvider.errorMessage!,
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontWeight: FontWeight.bold,
                               ),
-                      ),
-                    ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
 
-                    SizedBox(height: verticalPadding),
-                  ],
+                        // Spazio extra in fondo per non coprire l'ultimo campo
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+
+                // 2. PARTE FISSA (Bottone ACCEDI)
+                Container(
+                  padding: EdgeInsets.only(
+                    left: 25.0,
+                    right: 25.0,
+                    top: 10.0,
+                    // Gestione padding tastiera: il bottone sale sopra la tastiera
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                  ),
+                  child: SizedBox(
+                    height: referenceSize * 0.12,
+                    width: 200.0,
+                    child: ElevatedButton(
+                      onPressed: authProvider.isLoading
+                          ? null
+                          : () async {
+                              final navigator = Navigator.of(context);
+                              final messenger = ScaffoldMessenger.of(context);
+
+                              if (_emailController.text.isEmpty ||
+                                  _passController.text.isEmpty) {
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Inserisci email e password"),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              // Chiamata Login
+                              String result = await authProvider.login(
+                                _emailController.text.trim(),
+                                _passController.text,
+                              );
+
+                              if (result == 'success') {
+                                navigator.pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                    builder: (context) => const HomeScreen(),
+                                  ),
+                                  (route) => false,
+                                );
+                              } else if (result == 'verification_needed') {
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Account non verificato. Inserisci il codice inviato via email.",
+                                    ),
+                                  ),
+                                );
+
+                                navigator.push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const VerificationScreen(),
+                                  ),
+                                );
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: buttonColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        side: const BorderSide(color: Colors.white12, width: 1),
+                      ),
+                      child: authProvider.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              "CONTINUA",
+                              style: TextStyle(
+                                fontSize: referenceSize * 0.05,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -229,7 +230,6 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
     double contentVerticalPadding = 20,
     required double fontSize,
   }) {
-    // Determina se il testo deve essere oscurato
     bool obscureText = isPassword ? !_isPasswordVisible : false;
 
     return TextField(
@@ -252,7 +252,6 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
           borderSide: BorderSide.none,
         ),
 
-        // Icona per la visibilità della password
         suffixIcon: isPassword
             ? IconButton(
                 icon: Icon(
