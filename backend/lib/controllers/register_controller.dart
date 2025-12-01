@@ -61,8 +61,10 @@ class RegisterController {
         );
       }
 
+      // La parte [^a-zA-Z0-9] significa "qualsiasi cosa che non sia alfanumerico"
+      // Questo accetta automaticamente trattini, spazi, simboli matematici, ecc.
       if (!RegExp(
-        r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%^&*(),.?":{}|<>_])',
+        r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9])',
       ).hasMatch(password)) {
         return _badRequest(
           'La password deve contenere almeno: 1 Maiuscola, 1 Numero e 1 Carattere Speciale.',
