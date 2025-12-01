@@ -119,7 +119,7 @@ class _GestioneModificaProfiloCittadinoState
         ? ColorPalette.backgroundMidBlue
         : ColorPalette.primaryOrange;
     const Color iconColor = ColorPalette.iconAccentYellow;
-    Color deleteButtonColor = ColorPalette.deleteRed;
+    Color deleteButtonColor = ColorPalette.emergencyButtonRed;
 
     final double titleSize = isWideScreen ? 50 : 28;
     final double iconSize = isWideScreen ? 60 : 40;
@@ -332,7 +332,7 @@ class _GestioneModificaProfiloCittadinoState
                                   //Qui reindirizza alla pagina di conferma
                                   onPressed: (){
                                   Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => const AccountDeleteScreen()),
+                                    MaterialPageRoute(builder: (_) => const DeleteProfilePage()),
                                   );
                                   },
                                   child:  Text(
