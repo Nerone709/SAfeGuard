@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/ui/style/color_palette.dart';
 
 // Modello Dati per gli elementi di Emergenza (Presumibilmente definito altrove)
 class EmergencyItem {
@@ -109,8 +108,8 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(
-              0.3,
+            color: Colors.black.withValues(
+              alpha: 0.3,
             ), // Usato withOpacity per coerenza
             spreadRadius: 2,
             blurRadius: 10,
