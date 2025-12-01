@@ -275,35 +275,11 @@ class AuthProvider extends ChangeNotifier {
     try {
       // Logica per rinviare il codice basata sull'ultima modalità usata
       if (_tempEmail != null && _tempPassword != null) {
-        // Usiamo dei placeholder per soddisfare la richiesta, tanto il backend
         // riconoscerà l'email esistente e aggiornerà solo l'OTP.
-        final String nomeToSend = _tempNome ?? "Utente";
-        final String cognomeToSend = _tempCognome ?? "Generico";
-
-        // Delega ad AuthRepository
-        await _authRepository.register(
-          _tempEmail!,
-          _tempPassword!,
-          nomeToSend,
-          cognomeToSend,
-        );
-
         await _authRepository.resendOtp(email: _tempEmail);
         startTimer();
         _errorMessage = null;
       } else if (_tempPhone != null) {
-        // Gestione fallback per Nome e Cognome (come per l'email)
-        final String nomeToSend = _tempNome ?? "Utente";
-        final String cognomeToSend = _tempCognome ?? "Generico";
-
-        // Rinvia OTP Telefono con i dati completi
-        await _authRepository.sendPhoneOtp(
-          _tempPhone!,
-          password: _tempPassword,
-          nome: nomeToSend,
-          cognome: cognomeToSend,
-        );
-
         await _authRepository.resendOtp(phone: _tempPhone);
         startTimer();
         _errorMessage = null;
