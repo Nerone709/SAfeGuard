@@ -287,6 +287,8 @@ class AuthProvider extends ChangeNotifier {
           nomeToSend,
           cognomeToSend,
         );
+
+        await _authRepository.resendOtp(email: _tempEmail);
         startTimer();
         _errorMessage = null;
       } else if (_tempPhone != null) {
@@ -301,6 +303,8 @@ class AuthProvider extends ChangeNotifier {
           nome: nomeToSend,
           cognome: cognomeToSend,
         );
+
+        await _authRepository.resendOtp(phone: _tempPhone);
         startTimer();
         _errorMessage = null;
       } else {
@@ -308,6 +312,7 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       _errorMessage = "Impossibile rinviare codice: ${_cleanError(e)}";
+      notifyListeners();
     } finally {
       _setLoading(false);
     }
