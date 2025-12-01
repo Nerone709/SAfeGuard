@@ -4,6 +4,7 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/repositories/profile_repository.dart';
 import 'package:data_models/utente_generico.dart';
 import 'package:frontend/ui/style/color_palette.dart';
+import 'package:frontend/ui/screens/profile/eliminazione_account.dart';
 
 // Schermata Modifica Profilo Cittadino/Generico
 // Permette la modifica dei dati anagrafici dell'utente.
@@ -118,6 +119,7 @@ class _GestioneModificaProfiloCittadinoState
         ? ColorPalette.backgroundMidBlue
         : ColorPalette.primaryOrange;
     const Color iconColor = ColorPalette.iconAccentYellow;
+    Color deleteButtonColor = ColorPalette.deleteRed;
 
     final double titleSize = isWideScreen ? 50 : 28;
     final double iconSize = isWideScreen ? 60 : 40;
@@ -286,7 +288,7 @@ class _GestioneModificaProfiloCittadinoState
                                 ),
                               ],
 
-                              const SizedBox(height: 40),
+                              const SizedBox(height: 20),
 
                               // Pulsante salva modifiche
                               SizedBox(
@@ -314,6 +316,36 @@ class _GestioneModificaProfiloCittadinoState
                                         ),
                                 ),
                               ),
+
+                              const SizedBox(height: 40),
+
+                              SizedBox(
+                                width: double.infinity,
+                                height: isWideScreen ? 70 : 50,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: deleteButtonColor,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                  ),
+                                  //Qui reindirizza alla pagina di conferma
+                                  onPressed: (){
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => const AccountDeleteScreen()),
+                                  );
+                                  },
+                                  child:  Text(
+                                    "ELIMINA ACCOUNT",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: buttonFontSize,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
                             ],
                           ),
                         ),
