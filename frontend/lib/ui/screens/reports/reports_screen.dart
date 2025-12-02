@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/providers/report_provider.dart'; // <--- Import Provider
 import 'package:frontend/ui/style/color_palette.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/ui/widgets/emergency_item.dart';
@@ -13,21 +14,13 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
-  // andrebbe la repository dell'emergenza (?)
 
-  bool _isLoading = false;
   bool _needsHelp = false;
+  final TextEditingController _descriptionController = TextEditingController();
+  EmergencyItem? _selectedEmergency;
 
-  final TextEditingController _descriptionController =
-      TextEditingController(); // per salvarmi il testo della descrizione
-
-  EmergencyItem?
-  _selectedEmergency; // se vuoi sostituire con String, devi mettere item.label a: (fai ctrl + f) _selectedEmergency = item;
-
-  // funzione per mandare l'emergenza (da finire)
-  Future<void> _sendEmergency() async {
-    // andrebbero anche i dati della posizione
-
+  // Funzione per mandare l'emergenza collegata al Provider
+  Future<void> _sendEmergency(ReportProvider reportProvider) async {
     final String description = _descriptionController.text;
 
     if (_selectedEmergency == null) {
@@ -46,9 +39,38 @@ class _ReportsScreenState extends State<ReportsScreen> {
       return;
     }
 
-    _showSnackBar(content: 'Emergenza segnalata', color: Colors.green);
-    // mettere che va alla home alla creazione della segnalazione
-    return;
+    // 2. Chiamata al Provider
+    // Passiamo la stringa del tipo (es. "Incendio") e la descrizione
+    bool success = await reportProvider.sendReport(
+        _selectedEmergency!.label,
+        description
+    );
+
+    // 3. Gestione esito
+    if (success && mounted) {
+      _showSnackBar(content: 'Emergenza segnalata con successo', color: Colors.green);
+
+      // Reset campi dopo invio
+      setState(() {
+        _selectedEmergency = null;
+        _descriptionController.clear();
+        _needsHelp = false;
+      });
+
+      // Se vuoi tornare alla home decommenta la riga sotto:
+      // Navigator.of(context).pop();
+    } else if (mounted) {
+      _showSnackBar(
+          content: 'Errore invio segnalazione. Riprova.',
+          color: ColorPalette.emergencyButtonRed
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
   }
 
   @override
@@ -56,7 +78,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final size = MediaQuery.of(context).size;
     final bool isWideScreen = size.width > 700;
 
+    // Accesso ai Provider
     final isRescuer = context.watch<AuthProvider>().isRescuer;
+    final reportProvider = context.watch<ReportProvider>(); // Per lo stato isLoading
 
     Color bgColor = isRescuer
         ? ColorPalette.primaryOrange
@@ -69,7 +93,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
         : ColorPalette.primaryOrange;
 
     final double titleSize = isWideScreen ? 50 : 28;
-
     final double labelFontSize = isWideScreen ? 24 : 14;
     final double inputFontSize = isWideScreen ? 26 : 16;
     final double buttonFontSize = isWideScreen ? 28 : 18;
@@ -204,17 +227,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
-                    onPressed: _sendEmergency,
-                    child: _isLoading
+                    // Disabilita se sta caricando
+                    onPressed: reportProvider.isLoading
+                        ? null
+                        : () => _sendEmergency(reportProvider),
+
+                    child: reportProvider.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                            "INVIA EMERGENZA",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: buttonFontSize,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                      "INVIA EMERGENZA",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: buttonFontSize,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -250,6 +277,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             SnackBar(
               content: Text("Selezionato: ${item.label}"),
               backgroundColor: Colors.black,
+              duration: const Duration(seconds: 1),
             ),
           );
         },
