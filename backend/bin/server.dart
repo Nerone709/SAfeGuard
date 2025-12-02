@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:backend/controllers/risk_controller.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
@@ -41,6 +42,7 @@ void main() async {
   final resendController = ResendController();
   final profileController = ProfileController();
   final authGuard = AuthGuard();
+  final riskController = RiskController();
 
   // 4. Rounting pubblico
   // Router principale per endpoint accessibili a tutti
@@ -53,6 +55,9 @@ void main() async {
   app.post('/api/verify', verifyController.handleVerificationRequest);
   app.post('/api/auth/resend', resendController.handleResendRequest);
   app.get('/health', (Request request) => Response.ok('OK'));
+
+  // Endpoint per l'analisi del rischio tramite AI
+  app.post('/api/risk/analyze', riskController.handleRiskAnalysis);
 
   // 5. Routing Protetto
   // Sotto-router dedicato alle operazioni sull'utente loggato
