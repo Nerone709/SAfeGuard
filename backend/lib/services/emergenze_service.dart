@@ -1,51 +1,69 @@
 // File: backend/lib/services/emergenze_service.dart
 
 import '../repositories/user_repository.dart';
-import 'notification_service.dart'; // Assumiamo sia già implementato
-// Non c'è bisogno di GeoQueryService separato, la logica è nel repository.
+import 'notification_service.dart';
 
 class EmergenzeService {
   final UserRepository _userRepository = UserRepository();
   final NotificationService _notificationService = NotificationService();
 
-  // Raggio di vicinanza SIMULATO
-  static const double proximityRadiusKm = 10.0;
+  // Raggio di pericolo per i cittadini (es. 5 km)
+  static const double dangerRadiusKm = 5.0;
 
-  /// ------------------------------------------------------------------
-  /// AZIONE CRITICA: Gestisce il trigger di notifica dopo la ricezione dell'SOS.
-  /// ------------------------------------------------------------------
-  Future<void> triggerSOSNotification(double sosLat, double sosLng, String sosId) async {
+  Future<void> triggerSOSNotification({
+    required double lat,
+    required double lng,
+    required String sosId,
+    required String type, // Es. "Incendio", "Terremoto"
+    String? description,
+    required int senderId,
+  }) async {
+    // GRUPPO A: I SOCCORRITORI (Ricevono TUTTO)
+    final rescuerTokens = await _userRepository.findRescuerTokens();
 
-    print('🚨 Trigger Notifiche SOS avviato per ID: $sosId');
-
-    // 1. Target 1: Trova i Token dei Soccorritori (Query Reale)
-    final soccorritoriTokens = await _userRepository.findRescuerTokens();
-    print('   -> Trovati ${soccorritoriTokens.length} token Soccorritori.');
-
-    // 2. Target 2: Trova i Token degli Utenti Nelle Vicinanze (Simulato)
-    final nearbyUsersTokens = await _userRepository.findNearbyTokensSimulated(
-        sosLat, sosLng, proximityRadiusKm
-    );
-    print('   -> Trovati ${nearbyUsersTokens.length} token Utenti Vicini (Simulato).');
-
-    // 3. Unisci i Token (rimuove i duplicati, se un soccorritore è vicino)
-    final List<String> allTokens = [...soccorritoriTokens, ...nearbyUsersTokens].toSet().toList();
-    print('   -> Invio a un totale di ${allTokens.length} token unici.');
-
-    // 4. Invia Notifiche (Chiama FCM)
-    final payloadData = {
-      'sosId': sosId,
-      'latitude': sosLat.toString(),
-      'longitude': sosLng.toString(),
-      'eventType': 'SOS_ATTIVO',
-    };
-
-    if (allTokens.isNotEmpty) {
+    if (rescuerTokens.isNotEmpty) {
       await _notificationService.sendNotificationToTokens(
-          allTokens,
-          "🚨 NUOVA EMERGENZA SOS 🚨",
-          "Richiesta di aiuto nelle vicinanze ($proximityRadiusKm km). Controllare la mappa operativa.",
-          payloadData
+        rescuerTokens,
+        "🚨 RICHIESTA INTERVENTO: $type",
+        "Nuova segnalazione operativa. Posizione: $lat, $lng. Descrizione: ${description ?? 'Nessuna'}",
+        {
+          'sosId': sosId,
+          'type': 'RESCUER_ALERT',
+          'category': type,
+          'lat': lat,
+          'lng': lng,
+        },
+      );
+      print("   -> 🚑 Notificati ${rescuerTokens.length} soccorritori.");
+    } else {
+      print("   -> Nessun soccorritore trovato.");
+    }
+
+    // GRUPPO B: I CITTADINI NELLE VICINANZE (Solo chi è a rischio)
+    final citizenTokens = await _userRepository.findNearbyTokensReal(
+      lat,
+      lng,
+      dangerRadiusKm,
+    );
+
+    if (citizenTokens.isNotEmpty) {
+      await _notificationService.sendNotificationToTokens(
+        citizenTokens,
+        "⚠️ PERICOLO VICINO A TE",
+        "È stato segnalato un $type a meno di ${dangerRadiusKm.toInt()}km dalla tua posizione. Mettiti al sicuro.",
+        {
+          'sosId': sosId,
+          'type':
+              'DANGER_ALERT', // Tipo diverso per far reagire l'app diversamente
+          'category': type,
+          'lat': lat,
+          'lng': lng,
+        },
+      );
+      print("   -> 📢 Allertati ${citizenTokens.length} cittadini a rischio.");
+    } else {
+      print(
+        "   -> Nessun cittadino a rischio nel raggio di $dangerRadiusKm km.",
       );
     }
   }

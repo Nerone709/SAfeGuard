@@ -323,4 +323,33 @@ class ProfileController {
       );
     }
   }
+
+  // 15. POST /profile/position
+  // Aggiorna la posizione GPS dell'utente per le notifiche di prossimità
+  Future<Response> updatePosition(Request request) async {
+    final userId = _getUserId(request);
+    if (userId == null) {
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    }
+
+    try {
+      final body = jsonDecode(await request.readAsString());
+
+      if (body['lat'] == null || body['lng'] == null) {
+        return _jsonResponse(400, body: {'error': 'Coordinate mancanti'});
+      }
+
+      final double lat = (body['lat'] as num).toDouble();
+      final double lng = (body['lng'] as num).toDouble();
+
+      await _profileService.updatePosition(userId, lat, lng);
+
+      return _jsonResponse(200, body: {'message': 'Posizione aggiornata'});
+    } catch (e) {
+      return _jsonResponse(
+        500,
+        body: {'error': 'Errore aggiornamento posizione: $e'},
+      );
+    }
+  }
 }

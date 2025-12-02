@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  geolocator: ^11.0.0
 
   flutter_svg: ^2.2.3 # Aggiunto per supporto SVG
   flutter_native_splash: ^2.4.7

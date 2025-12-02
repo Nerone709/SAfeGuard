@@ -7,40 +7,67 @@ import '../services/emergenze_service.dart';
 class EmergenzeController {
   final EmergenzeService _emergenzeService = EmergenzeService();
 
-  // Handler per la rotta: POST /api/v1/emergenze/sos (Lancia SOS)
+  // Handler per: POST /api/emergenze/sos
   Future<Response> handleSOSRequest(Request request) async {
-    // Il token è già stato verificato dal middleware
+    // Verifica utente loggato (dal middleware)
     final userContext = request.context['user'] as Map<String, dynamic>?;
 
     if (userContext == null) {
-      return Response.forbidden(jsonEncode({'error': 'Dati utente non disponibili.'}));
+      return Response.forbidden(
+        jsonEncode({'error': 'Utente non identificato.'}),
+      );
     }
 
     try {
       final body = jsonDecode(await request.readAsString());
 
-      // Estrai i dati essenziali dall'app client
-      final double lat = body['latitude'] as double;
-      final double lng = body['longitude'] as double;
-      final String sosId = userContext['id'].toString() + '-' + DateTime.now().millisecondsSinceEpoch.toString(); // ID SOS
+      // Validazione dati minimi
+      if (body['latitude'] == null || body['longitude'] == null) {
+        return Response.badRequest(
+          body: jsonEncode({'error': 'Coordinate mancanti'}),
+        );
+      }
 
-      // 1. Logica di salvataggio SOS nel DB (Simulazione)
-      // Qui dovresti salvare l'SOS nel database (collezione 'segnalazioni').
-      print('Nuova segnalazione SOS salvata in DB: $sosId');
+      final double lat = (body['latitude'] as num).toDouble();
+      final double lng = (body['longitude'] as num).toDouble();
 
-      // 2. Trigger Notifiche (Logica di Targeting)
-      await _emergenzeService.triggerSOSNotification(lat, lng, sosId);
+      // Dati opzionali con default
+      final String type = body['type'] ?? 'Emergenza Generica';
+      final String description = body['description'] ?? '';
 
-      // Risposta 200 OK (La notifica è stata avviata con successo)
-      return Response.ok(jsonEncode({
-        'success': true,
-        'message': 'Richiesta SOS ricevuta e notifiche avviate.',
-        'sosId': sosId,
-      }), headers: {'Content-Type': 'application/json'});
+      // Generazione ID univoco per l'evento
+      final String sosId =
+          "${userContext['id']}-${DateTime.now().millisecondsSinceEpoch}";
 
-    } catch (e) {
-      print('❌ Errore nel Controller SOS: $e');
-      return Response.badRequest(body: jsonEncode({'error': 'Dati SOS non validi o mancanti.'}));
+      //  Estraggo l'ID dall'utente loggato
+      final int senderId = userContext['id'];
+
+      print('Ricevuto SOS da User $senderId: $type a ($lat, $lng)');
+
+      // 2. Avvia la catena di notifiche
+      await _emergenzeService.triggerSOSNotification(
+        lat: lat,
+        lng: lng,
+        sosId: sosId,
+        type: type,
+        description: description,
+        senderId: senderId,
+      );
+
+      return Response.ok(
+        jsonEncode({
+          'success': true,
+          'message': 'SOS Inviato e processato',
+          'sosId': sosId,
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e, stack) {
+      print('❌ Errore Controller SOS: $e');
+      print(stack);
+      return Response.internalServerError(
+        body: jsonEncode({'error': 'Errore interno server'}),
+      );
     }
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart'; // <--- NUOVO IMPORT
+import 'package:frontend/services/user_api_service.dart'; // <--- NUOVO IMPORT
 import 'package:frontend/ui/widgets/custom_bottom_nav_bar.dart';
 import 'package:frontend/ui/screens/home/home_page_content.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +11,6 @@ import 'package:frontend/ui/screens/reports/reports_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
 // Schermata Principale
-// Gestisce la navigazione tra le sezioni dell'app, adattandosi al fattore di forma.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -36,6 +37,54 @@ class _HomeScreenState extends State<HomeScreen> {
     const ProfileSettingsScreen(), // 4. IMPOSTAZIONI
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    // Appena l'utente arriva in Home, aggiorniamo la sua posizione sul server
+    _updateUserLocation();
+  }
+
+  // --- LOGICA GPS NUOVA ---
+  Future<void> _updateUserLocation() async {
+    try {
+      // 1. Controlla permessi
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          print("Permesso GPS negato");
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        print("Permesso GPS negato permanentemente");
+        return;
+      }
+
+      // 2. Prendi la posizione attuale (Precisione alta per le emergenze)
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      if (!mounted) return; // Controllo sicurezza se il widget è stato chiuso
+
+      // 3. Recupera il token
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final token = authProvider.authToken;
+
+      if (token != null) {
+        // 4. Invia al Backend
+        final api = UserApiService();
+        await api.updatePosition(token, position.latitude, position.longitude);
+        print("📍 GPS Aggiornato: ${position.latitude}, ${position.longitude}");
+      }
+    } catch (e) {
+      print("❌ Errore aggiornamento GPS: $e");
+    }
+  }
+  // ------------------------
+
   // Callback per aggiornare l'indice quando viene premuta un'icona
   void _onTabChange(int index) {
     setState(() {
@@ -45,10 +94,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Accesso allo stato del ruolo utente per personalizzare i colori
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
-    // Colori di sfondo e selezione dinamici
     final backgroundColor = isRescuer
         ? ColorPalette.primaryOrange
         : ColorPalette.backgroundDarkBlue;
@@ -58,7 +105,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Logica per determinare se è un layout desktop/wide
         final bool isDesktop = constraints.maxWidth >= 1100;
 
         return Scaffold(
@@ -111,20 +157,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
 
-              // Divisore verticale tra sidebar e contenuto
               if (isDesktop) const VerticalDivider(thickness: 1, width: 1),
 
-              // Contenuto centrale
               Expanded(
                 child: SafeArea(
                   child: Center(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        // Limita la larghezza massima del contenuto per schermi grandi,
-                        // tranne per la mappa che può occupare tutto lo spazio.
                         maxWidth: _currentIndex == 2 ? double.infinity : 1200,
                       ),
-                      // Mostra solo la pagina corrispondente all'indice selezionato
                       child: IndexedStack(
                         index: _currentIndex,
                         children: _pages,
