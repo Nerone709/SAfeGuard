@@ -15,7 +15,7 @@ class ReportsScreen extends StatefulWidget {
 class _ReportsScreenState extends State<ReportsScreen> {
   // andrebbe la repository dell'emergenza (?)
 
-  bool _isLoading = false;
+  final bool _isLoading = false;
   bool _needsHelp = false;
 
   final TextEditingController _descriptionController =

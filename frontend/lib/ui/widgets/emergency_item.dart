@@ -155,7 +155,7 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
               ),
             ),
           )
-              .toList(),
+              ,
           // Rimosso Spacer()
         ],
       ),
