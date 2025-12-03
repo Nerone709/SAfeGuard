@@ -12,6 +12,9 @@ import 'package:backend/controllers/verification_controller.dart';
 import 'package:backend/controllers/profile_controller.dart';
 import 'package:backend/controllers/auth_guard.dart';
 import 'package:backend/controllers/report_controller.dart';
+import 'package:backend/controllers/resend_controller.dart';
+import 'package:backend/controllers/risk_controller.dart';
+
 
 void main() async {
   // 1. Configurazione ambiente
@@ -38,9 +41,11 @@ void main() async {
   final loginController = LoginController();
   final registerController = RegisterController();
   final verifyController = VerificationController();
+  final resendController = ResendController();
   final profileController = ProfileController();
   final reportController = ReportController();
   final authGuard = AuthGuard();
+  final riskController = RiskController();
 
   // 4. Rounting pubblico
   // Router principale per endpoint accessibili a tutti
@@ -51,7 +56,12 @@ void main() async {
   app.post('/api/auth/apple', loginController.handleAppleLoginRequest);
   app.post('/api/auth/register', registerController.handleRegisterRequest);
   app.post('/api/verify', verifyController.handleVerificationRequest);
+  app.post('/api/auth/resend', resendController.handleResendRequest);
   app.get('/health', (Request request) => Response.ok('OK'));
+
+  // Endpoint per l'analisi del rischio tramite AI
+  app.post('/api/risk/analyze', riskController.handleRiskAnalysis);
+  app.get('/api/risk/hotspots', riskController.handleHotspotsRequest);
 
   // 5. Routing Protetto
   // Sotto-router dedicato alle operazioni sull'utente loggato
