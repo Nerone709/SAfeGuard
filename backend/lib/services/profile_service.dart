@@ -1,5 +1,3 @@
-// File: backend/lib/services/profile_service.dart
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -26,6 +24,7 @@ class ProfileService {
   }
 
   // 1. GET Profilo
+  // Recupera i dati grezzi e li trasforma nell'oggetto Utente/Soccorritore corretto
   Future<UtenteGenerico?> getProfile(int userId) async {
     try {
       Map<String, dynamic>? data = await _userRepository.findUserById(userId);
@@ -53,6 +52,7 @@ class ProfileService {
   // 2. UPDATE Permessi
   Future<bool> updatePermessi(int userId, Permesso permessi) async {
     try {
+      // Delega al UserRepository l'aggiornamento del campo 'permessi' con il JSON dell'oggetto
       await _userRepository.updateUserField(
         userId,
         'permessi',
@@ -68,6 +68,7 @@ class ProfileService {
   // 3. UPDATE Condizioni
   Future<bool> updateCondizioni(int userId, Condizione condizioni) async {
     try {
+      // Delega al UserRepository l'aggiornamento del campo 'condizioni' con il JSON dell'oggetto
       await _userRepository.updateUserField(
         userId,
         'condizioni',
@@ -83,6 +84,7 @@ class ProfileService {
   // 4. UPDATE Notifiche
   Future<bool> updateNotifiche(int userId, Notifica notifiche) async {
     try {
+      // Delega al UserRepository l'aggiornamento del campo 'notifiche' con il JSON dell'oggetto
       await _userRepository.updateUserField(
         userId,
         'notifiche',
@@ -113,6 +115,7 @@ class ProfileService {
       final String currentEmail = (currentUserData['email'] as String? ?? '')
           .toLowerCase();
 
+      // Aggiornamenti campi semplici
       if (nome != null) updates['nome'] = nome;
       if (cognome != null) updates['cognome'] = cognome;
       if (citta != null) updates['cittaDiNascita'] = citta;
@@ -120,6 +123,7 @@ class ProfileService {
         updates['dataDiNascita'] = dataNascita.toIso8601String();
       }
 
+      //Logica Email
       if (email != null && email.isNotEmpty) {
         final normalizedNewEmail = email.toLowerCase();
         if (normalizedNewEmail != currentEmail) {

@@ -1,7 +1,7 @@
 // File: backend/lib/repositories/user_repository.dart
 
 import 'dart:convert';
-import 'dart:math' as math; // <--- IMPORTANTE per i calcoli GPS
+import 'dart:math' as math;
 import 'package:firedart/firedart.dart';
 import 'package:data_models/utente.dart';
 import 'package:data_models/soccorritore.dart';
@@ -64,10 +64,12 @@ class UserRepository {
     final userData = newUser.toJson();
     userData['id'] = newId;
 
+    // Usa l'ID numerico come chiave stringa per il documento (DocId)
     final String docId = newId.toString();
 
     await _usersCollection.document(docId).set(userData);
 
+    // Ritorna l'oggetto UtenteGenerico con i dati aggiornati e l'ID
     if (newUser is Soccorritore || (userData['isSoccorritore'] == true)) {
       return Soccorritore.fromJson(userData);
     } else {
@@ -83,7 +85,11 @@ class UserRepository {
     if (userData['id'] == null || userData['id'] == 0) {
       userData['id'] = DateTime.now().millisecondsSinceEpoch;
     }
+
+    // Usa l'ID generato come DocId
     final String docId = userData['id'].toString();
+
+    // Salvataggio nella collezione specificata
     await Firestore.instance
         .collection(collection)
         .document(docId)
@@ -102,6 +108,7 @@ class UserRepository {
     }
   }
 
+  // Aggiorna genericamente più campi di un utente
   Future<void> updateUserGeneric(int id, Map<String, dynamic> updates) async {
     final docId = await _findDocIdByIntId(id);
     if (docId != null) {
@@ -111,6 +118,7 @@ class UserRepository {
     }
   }
 
+  // Aggiorna un singolo campo di un utente
   Future<void> updateUserField(int id, String fieldName, dynamic value) async {
     final docId = await _findDocIdByIntId(id);
     if (docId != null) {
@@ -118,7 +126,7 @@ class UserRepository {
     }
   }
 
-  // NUOVO: Aggiorna la posizione dell'utente
+  // Aggiorna la posizione dell'utente
   Future<void> updateUserLocation(int id, double lat, double lng) async {
     final docId = await _findDocIdByIntId(id);
     if (docId != null) {
@@ -130,6 +138,7 @@ class UserRepository {
     }
   }
 
+  // Elimina l'utente dal database tramite il suo ID interno
   Future<bool> deleteUser(int id) async {
     final docId = await _findDocIdByIntId(id);
     if (docId != null) {
@@ -139,6 +148,7 @@ class UserRepository {
     return false;
   }
 
+  // Aggiunge un elemento a un campo array di un utente
   Future<void> addToArrayField(int id, String fieldName, dynamic item) async {
     final docId = await _findDocIdByIntId(id);
     if (docId == null) return;
@@ -148,6 +158,7 @@ class UserRepository {
     await _usersCollection.document(docId).update({fieldName: list});
   }
 
+  // Rimuove un elemento specifico da un campo array
   Future<void> removeFromArrayField(
     int id,
     String fieldName,
@@ -157,6 +168,8 @@ class UserRepository {
     if (docId == null) return;
     final doc = await _usersCollection.document(docId).get();
     List<dynamic> list = (doc.map[fieldName] as List<dynamic>?)?.toList() ?? [];
+
+    // Serializza per confrontare oggetti complessi all'interno della lista
     final itemJson = jsonEncode(item);
     list.removeWhere((element) => jsonEncode(element) == itemJson);
     await _usersCollection.document(docId).update({fieldName: list});
@@ -171,6 +184,7 @@ class UserRepository {
     });
   }
 
+  // Verifica che l'OTP fornito corrisponda a quello nel database e lo elimina in caso di successo
   Future<bool> verifyOtp(String telefono, String otp) async {
     final docRef = _phoneVerifications.document(telefono);
     if (!await docRef.exists) return false;
@@ -182,14 +196,18 @@ class UserRepository {
     return false;
   }
 
+  // Trova un utente tramite email o telefono e lo marca come verificato/attivo
   Future<void> markUserAsVerified(String identifier) async {
+    // Normalizza l'input
     final idLower = identifier.toLowerCase();
+    // Cerca per email o telefono
     var pages = await _usersCollection.where('email', isEqualTo: idLower).get();
     if (pages.isEmpty) {
       pages = await _usersCollection
           .where('telefono', isEqualTo: identifier)
           .get();
     }
+    //Se l'utente è stato trovato, aggiorna i campi di stato
     if (pages.isNotEmpty) {
       await _usersCollection.document(pages.first.id).update({
         'isVerified': true,
@@ -207,6 +225,7 @@ class UserRepository {
           .where('isSoccorritore', isEqualTo: true)
           .get();
 
+      // Estrae il campo 'tokenFCM' e filtra i valori nulli o vuoti
       return rescuers
           .map((doc) => doc.map['tokenFCM'] as String?)
           .whereType<String>()

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart'; // <--- NUOVO IMPORT
-import 'package:frontend/services/user_api_service.dart'; // <--- NUOVO IMPORT
+import 'package:geolocator/geolocator.dart';
+import 'package:frontend/services/user_api_service.dart';
 import 'package:frontend/ui/widgets/custom_bottom_nav_bar.dart';
 import 'package:frontend/ui/screens/home/home_page_content.dart';
 import 'package:provider/provider.dart';
@@ -44,13 +44,15 @@ class _HomeScreenState extends State<HomeScreen> {
     _updateUserLocation();
   }
 
-  // --- LOGICA GPS NUOVA ---
+  // Logica GPS
   Future<void> _updateUserLocation() async {
     try {
       // 1. Controlla permessi
       LocationPermission permission = await Geolocator.checkPermission();
+
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
+
         if (permission == LocationPermission.denied) {
           print("Permesso GPS negato");
           return;
@@ -94,17 +96,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Accesso allo stato del ruolo utente per personalizzare i colori
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
+    // Colori di sfondo e selezione dinamici
     final backgroundColor = isRescuer
         ? ColorPalette.primaryOrange
         : ColorPalette.backgroundDarkBlue;
+
     final selectedColor = isRescuer
         ? ColorPalette.backgroundDarkBlue
         : ColorPalette.primaryOrange;
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        // Logica per determinare se è un layout desktop/wide
         final bool isDesktop = constraints.maxWidth >= 1100;
 
         return Scaffold(
@@ -157,15 +163,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
 
+              // Divisore verticale tra sidebar e contenuto
               if (isDesktop) const VerticalDivider(thickness: 1, width: 1),
 
+              // Contenuto centrale
               Expanded(
                 child: SafeArea(
                   child: Center(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
+                        // Limita la larghezza massima del contenuto per schermi garndi
                         maxWidth: _currentIndex == 2 ? double.infinity : 1200,
                       ),
+
+                      // Mostra solo la pagina corrispondente all'indice selezionato
                       child: IndexedStack(
                         index: _currentIndex,
                         children: _pages,

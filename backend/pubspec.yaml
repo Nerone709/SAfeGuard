@@ -19,6 +19,7 @@ dependencies:
   googleapis_auth: ^1.4.1
   firedart: ^0.9.8   # Client Firestore per Dart puro (non-Flutter)
   crypto: ^3.0.7
+  path: ^1.8.3
 
   # dipendenza comune
   data_models:

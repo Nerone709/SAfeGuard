@@ -1,15 +1,25 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:googleapis_auth/auth_io.dart'; // Questo ora funzionerà grazie al pacchetto installato
+import 'package:googleapis_auth/auth_io.dart';
+import 'package:path/path.dart' as path_lib;
 
 class NotificationService {
-  // Inserire il service-accounte dal DB
-  final String _serviceAccountPath = 'assets/service-account.json';
 
-  final String _projectId = 'safeguard-c08';
+  final String _serviceAccountPath;
+  final String _projectId ;
 
   AccessCredentials? _credentials;
+
+  // Costruttore per inizializzare il percorso
+  NotificationService() :
+  // Risolve l'ID Progetto
+        _projectId = "safeguard-c08",
+  // Risolve il percorso, assumendo che il file sia in backend
+        _serviceAccountPath = path_lib.join(
+            Directory.current.path,
+            "safeguard-c08-e1861c983cab.json"
+        );
 
   /// Ottiene il Token di accesso da Google
   Future<String?> _getAccessToken() async {

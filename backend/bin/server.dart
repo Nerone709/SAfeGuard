@@ -15,10 +15,12 @@ import 'package:backend/controllers/emergenze_controller.dart';
 
 void main() async {
   // 1. Configurazione ambiente
+  // Carica le variabili dal file .env e determina la porta del server
   var env = DotEnv(includePlatformEnvironment: true)..load();
   final portStr = Platform.environment['PORT'] ?? env['PORT'] ?? '8080';
   final int port = int.parse(portStr);
 
+  // Recupera l'ID del database e ferma l'app in assenza
   final projectId =
       Platform.environment['FIREBASE_PROJECT_ID'] ?? env['FIREBASE_PROJECT_ID'];
 
@@ -32,6 +34,7 @@ void main() async {
   print('🔥 Firestore inizializzato: $projectId');
 
   // 3. Controllers
+  // Istanzia le classi che contengono la logica di business
   final loginController = LoginController();
   final registerController = RegisterController();
   final verifyController = VerificationController();
@@ -40,6 +43,7 @@ void main() async {
   final emergenzeController = EmergenzeController();
 
   // 4. Routing pubblico
+  // Router principale per endpoint accessibili a tutti
   final app = Router();
 
   app.post('/api/auth/login', loginController.handleLoginRequest);
@@ -50,6 +54,7 @@ void main() async {
   app.get('/health', (Request request) => Response.ok('OK'));
 
   // 5. Routing Protetto (Profilo Utente)
+  // Sotto-router dedicato alle operazioni sull'utente loggato
   final profileApi = Router();
 
   // Lettura dati
@@ -75,9 +80,9 @@ void main() async {
   profileApi.delete('/allergie', profileController.removeAllergia);
   profileApi.delete('/medicinali', profileController.removeMedicinale);
   profileApi.delete('/contatti', profileController.removeContatto);
-  profileApi.delete('/', profileController.deleteAccount);
+  profileApi.delete('/', profileController.deleteAccount);// DELETE sull'utente stesso
 
-  // Router per le Segnalazioni (Placeholder per ora)
+  // Router per le Segnalazioni
   final reportApi = Router();
 
   // 6. Mounting & Middleware
@@ -107,6 +112,7 @@ void main() async {
   );
 
   // 7. Pipeline Server e Configurazione CORS
+  // Configuro gli header per permettere l'accesso da qualsiasi origine
   final corsMiddleware = corsHeaders(
     headers: {
       'Access-Control-Allow-Origin': '*',
@@ -115,12 +121,14 @@ void main() async {
     },
   );
 
+  // Aggiungo il middleware CORS prima del logRequests e dell'handler
   final handler = Pipeline()
       .addMiddleware(logRequests())
       .addMiddleware(corsMiddleware)
       .addHandler(app.call);
 
   // 8. Avvio Server
+  // Mette in ascolto il server sull'indirizzo IPv4 e porta configurata
   final server = await io.serve(handler, InternetAddress.anyIPv4, port);
 
   print('🚀 Server in ascolto su http://${server.address.host}:${server.port}');

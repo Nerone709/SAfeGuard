@@ -10,6 +10,7 @@ class EmergenzeService {
   // Raggio di pericolo per i cittadini (es. 5 km)
   static const double dangerRadiusKm = 5.0;
 
+  //Gestisce il trigger di notifica dopo la ricezione dell'SOS.
   Future<void> triggerSOSNotification({
     required double lat,
     required double lng,
