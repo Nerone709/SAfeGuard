@@ -11,7 +11,17 @@ class RiskController {
   final RiskService _riskService = RiskService();
 
   // URL del microservizio AI Python
-  final String _aiServiceUrl = 'http://127.0.0.1:8000/api/v1/analyze';
+  final String _aiServiceUrl;
+
+  RiskController(this._aiServiceUrl)
+  {
+    // Log utile per capire quale URL sta usando il server all'avvio
+    if (_aiServiceUrl.contains('127.0.0.1')) {
+      print('RiskController: Variabile AI_SERVICE_URL non impostata o locale. Utilizzo: $_aiServiceUrl');
+    } else {
+      print('RiskController: Utilizzo URL di produzione: $_aiServiceUrl');
+    }
+  }
 
   final Map<String, String> _headers = {'content-type': 'application/json'};
 

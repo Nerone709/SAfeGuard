@@ -42,7 +42,9 @@ void main() async {
   final resendController = ResendController();
   final profileController = ProfileController();
   final authGuard = AuthGuard();
-  final riskController = RiskController();
+
+  final aiServiceUrl = env['AI_SERVICE_URL'] ?? 'http://127.0.0.1:8000/api/v1/analyze';
+  final riskController = RiskController(aiServiceUrl);
 
   // 4. Rounting pubblico
   // Router principale per endpoint accessibili a tutti
