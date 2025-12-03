@@ -55,7 +55,7 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
       _overlayEntry = null;
     } else {
       final RenderBox renderBox =
-          _buttonKey.currentContext!.findRenderObject() as RenderBox;
+      _buttonKey.currentContext!.findRenderObject() as RenderBox;
       final Offset offset = renderBox.localToGlobal(Offset.zero);
       final size = renderBox.size;
 
@@ -73,10 +73,10 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
 
   // Costruzione dell'OverlayEntry
   OverlayEntry _createOverlayEntry(
-    Offset offset,
-    Size size,
-    double menuHeight,
-  ) {
+      Offset offset,
+      Size size,
+      double menuHeight,
+      ) {
     return OverlayEntry(
       builder: (context) {
         return Positioned(
@@ -132,30 +132,30 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
           ...widget.items
               .map(
                 (item) => InkWell(
-                  onTap: () {
-                    widget.onSelected(item);
-                    _toggleMenu(); // Chiudi il menu dopo la selezione
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.label,
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+              onTap: () {
+                widget.onSelected(item);
+                _toggleMenu(); // Chiudi il menu dopo la selezione
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.label,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
                         ),
-                        Icon(item.icon, size: 30, color: Colors.grey.shade700),
-                      ],
+                      ),
                     ),
-                  ),
+                    Icon(item.icon, size: 30, color: Colors.grey.shade700),
+                  ],
                 ),
-              )
-              .toList(),
+              ),
+            ),
+          )
+              ,
           // Rimosso Spacer()
         ],
       ),

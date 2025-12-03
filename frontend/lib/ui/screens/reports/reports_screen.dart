@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/providers/auth_provider.dart';
-import 'package:frontend/providers/report_provider.dart'; // <--- Import Provider
 import 'package:frontend/ui/style/color_palette.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/ui/widgets/emergency_item.dart';
+import 'package:frontend/providers/report_provider.dart';
 
 // Schermata Report Specifico
 class ReportsScreen extends StatefulWidget {
@@ -14,7 +14,6 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
-
   bool _needsHelp = false;
   final TextEditingController _descriptionController = TextEditingController();
   EmergencyItem? _selectedEmergency;
@@ -39,14 +38,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
       return;
     }
 
-    // 2. Chiamata al Provider
+    // Chiamata al Provider
     // Passiamo la stringa del tipo (es. "Incendio") e la descrizione
+    // NOTA: La logica SMS/GPS deve essere gestita dentro reportProvider.sendReport
     bool success = await reportProvider.sendReport(
         _selectedEmergency!.label,
         description
     );
 
-    // 3. Gestione esito
+    // Gestione esito
     if (success && mounted) {
       _showSnackBar(content: 'Emergenza segnalata con successo', color: Colors.green);
 
@@ -128,7 +128,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   child: _buildSpecificEmergency(context, isWideScreen),
                 ),
 
-                isRescuer ? SizedBox(height: 40.0) : SizedBox(height: 20.0),
+                isRescuer ? const SizedBox(height: 40.0) : const SizedBox(height: 20.0),
 
                 Align(
                   alignment: Alignment.centerLeft,
@@ -167,7 +167,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                 const SizedBox(height: 20.0),
 
-                // checkbox per la richiesta di aiuto (visibile solo all'utente)
+                // checkbox per la richiesta di aiuto (visibile solo all'utente, non al soccorritore)
                 if (!isRescuer)
                   Container(
                     height: 70,
@@ -212,7 +212,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         ),
                       ],
                     ),
-                  ), // fine checkbox
+                  ),
 
                 const SizedBox(height: 20.0),
 
@@ -227,7 +227,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
-                    // Disabilita se sta caricando
+                    // Disabilita se sta caricando (usando lo stato del provider)
                     onPressed: reportProvider.isLoading
                         ? null
                         : () => _sendEmergency(reportProvider),
@@ -235,13 +235,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     child: reportProvider.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                      "INVIA EMERGENZA",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: buttonFontSize,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                            "INVIA EMERGENZA",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: buttonFontSize,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ],
@@ -269,8 +269,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         ],
         onSelected: (item) {
           setState(() {
-            _selectedEmergency =
-                item; // mi salvo l'emergency item (item.label se vuoi una stringa)
+            _selectedEmergency = item;
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -285,12 +284,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  // metodo per vedere se l'emergenza è stata mandata o no
   void _showSnackBar({required String content, required Color color}) {
-    ScaffoldMessenger.of(
-      context,
-    ).hideCurrentSnackBar(); // nasconde la notifica attuale
-
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(content),
