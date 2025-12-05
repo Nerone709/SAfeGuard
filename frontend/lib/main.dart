@@ -8,14 +8,7 @@ import 'package:frontend/providers/medical_provider.dart';
 import 'package:frontend/providers/emergency_provider.dart';
 import 'package:frontend/providers/permission_provider.dart';
 import 'package:frontend/ui/screens/auth/loading_screen.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:frontend/ui/widgets/fcm_status_listener.dart';
-
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Rinizializza Firebase, necessario se l'app è stata terminata e viene riattivata in background
-
-}
+import 'package:frontend/providers/report_provider.dart';
 
 // Funzione Main: Punto di partenza dell'Applicazione
 void main() async {
@@ -23,9 +16,6 @@ void main() async {
 
   // Inizializza Firebase
   await Firebase.initializeApp();
-
-  // 3. COLLEGA IL GESTORE BACKGROUND a Firebase Messaging
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(
     // Utilizza MultiProvider per iniettare più Provider nell'albero dei widget
@@ -37,6 +27,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => EmergencyProvider()),
         ChangeNotifierProvider(create: (_) => PermissionProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ReportProvider()),
       ],
       // Il widget radice dell'applicazione
       child: const SAfeGuard(),
@@ -55,9 +46,7 @@ class SAfeGuard extends StatelessWidget {
       // Rimuove il banner di debug
       debugShowCheckedModeBanner: false,
       // La schermata iniziale che gestirà il reindirizzamento (login/home)
-      home: FcmStatusListener(
-       child: const LoadingScreen(),
-     ),
+      home: const LoadingScreen(),
     );
   }
 }
