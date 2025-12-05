@@ -89,7 +89,8 @@ class EmergencyRepository {
   /// Annulla SOS (DELETE /api/emergency)
   Future<void> stopSos() async {
     final token = await _getToken();
-    final url = Uri.parse('$_baseUrl/api/emergency');
+    // CORREZIONE: Uniformato a 'emergenza' per combaciare con il mount del backend
+    final url = Uri.parse('$_baseUrl/api/emergenza');
 
     if (token == null) return;
 

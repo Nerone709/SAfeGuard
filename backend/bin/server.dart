@@ -98,8 +98,8 @@ void main() async {
 
   //ERRORE QUI
   app.mount(
-    '/api/emergency',
-    Pipeline().addMiddleware(authGuard.middleware).addHandler(emergencyApi.call),
+    '/api/emergenza',
+    Pipeline().addMiddleware(authGuard.middleware).addHandler(emergencyController.router),
   );
 
   // 7. Pipeline Server e Configurazione CORS
