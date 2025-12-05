@@ -27,4 +27,8 @@ class ReportService {
   Future<List<Map<String, dynamic>>> getReports() async {
     return await _repository.getAllReports();
   }
+
+  Future<void> closeReport(String id) async {
+    await _repository.deleteReport(id);
+  }
 }

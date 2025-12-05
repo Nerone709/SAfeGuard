@@ -17,9 +17,10 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   Provider.of<ReportProvider>(context, listen: false).loadReports();
-    // });
+    //Carica i dati all'avvio
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ReportProvider>(context, listen: false).loadReports();
+    });
   }
 
   @override
@@ -35,6 +36,13 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        actions: [
+          // Tasto refresh manuale
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: () => reportProvider.loadReports(),
+          )
+        ],
       ),
 
       body: Builder(
@@ -45,8 +53,7 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
           }
 
           // 2. Lista vuota
-          // CORREZIONE QUI SOTTO:
-          if (true){//reportProvider.emergencies.isEmpty) { // controllo se ci sono o non ci sono le emergenze
+          if (reportProvider.emergencies.isEmpty) {
             return const Center(
               child: Text(
                 "Nessuna segnalazione presente",
@@ -59,20 +66,36 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: GridView.builder(
-              // itemCount: reportProvider.emergencies.length,
+              itemCount: reportProvider.emergencies.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.75,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.8, // Regola l'altezza delle card
               ),
               itemBuilder: (context, index) {
-                // final item = reportProvider.emergencies[index];
-
+                final item = reportProvider.emergencies[index];
 
                 return EmergencyCard(
+                  data: item, // Passa l'intero oggetto mappa
+                  onClose: () async {
+                    // Logica di chiusura chiamata dal bottone
+                    bool confirm = await showDialog(
+                      context: context,
+                      builder: (c) => AlertDialog(
+                        title: const Text("Conferma"),
+                        content: const Text("Vuoi chiudere questa segnalazione?"),
+                        actions: [
+                          TextButton(onPressed: ()=>Navigator.pop(c, false), child: const Text("No")),
+                          TextButton(onPressed: ()=>Navigator.pop(c, true), child: const Text("Si")),
+                        ],
+                      ),
+                    ) ?? false;
 
-                  title: "text" //(item is Map) ? item['type'] : item.type
+                    if (confirm) {
+                      await reportProvider.resolveReport(item['id']);
+                    }
+                  },
                 );
               },
             ),

@@ -23,4 +23,7 @@ class ReportRepository {
       return data;
     }).toList();
   }
+  Future<void> deleteReport(String id) async {
+    await _collection.document(id).delete();
+  }
 }

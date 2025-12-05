@@ -6,6 +6,9 @@ class ReportProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+//Lista locale delle emergenze
+  List<dynamic> _emergencies = [];
+  List<dynamic> get emergencies => _emergencies;
 
   // Invia la segnalazione e gestisce lo stato di caricamento
   Future<bool> sendReport(String type, String description, double? lat, double? lng) async {
@@ -22,6 +25,35 @@ class ReportProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false; // Errore
+    }
+  }
+  //Carica le emergenze
+  Future<void> loadReports() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _emergencies = await _repository.getReports();
+    } catch (e) {
+      print("Errore fetch report: $e");
+      _emergencies = [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  //Risolvi emergenza
+  Future<bool> resolveReport(String id) async {
+    try {
+      await _repository.closeReport(id);
+      // Rimuovi localmente per aggiornare la UI istantaneamente
+      _emergencies.removeWhere((item) => item['id'] == id);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      print("Errore chiusura report: $e");
+      return false;
     }
   }
 }

@@ -96,6 +96,8 @@ void main() async {
 
   // Rotta per leggere la lista
   reportApi.get('/', reportController.getAllReports);
+
+  reportApi.delete('/<id>', reportController.deleteReport);
   //ERRORE QUI
   final emergencyApi = Router();
   emergencyApi.post('/emergenza', emergencyController.sendSos);

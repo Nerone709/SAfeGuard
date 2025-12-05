@@ -63,4 +63,41 @@ class ReportRepository {
       throw Exception('Errore connessione: $e');
     }
   }
+  Future<List<dynamic>> getReports() async {
+    final token = await _getToken();
+    if (token == null) throw Exception("Utente non autenticato");
+
+    final url = Uri.parse('$_baseUrl/api/reports/');
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Errore caricamento report: ${response.body}');
+    }
+  }
+
+  //Chiude una emergenza
+  Future<void> closeReport(String id) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/reports/$id');
+
+    final response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Errore chiusura report: ${response.body}');
+    }
+  }
 }

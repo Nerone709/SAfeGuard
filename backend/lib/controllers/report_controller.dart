@@ -78,4 +78,19 @@ class ReportController {
       );
     }
   }
+  Future<Response> deleteReport(Request request, String id) async {
+    try {
+      await _reportService.closeReport(id);
+
+      return Response.ok(
+        jsonEncode({'success': true, 'message': 'Segnalazione chiusa'}),
+        headers: _headers,
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: jsonEncode({'error': 'Impossibile chiudere la segnalazione: $e'}),
+        headers: _headers,
+      );
+    }
+    }
 }
