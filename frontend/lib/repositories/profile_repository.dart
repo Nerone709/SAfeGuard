@@ -429,4 +429,23 @@ class ProfileRepository {
       throw Exception('Impossibile ricaricare il profilo');
     }
   }
+
+
+  Future<void> sendFcmToken(String fcmToken) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/fcm-token');
+
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'token': fcmToken}),
+    );
+
+    if (response.statusCode != 200) {
+      print("Errore aggiornamento FCM: ${response.body}");
+    }
+  }
 }

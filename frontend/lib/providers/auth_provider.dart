@@ -522,4 +522,34 @@ class AuthProvider extends ChangeNotifier {
     _timer?.cancel();
     super.dispose();
   }
+
+
+  // Nel metodo _saveSession o dopo un login avvenuto con successo [cite: 632]
+  Future<void> _initializeNotifications() async {
+    try {
+      // Richiedi permessi (soprattutto per iOS)
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        // Ottieni il token
+        String? token = await messaging.getToken();
+        if (token != null) {
+          // Invia al backend tramite repository
+          await _profileRepo.sendFcmToken(token);
+
+          // Ascolta aggiornamenti del token
+          FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+            _profileRepo.sendFcmToken(newToken);
+          });
+        }
+      }
+    } catch (e) {
+      print("Errore inizializzazione notifiche: $e");
+    }
+  }
 }

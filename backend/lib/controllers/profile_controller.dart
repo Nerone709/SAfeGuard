@@ -293,4 +293,23 @@ class ProfileController {
       );
     }
   }
+
+
+
+  // PUT /api/profile/fcm-token
+  Future<Response> updateFcmToken(Request request) async {
+    final userId = _getUserId(request);
+    if (userId == null) {
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    }
+
+    final body = jsonDecode(await request.readAsString());
+    final token = body['token'] as String?;
+
+    if (token != null) {
+      await _profileService.updateFcmToken(userId, token);
+      return _jsonResponse(200, body: {'message': 'Token aggiornato'});
+    }
+    return _jsonResponse(400, body: {'error': 'Token mancante'});
+  }
 }

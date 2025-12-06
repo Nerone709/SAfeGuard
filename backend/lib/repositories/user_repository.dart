@@ -191,6 +191,48 @@ class UserRepository {
       });
     }
   }
+
+
+
+  Future<List<String>> getCitizenTokens() async {
+    try {
+      // 1. Prendi tutti gli utenti che NON sono soccorritori
+      // Nota: Firedart potrebbe avere limitazioni sulle query complesse,
+      // quindi filtriamo ulteriormente in locale per sicurezza.
+      final users = await _usersCollection.where('isSoccorritore', isEqualTo: false).get();
+
+      List<String> validTokens = [];
+
+      for (var doc in users) {
+        final data = doc.map;
+
+        // 2. Controllo esistenza Token FCM
+        final String? token = data['fcmToken'];
+        if (token == null || token.isEmpty) {
+          continue; // Salta utenti senza token (es. non loggati da app o vecchi)
+        }
+
+        // 3. Controllo Preferenze Notifiche
+        // Se il campo 'notifiche' non esiste, assumiamo true (default del modello),
+        // altrimenti controlliamo il campo 'push'.
+        bool isPushEnabled = true;
+        if (data['notifiche'] != null && data['notifiche'] is Map) {
+          final prefs = data['notifiche'] as Map<String, dynamic>;
+          isPushEnabled = prefs['push'] ?? true;
+        }
+
+        // Se tutte le condizioni sono vere, aggiungi alla lista
+        if (isPushEnabled) {
+          validTokens.add(token);
+        }
+      }
+
+      return validTokens;
+    } catch (e) {
+      print("Errore recupero token cittadini: $e");
+      return [];
+    }
+  }
 }
 
 

@@ -87,6 +87,7 @@ void main() async {
     '/',
     profileController.deleteAccount,
   ); // DELETE sull'utente stesso
+  profileApi.put('/fcm-token', profileController.updateFcmToken);
 
   //Router per le Segnalazioni---
   final reportApi = Router();
