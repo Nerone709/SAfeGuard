@@ -74,17 +74,21 @@ class NotificationService {
           'title': title,
           'body': bodyText,
         },
-        // Data payload per gestire il click nell'app Flutter
         'data': {
           'click_action': 'FLUTTER_NOTIFICATION_CLICK',
           'type': 'emergency_alert',
           'timestamp': DateTime.now().toIso8601String(),
         },
-        // Configurazioni specifiche Android (opzionale ma consigliato per priorità alta)
         'android': {
           'priority': 'high',
+          // CAMBIA IL NOME DEL CANALE IN V3 PER FORZARE UN RESET SU ANDROID
           'notification': {
-            'channel_id': 'emergency_channel', // Deve coincidere con quello creato in Flutter
+            'channel_id': 'emergency_channel_v3',
+            // QUESTO È IL TRUCCO: Un tag diverso per ogni messaggio impedisce il raggruppamento
+            'tag': DateTime.now().millisecondsSinceEpoch.toString(),
+            'visibility': 'public',
+            'default_sound': true,
+            'notification_priority': 'PRIORITY_MAX', // Per vecchie versioni Android
           }
         }
       }

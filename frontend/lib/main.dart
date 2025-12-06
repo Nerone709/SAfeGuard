@@ -1,6 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // <--- AGGIUNTO
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:frontend/providers/notification_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -16,13 +16,15 @@ import 'package:frontend/providers/report_provider.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
 
-// 2. Definisci il canale Android (IMPORTANTE: ID deve coincidere col backend)
+// 2. Definisci il canale Android NUOVO (V3)
+// Cambiando l'ID in 'emergency_channel_v3', forziamo Android a ricreare le impostazioni audio da zero.
 const AndroidNotificationChannel channel = AndroidNotificationChannel(
-  'emergency_channel', // id
-  'Allerte di Emergenza', // title
-  description: 'Mostra le notifiche per le emergenze in arrivo', // description
-  importance: Importance.max, // Max fa apparire il banner e suonare
+  'emergency_channel_v3', // <--- ID NUOVO: V3
+  'Allerte di Emergenza',
+  description: 'Mostra le notifiche per le emergenze in arrivo',
+  importance: Importance.max, // MAX è fondamentale per far apparire il banner e suonare
   playSound: true,
+  enableVibration: true,
 );
 
 // Handler per messaggi in background (deve essere top-level)
@@ -40,9 +42,8 @@ void main() async {
 
   // 3. Configurazione Iniziale Notifiche Locali
   const AndroidInitializationSettings initializationSettingsAndroid =
-  AndroidInitializationSettings('@mipmap/ic_launcher'); // Assicurati che l'icona esista
+  AndroidInitializationSettings('@mipmap/ic_launcher');
 
-  // Configurazione iOS (richiesta permessi base)
   const DarwinInitializationSettings initializationSettingsDarwin =
   DarwinInitializationSettings();
 
@@ -55,17 +56,23 @@ void main() async {
     initializationSettings,
     onDidReceiveNotificationResponse: (NotificationResponse response) {
       print("Notifica locale cliccata con payload: ${response.payload}");
-      // Qui puoi gestire il click sulla notifica locale
     },
   );
 
-  // 4. Crea il canale su Android
-  await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(channel);
+  // 4. GESTIONE CANALI (Pulizia e Creazione)
+  final androidPlugin = flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
 
-  // 5. Opzioni per iOS (per mostrare notifiche in foreground nativamente su iOS)
+  if (androidPlugin != null) {
+    // A. Cancella i vecchi canali che potrebbero essere buggati o silenziosi
+    await androidPlugin.deleteNotificationChannel('emergency_channel');
+    await androidPlugin.deleteNotificationChannel('emergency_channel_v2');
+
+    // B. Crea il NUOVO canale V3
+    await androidPlugin.createNotificationChannel(channel);
+  }
+
+  // 5. Opzioni per iOS
   await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
     alert: true,
     badge: true,
@@ -75,7 +82,6 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(
-    // Utilizza MultiProvider per iniettare più Provider nell'albero dei widget
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
@@ -102,17 +108,15 @@ class _SAfeGuardState extends State<SAfeGuard> {
   void initState() {
     super.initState();
     _setupInteractedMessage();
-    _setupForegroundNotifications(); // <--- Avvia ascolto foreground
+    _setupForegroundNotifications();
   }
 
-  // Gestione apertura app da notifica (Background / Terminated)
   Future<void> _setupInteractedMessage() async {
     RemoteMessage? initialMessage =
     await FirebaseMessaging.instance.getInitialMessage();
     if (initialMessage != null) {
       _handleMessage(initialMessage);
     }
-
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
   }
 
@@ -124,25 +128,45 @@ class _SAfeGuardState extends State<SAfeGuard> {
       RemoteNotification? notification = message.notification;
       AndroidNotification? android = message.notification?.android;
 
-      // Se c'è una notifica e siamo su Android, la costruiamo manualmente
       if (notification != null && android != null) {
+        // ID univoco basato sul tempo (remainder assicura che stia in un int32)
+        final int uniqueId = DateTime.now().millisecondsSinceEpoch.remainder(100000);
+
         flutterLocalNotificationsPlugin.show(
-          notification.hashCode,
+          uniqueId,
           notification.title,
           notification.body,
           NotificationDetails(
             android: AndroidNotificationDetails(
-              channel.id,
+              channel.id, // Usa 'emergency_channel_v3'
               channel.name,
               channelDescription: channel.description,
               icon: '@mipmap/ic_launcher',
-              importance: Importance.max, // Alta priorità
-              priority: Priority.high,
-              color: Colors.red, // Colore accento
+
+              // --- IMPOSTAZIONI CRITICHE PER IL SUONO ---
+              importance: Importance.max,
+              priority: Priority.max, // Priority MAX per saltare le code
               playSound: true,
+              enableVibration: true,
+
+              // Questo forza la notifica a "rompere" il silenzio di un aggiornamento
+              ticker: 'Nuova Emergenza!',
+              category: AndroidNotificationCategory.alarm, // Trattalo come una sveglia/allarme
+              visibility: NotificationVisibility.public,
+
+              // Impedisce di raggruppare visivamente (e silenziare)
+              // Usando un ID univoco anche qui, Android le tratta come entità separate
+              groupKey: uniqueId.toString(),
+
+              // Forza il suono anche se sembra un aggiornamento
+              onlyAlertOnce: false,
+
+              styleInformation: BigTextStyleInformation(
+                notification.body ?? '',
+              ),
             ),
           ),
-          payload: message.data['type'], // Passa dati utili
+          payload: message.data['type'],
         );
       }
     });
@@ -151,7 +175,6 @@ class _SAfeGuardState extends State<SAfeGuard> {
   void _handleMessage(RemoteMessage message) {
     if (message.data['type'] == 'emergency_alert') {
       print("Naviga alla pagina emergenze");
-      // Qui puoi implementare la navigazione tramite GlobalKey o Provider
     }
   }
 
