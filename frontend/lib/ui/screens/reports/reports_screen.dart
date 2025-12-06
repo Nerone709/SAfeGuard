@@ -93,14 +93,17 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                               ),
-                              icon: const Icon(Icons.check, color: Colors.white),
+                              icon: const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                              ),
                               label: const Text(
-                                  "CONFERMA POSIZIONE",
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16
-                                  )
+                                "CONFERMA POSIZIONE",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                               ),
                               onPressed: () {
                                 //Salviamo la posizione nello stato principale
@@ -113,8 +116,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                 //Feedback
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                      content: Text("Posizione acquisita!"),
-                                      backgroundColor: Colors.green
+                                    content: Text("Posizione acquisita!"),
+                                    backgroundColor: Colors.green,
                                   ),
                                 );
                               },
@@ -168,7 +171,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
 
     if (success && mounted) {
-      _showSnackBar(content: 'Emergenza segnalata con successo', color: Colors.green);
+      _showSnackBar(
+        content: 'Emergenza segnalata con successo',
+        color: Colors.green,
+      );
       setState(() {
         _selectedEmergency = null;
         _descriptionController.clear();
@@ -177,8 +183,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
       });
     } else if (mounted) {
       _showSnackBar(
-          content: 'Errore invio segnalazione. Riprova.',
-          color: ColorPalette.emergencyButtonRed
+        content: 'Errore invio segnalazione. Riprova.',
+        color: ColorPalette.emergencyButtonRed,
       );
     }
   }
@@ -189,13 +195,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final bool isWideScreen = size.width > 700;
 
     final isRescuer = context.watch<AuthProvider>().isRescuer;
-    final reportProvider = context.watch<ReportProvider>(); // Per lo stato isLoading
+    final reportProvider = context
+        .watch<ReportProvider>(); // Per lo stato isLoading
 
     Color bgColor = isRescuer
         ? ColorPalette.primaryOrange
         : ColorPalette.backgroundMidBlue;
     Color cardColor = isRescuer
-        ? ColorPalette.cardDarkOrange
+        ? ColorPalette.primaryOrange
         : ColorPalette.backgroundDarkBlue;
     Color accentColor = isRescuer
         ? ColorPalette.backgroundMidBlue
@@ -236,27 +243,38 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () => _openMapDialog(context),
                     icon: Icon(
-                        _selectedLocation != null ? Icons.check_circle : Icons.map,
-                        color: _selectedLocation != null ? Colors.green : Colors.blueAccent
+                      _selectedLocation != null
+                          ? Icons.check_circle
+                          : Icons.map,
+                      color: _selectedLocation != null
+                          ? Colors.green
+                          : Colors.blueAccent,
                     ),
                     label: Text(
-                      _selectedLocation != null ? "Posizione Selezionata" : "Seleziona posizione sulla mappa",
+                      _selectedLocation != null
+                          ? "Posizione Selezionata"
+                          : "Seleziona posizione sulla mappa",
                       style: TextStyle(
-                          color: _selectedLocation != null ? Colors.green : Colors.black87,
-                          fontWeight: FontWeight.bold
+                        color: _selectedLocation != null
+                            ? Colors.green
+                            : Colors.black87,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 15,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
                   ),
                 ),
-                // -----------------------------
 
+                // -----------------------------
                 const SizedBox(height: 20.0),
 
                 SizedBox(
@@ -366,13 +384,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     child: reportProvider.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                      "INVIA EMERGENZA",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: buttonFontSize,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                            "INVIA EMERGENZA",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: buttonFontSize,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 30.0),
