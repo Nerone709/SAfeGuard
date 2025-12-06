@@ -8,14 +8,30 @@ class ReportController {
 
   final Map<String, String> _headers = {'content-type': 'application/json'};
 
-  // POST /api/reports/create
+// POST /api/reports/create
   Future<Response> createReport(Request request) async {
     try {
       final userContext = request.context['user'] as Map<String, dynamic>?;
       if (userContext == null) {
         return Response.forbidden(jsonEncode({'error': 'Utente non autenticato'}));
       }
-      final int rescuerId = userContext['id'];
+
+      final int senderId = userContext['id'];
+
+      // 1. Estrazione sicura del tipo utente
+      final String userType = userContext['type']?.toString() ?? 'Utente';
+
+      // DEBUG: Stampa cosa vede il server
+      print("🔍 DEBUG REPORT: ID: $senderId, Tipo Token: '$userType'");
+
+      // Controllo case-insensitive per sicurezza
+      final bool isSenderRescuer = userType.toLowerCase() == 'soccorritore';
+
+      if (isSenderRescuer) {
+        print("✅ Riconosciuto come SOCCORRITORE. Notificherò i cittadini.");
+      } else {
+        print("👤 Riconosciuto come CITTADINO. Notificherò i soccorritori.");
+      }
 
       final body = await request.readAsString();
       if (body.isEmpty) return Response.badRequest(body: 'Nessun dato inviato');
@@ -33,8 +49,10 @@ class ReportController {
         );
       }
 
+      // 2. Passaggio al Service
       await _reportService.createReport(
-        rescuerId: rescuerId,
+        senderId: senderId,
+        isSenderRescuer: isSenderRescuer, // <--- BOOLEANO CRUCIALE
         type: type,
         description: description,
         lat: lat,
@@ -45,7 +63,6 @@ class ReportController {
         jsonEncode({'success': true, 'message': 'Segnalazione creata con successo'}),
         headers: _headers,
       );
-
     } catch (e) {
       print("Errore controller createReport: $e");
       return Response.internalServerError(

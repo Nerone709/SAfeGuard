@@ -233,6 +233,32 @@ class UserRepository {
       return [];
     }
   }
+
+
+  // Recupera i token FCM di tutti i soccorritori
+  Future<List<String>> getRescuerTokens() async {
+    try {
+      // 1. Prendi tutti gli utenti che SONO soccorritori
+      final users = await _usersCollection.where('isSoccorritore', isEqualTo: true).get();
+
+      List<String> validTokens = [];
+      for (var doc in users) {
+        final data = doc.map;
+        // 2. Controllo esistenza Token FCM
+        final String? token = data['fcmToken'];
+
+        if (token != null && token.isNotEmpty) {
+          // I soccorritori dovrebbero ricevere sempre le allerte,
+          // ma se vuoi rispettare le preferenze, puoi aggiungere il controllo qui come in getCitizenTokens
+          validTokens.add(token);
+        }
+      }
+      return validTokens;
+    } catch (e) {
+      print("Errore recupero token soccorritori: $e");
+      return [];
+    }
+  }
 }
 
 
