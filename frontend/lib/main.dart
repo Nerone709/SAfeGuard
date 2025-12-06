@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -54,10 +55,24 @@ class _SAfeGuardState extends State<SAfeGuard> {
   }
 
   Future<void> _setupInteractedMessage() async {
-    // Caso 1: App aperta da stato terminato
-    // (FirebaseMessaging.instance è accessibile ovunque ora)
-    // Nota: La logica di navigazione specifica può rimanere qui o essere spostata
-    // in un NavigationService se l'app cresce.
+    // 1. App aperta da stato TERMINATO
+    RemoteMessage? initialMessage =
+    await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      _handleMessage(initialMessage);
+    }
+
+    // 2. App aperta da stato BACKGROUND
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+  }
+
+  void _handleMessage(RemoteMessage message) {
+    if (message.data['type'] == 'emergency_alert') {
+      // Naviga alla schermata mappa o lista emergenze
+      // Nota: Per fare questo in modo pulito serve un NavigatorKey globale o
+      // gestire lo stato nella Home per cambiare tab.
+      print("🚨 Navigazione verso Emergenze richiesta!");
+    }
   }
 
   @override

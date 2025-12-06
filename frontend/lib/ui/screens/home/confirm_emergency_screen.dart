@@ -118,11 +118,11 @@ class ConfirmEmergencyScreen extends StatelessWidget {
                       final success = await context
                           .read<EmergencyProvider>()
                           .sendInstantSos(
-                            userId: userId,
-                            email: userEmail,
-                            phone: userPhone,
-                            type: "SOS Generico",
-                          );
+                        userId: userId,
+                        email: userEmail,
+                        phone: userPhone,
+                        type: "SOS Generico", // Assicurati che questo testo sia gestito nel backend
+                      );
 
                       // Controllo se il widget è ancora montato
                       if (!context.mounted) return;
