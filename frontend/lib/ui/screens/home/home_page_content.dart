@@ -11,18 +11,60 @@ import 'package:frontend/ui/style/color_palette.dart';
 import 'package:frontend/ui/widgets/realtime_map.dart';
 
 import '../../widgets/sos_button.dart';
+import 'package:frontend/ui/utils/tutorial_helper.dart';
 
 // Contenuto della Pagina Home
 // Layout principale della schermata Home che adatta i contenuti al ruolo utente.
-class HomePageContent extends StatelessWidget {
-  // Parametro per la navbar in landscape
+class HomePageContent extends StatefulWidget {
   final Widget? landscapeNavbar;
+  // Riceviamo una chiave per la navbar, opzionale perche
+  // supporta fallback con una chiave dummy
+  final GlobalKey? navbarKey;
 
-  const HomePageContent({super.key, this.landscapeNavbar});
+  const HomePageContent({super.key, this.landscapeNavbar, this.navbarKey});
 
+  @override
+  State<HomePageContent> createState() => _HomePageContentState();
+}
+
+class _HomePageContentState extends State<HomePageContent> {
   final Color darkBlue = ColorPalette.backgroundDeepBlue;
   final Color primaryRed = ColorPalette.primaryBrightRed;
   final Color amberOrange = ColorPalette.amberOrange;
+
+  // Chiavi per gli elementi nel tutorial
+  final GlobalKey _keyMap = GlobalKey();
+  final GlobalKey _keyContacts = GlobalKey();
+  final GlobalKey _keySos = GlobalKey();
+  final GlobalKey _dummyKey = GlobalKey(); // Fallback se non trova navbarKey
+
+  @override
+  void initState() {
+    super.initState();
+    // Controllo post-frame per avviare il tutorial
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowTutorial();
+    });
+  }
+
+  void _checkAndShowTutorial() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    if (authProvider.isNewlyRegistered) {
+
+      TutorialHelper.showTutorial(
+        context: context,
+        keyMap: _keyMap,
+        keyContacts: _keyContacts,
+        keySos: _keySos,
+        keyNavbar: widget.navbarKey ?? _dummyKey, // Usa quella passata o dummy
+        onFinish: () {
+          // Aggiorna lo stato per non mostrare più il tutorial
+          authProvider.completeOnboarding();
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,28 +116,36 @@ class HomePageContent extends StatelessWidget {
         // 2. Mappa
         Expanded(
           flex: isRescuer ? 4 : 5,
-          child: _buildMapPlaceholder(isWideScreen),
+          child: Container(
+            key: _keyMap,
+            child: _buildMapPlaceholder(isWideScreen),
+          ),
         ),
-
         const SizedBox(height: 10),
 
         // 3. Pulsante contatti
         if (!isRescuer) ...[
-          _buildEmergencyContactsButton(context, isWideScreen),
+          Container(
+            key: _keyContacts,
+            child: _buildEmergencyContactsButton(context, isWideScreen),
+          ),
           const SizedBox(height: 10),
         ],
 
         // 4. Pulsante SOS solo per utente normale
-    if (!isRescuer) ...[
-        Expanded(
-          flex: 3,
-          child: Center(
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: _buildSosSection(context),
+        if (!isRescuer) ...[
+          Expanded(
+            flex: 3,
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: Container(
+                  key: _keySos,
+                  child: _buildSosSection(context),
+                ),
+              ),
             ),
           ),
-        ),
         ],
 
 
@@ -119,7 +169,11 @@ class HomePageContent extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(bottom: 10.0),
-            child: _buildMapPlaceholder(isWideScreen),
+            // Assegna la chiave anche qui nel caso l'utente ruoti lo schermo o parta in landscape
+            child: Container(
+                key: _keyMap,
+                child: _buildMapPlaceholder(isWideScreen)
+            ),
           ),
         ),
 
@@ -162,9 +216,9 @@ class HomePageContent extends StatelessWidget {
               ),
 
               // Navbar passata dalla HomeScreen
-              if (landscapeNavbar != null) ...[
+              if (widget.landscapeNavbar != null) ...[
                 const SizedBox(height: 10),
-                landscapeNavbar!,
+                widget.landscapeNavbar!,
               ]
             ],
           ),
