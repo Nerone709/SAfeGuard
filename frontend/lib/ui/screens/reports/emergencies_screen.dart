@@ -4,9 +4,8 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/report_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 import 'package:frontend/ui/widgets/emergency_card.dart';
-import '../../widgets/mini_map_preview.dart';
+import '../../widgets/emergency_detail_dialog.dart';
 
-// Schermata principale per la visualizzazione delle emergenze attive
 class EmergencyGridPage extends StatefulWidget {
   const EmergencyGridPage({super.key});
 
@@ -18,7 +17,6 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
   @override
   void initState() {
     super.initState();
-    //Carica i dati all'avvio
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ReportProvider>(context, listen: false).loadReports();
     });
@@ -33,7 +31,6 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
       backgroundColor: !isRescuer
           ? ColorPalette.backgroundDarkBlue
           : ColorPalette.primaryOrange,
-
       appBar: AppBar(
         title: const Text(
           "Emergenze Attive",
@@ -43,26 +40,20 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
         elevation: 0,
         centerTitle: true,
         actions: [
-          // Tasto refresh manuale
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
-            // Chiama loadReports per ricaricare i dati dal DB.
             onPressed: () => reportProvider.loadReports(),
           ),
         ],
       ),
-
-      // Contenuto Principale
       body: Builder(
         builder: (context) {
-          // 1. Stato di Caricamento
           if (reportProvider.isLoading) {
             return const Center(
               child: CircularProgressIndicator(color: Colors.white),
             );
           }
 
-          // 2. Lista vuota
           if (reportProvider.emergencies.isEmpty) {
             return const Center(
               child: Text(
@@ -72,48 +63,24 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
             );
           }
 
-          // 3. Griglia delle segnalazioni attive
+          // 1. Costruzione della griglia delle emergenze
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: GridView.builder(
               itemCount: reportProvider.emergencies.length,
-              // Definisce la struttura della griglia (2 colonne fisse).
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 0.8, // Regola l'altezza delle card
+                childAspectRatio: 0.8,
               ),
               itemBuilder: (context, index) {
                 final item = reportProvider.emergencies[index];
-                IconData icon;
 
-                // Costruisce l'icona in base alla tipologia d'emergenza
-                switch (item['type'].toString().toUpperCase()) {
-                  case 'INCENDIO':
-                    icon = Icons.local_fire_department;
-                    break;
-                  case 'TSUNAMI':
-                    icon = Icons.water;
-                    break;
-                  case 'ALLUVIONE':
-                    icon = Icons.flood;
-                    break;
-                  case 'MALESSERE':
-                    icon = Icons.medical_services;
-                    break;
-                  case 'BOMBA':
-                    icon = Icons.warning;
-                    break;
-                  default:
-                    icon = Icons.warning_amber_rounded;
-                }
-
-                // Costruisce la singola Card per l'emergenza.
                 return EmergencyCard(
-                  data: item, // Passa i dati specifici dell'emergenza.
+                  data: item,
+                  // Gestione chiusura emergenza
                   onClose: () async {
-                    // Logica di chiusura chiamata dal bottone
                     bool confirm =
                         await showDialog(
                           context: context,
@@ -140,264 +107,12 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
                       await reportProvider.resolveReport(item['id']);
                     }
                   },
-                  // Costruzione del tap che apre i dettagli dell'emergenza (solo se è soccorritore)
-                  onTap: () async {
+                  // Apertura dettagli (Solo per soccorritori)
+                  onTap: () {
                     if (isRescuer) {
-                      // Coordinate dell'emergenza
-                      final double? eLat = (item['lat'] as num?)?.toDouble();
-                      final double? eLng = (item['lng'] as num?)?.toDouble();
-
                       showDialog(
                         context: context,
-                        builder: (BuildContext ctx) {
-                          int currentPage = 0;
-                          final PageController pageController = PageController();
-                          return StatefulBuilder(
-                            builder: (context, setStateDialog) {
-                                return Dialog(
-                                  shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                ),
-                                elevation: 10,
-                                backgroundColor: ColorPalette.cardDarkOrange,
-                                child: ConstrainedBox(
-                                  // Aumentato leggermente per far stare comodo lo slider
-                                  constraints: const BoxConstraints(
-                                    maxHeight: 550,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 24.0,
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Expanded(
-                                          child: PageView(
-                                            controller: pageController,
-                                            onPageChanged: (int index) {
-                                              setStateDialog(() {
-                                                currentPage = index;
-                                              });
-                                            },
-                                            children: [
-                                              // Dettagli emergrnza e mappa
-                                              SingleChildScrollView(
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 24.0,
-                                                      ),
-                                                  child: Column(
-                                                    children: [
-                                                      Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Icon(
-                                                            icon,
-                                                            size: 50,
-                                                            color: Colors.white,
-                                                          ),
-                                                          const SizedBox(
-                                                            width: 15,
-                                                          ),
-                                                          Flexible(
-                                                            child: Text(
-                                                              item['type']
-                                                                  .toString()
-                                                                  .toUpperCase(),
-                                                              style: const TextStyle(
-                                                                fontSize: 22,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: Colors
-                                                                    .white,
-                                                              ),
-                                                              textAlign:
-                                                                  TextAlign
-                                                                      .center,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 12,
-                                                      ),
-                                                      Text(
-                                                        item['description']
-                                                                ?.toString() ??
-                                                            'Nessuna descrizione',
-                                                        style: const TextStyle(
-                                                          fontSize: 16,
-                                                          color: Colors.white,
-                                                          fontWeight:
-                                                              FontWeight.normal,
-                                                        ),
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 20,
-                                                      ),
-
-                                                      // Mappa
-                                                      if (eLat != null &&
-                                                          eLng != null)
-                                                        SizedBox(
-                                                          height: 250,
-                                                          width:
-                                                              double.infinity,
-                                                          child: ClipRRect(
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  20.0,
-                                                                ),
-                                                            child:
-                                                                MiniMapPreview(
-                                                                  lat: eLat,
-                                                                  lng: eLng,
-                                                                ),
-                                                          ),
-                                                        )
-                                                      else
-                                                        Container(
-                                                          height: 50,
-                                                          decoration: BoxDecoration(
-                                                            color:
-                                                                Colors.white10,
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  10,
-                                                                ),
-                                                          ),
-                                                          alignment:
-                                                              Alignment.center,
-                                                          child: const Text(
-                                                            "Posizione non disponibile",
-                                                            style: TextStyle(
-                                                              color: Colors
-                                                                  .white70,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-
-                                              // Dettagli cittadino
-                                              SingleChildScrollView(
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 24.0,
-                                                      ),
-                                                  child: Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      const SizedBox(
-                                                        height: 20,
-                                                      ),
-                                                      const Icon(
-                                                        Icons.person,
-                                                        size: 60,
-                                                        color: Colors.white,
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 20,
-                                                      ),
-                                                      const Text(
-                                                        "Dettagli Cittadino",
-                                                        style: TextStyle(
-                                                          fontSize: 22,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: Colors.white,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 20,
-                                                      ),
-                                                      Container(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              15,
-                                                            ),
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.white10,
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                15,
-                                                              ),
-                                                        ),
-                                                        child: const Text(
-                                                          "Nome: Mario Rossi\nEtà: 45\nTelefono: +39 333 1234567\nNote Mediche: Nessuna", // Placeholder
-                                                          style: TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 16,
-                                                            height: 1.5,
-                                                          ),
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-
-                                        const SizedBox(height: 10),
-
-                                        // Pallini dello slider
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: List.generate(2, (index) {
-                                            bool isActive = currentPage == index;
-                                            return Container(
-                                              margin:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 4,
-                                                  ),
-                                              width: 10,
-                                              height: 10,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: Colors.white.withValues(
-                                                  alpha: isActive? 1 : 0.5,
-                                                ),
-                                                border: Border.all(
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            );
-                                          }),
-                                        ),
-
-                                        const SizedBox(height: 10),
-                                        const Text(
-                                          "Scorri per info cittadino >",
-                                          style: TextStyle(
-                                            color: Colors.white54,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
+                        builder: (ctx) => EmergencyDetailDialog(item: item),
                       );
                     }
                   },
@@ -410,3 +125,4 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
     );
   }
 }
+
