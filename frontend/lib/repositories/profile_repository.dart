@@ -11,7 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
-// ** Repository: ProfileRepository **
+// Repository: ProfileRepository
 // Classe che gestisce le chiamate API per la lettura e modifica del profilo utente.
 class ProfileRepository {
   // Costanti dall'ambiente di compilazione
@@ -452,6 +452,7 @@ class ProfileRepository {
     );
 
     if (response.statusCode != 200) {
+      debugPrint("Errore aggiornamento FCM: ${response.body}");
       print("Errore aggiornamento FCM: ${response.body}");
     );
     if (response.statusCode != 200) {
