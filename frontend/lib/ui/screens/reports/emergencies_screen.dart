@@ -4,7 +4,6 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/report_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 import 'package:frontend/ui/widgets/emergency_card.dart';
-
 import '../../widgets/mini_map_preview.dart';
 
 // Schermata principale per la visualizzazione delle emergenze attive
@@ -90,7 +89,7 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
                 IconData icon;
 
                 // Costruisce l'icona in base alla tipologia d'emergenza
-                switch(item['type'].toString().toUpperCase()){
+                switch (item['type'].toString().toUpperCase()) {
                   case 'INCENDIO':
                     icon = Icons.local_fire_department;
                     break;
@@ -141,11 +140,9 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
                       await reportProvider.resolveReport(item['id']);
                     }
                   },
-                  // Costruisce la card per la visualizzazione in dettaglio dell'emergenza
-                  // ... dentro itemBuilder ...
+                  // Costruzione del tap che apre i dettagli dell'emergenza
                   onTap: () async {
-                    // 1. Estrai le coordinate in modo sicuro
-                    // Convertiamo in double perché dal JSON/DB potrebbero arrivare come numeri generici
+                    // Coordinate dell'emergenza
                     final double? eLat = (item['lat'] as num?)?.toDouble();
                     final double? eLng = (item['lng'] as num?)?.toDouble();
 
@@ -158,28 +155,36 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
                           ),
                           elevation: 10,
                           backgroundColor: ColorPalette.cardDarkOrange,
-                          child: ConstrainedBox( // Impedisce che il dialog diventi troppo grande
+                          child: ConstrainedBox(
                             constraints: const BoxConstraints(maxHeight: 500),
-                            child: SingleChildScrollView( // Evita overflow su schermi piccoli
+                            child: SingleChildScrollView(
                               child: Padding(
                                 padding: const EdgeInsets.all(24.0),
                                 child: Column(
-                                  mainAxisSize: MainAxisSize.min, // Occupa solo lo spazio necessario
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(
-                                      icon,
-                                      size: 50,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      item['type'].toString().toUpperCase(),
-                                      style: const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                      textAlign: TextAlign.center,
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          icon,
+                                          size: 50,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(
+                                          width: 15,
+                                        ), // Spazio orizzontale
+                                        Text(
+                                          item['type'].toString().toUpperCase(),
+                                          style: const TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
                                     ),
                                     const SizedBox(height: 12),
 
@@ -195,34 +200,110 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
 
                                     const SizedBox(height: 20),
 
-                                    // --- ZONA MAPPA CORRETTA ---
+                                    // Costruzione della mappa
                                     if (eLat != null && eLng != null)
                                       SizedBox(
-                                        height: 180, // ALTEZZA FISSA: Risolve errore "Infinity"
+                                        height: 180,
                                         width: double.infinity,
-                                        child: ClipRRect( // DECORAZIONE: Arrotonda gli angoli
-                                          borderRadius: BorderRadius.circular(20.0),
-                                          // Qui usiamo il widget creato sopra, passando le coordinate dell'item
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            20.0,
+                                          ),
                                           child: MiniMapPreview(
-                                              lat: eLat,
-                                              lng: eLng
+                                            lat: eLat,
+                                            lng: eLng,
                                           ),
                                         ),
                                       )
                                     else
-                                    // Fallback se non ci sono coordinate
                                       Container(
                                         height: 50,
                                         decoration: BoxDecoration(
                                           color: Colors.white10,
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
                                         alignment: Alignment.center,
                                         child: const Text(
                                           "Posizione non disponibile",
-                                          style: TextStyle(color: Colors.white70),
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                          ),
                                         ),
                                       ),
+                                    const SizedBox(height: 10),
+                                    // Bottone che apre la scheda del cittadino
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          foregroundColor:
+                                              ColorPalette.cardDarkOrange,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 15,
+                                          ),
+                                        ),
+
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext secondCtx) {
+                                              return AlertDialog(
+                                                backgroundColor: ColorPalette
+                                                    .backgroundMidBlue,
+                                                title: const Text(
+                                                  "Dettagli del cittadino",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight:
+                                                        FontWeight.normal,
+                                                  ),
+                                                ),
+                                                content: const Text(
+                                                  "Placeholder cittadino",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    child: const Text(
+                                                      "Chiudi",
+                                                      style: TextStyle(
+                                                        color: ColorPalette
+                                                            .cardDarkOrange,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    onPressed: () {
+                                                      Navigator.of(
+                                                        secondCtx,
+                                                      ).pop();
+                                                    },
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+                                        },
+                                        child: const Text(
+                                          "Dettagli del cittadino",
+                                          style: TextStyle(
+                                            color: ColorPalette.cardDarkOrange,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),

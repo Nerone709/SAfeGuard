@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../style/color_palette.dart';
+
 class MiniMapPreview extends StatefulWidget {
   final double lat;
   final double lng;
@@ -35,7 +37,7 @@ class _MiniMapPreviewState extends State<MiniMapPreview> {
     _mapController.move(center, newZoom);
   }
 
-  // Funzione per tornare al punto rosso
+  // Funzione per tornare al punto blu
   void _recenter() {
     _mapController.move(LatLng(widget.lat, widget.lng), 15.0);
   }
@@ -49,10 +51,8 @@ class _MiniMapPreviewState extends State<MiniMapPreview> {
           options: MapOptions(
             initialCenter: LatLng(widget.lat, widget.lng),
             initialZoom: 15.0,
-
-            // --- QUI LA MODIFICA PRINCIPALE ---
             interactionOptions: const InteractionOptions(
-              // Abilita spostamento e zoom, ma blocca la rotazione (opzionale)
+              // Abilita spostamento e zoom
               flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
             ),
           ),
@@ -70,7 +70,7 @@ class _MiniMapPreviewState extends State<MiniMapPreview> {
                   child: const Icon(
                     Icons.location_on,
                     size: 40,
-                    color: Colors.red,
+                    color: ColorPalette.electricBlue,
                     shadows: [Shadow(blurRadius: 5, color: Colors.black45)],
                   ),
                 ),
@@ -85,8 +85,7 @@ class _MiniMapPreviewState extends State<MiniMapPreview> {
           right: 10,
           child: Column(
             children: [
-              // 1. Bottone Ricentra (Nuovo!)
-              // Utile se l'utente si sposta troppo e perde il marker
+              // 1. Bottone Ricentra
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -94,12 +93,12 @@ class _MiniMapPreviewState extends State<MiniMapPreview> {
                   boxShadow: const [BoxShadow(blurRadius: 4, color: Colors.black26)],
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.center_focus_strong, color: Colors.blue),
+                  icon: const Icon(Icons.location_on, color: ColorPalette.electricBlue),
                   onPressed: _recenter,
-                  tooltip: "Ricentra posizione",
+                  tooltip: "Ricentra posizione emergenza",
                 ),
               ),
-              const SizedBox(height: 15), // Un po' di spazio extra
+              const SizedBox(height: 15),
 
               // 2. Zoom In
               Container(
