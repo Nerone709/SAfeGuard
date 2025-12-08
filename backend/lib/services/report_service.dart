@@ -15,6 +15,7 @@ class ReportService {
     String? description,
     double? lat,
     double? lng,
+    required int severity,
   }) async {
     final reportData = {
       'rescuer_id': senderId,
@@ -23,6 +24,7 @@ class ReportService {
       'status': 'active',
       'lat': lat,
       'lng': lng,
+      'severity': severity,
       'is_rescuer_report': isSenderRescuer,
       'timestamp': DateTime.now().toIso8601String(),
     };

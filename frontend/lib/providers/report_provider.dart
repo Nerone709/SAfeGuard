@@ -129,11 +129,11 @@ class ReportProvider extends ChangeNotifier {
   }
 
   // Invia una segnalazione delega a ReportRepository l'interazione con il backend
-  Future<bool> sendReport(String type, String description, double? lat, double? lng) async {
+  Future<bool> sendReport(String type, String description, double? lat, double? lng, {required int severity}) async {
     _isLoading = true;
     notifyListeners();
     try {
-      await _reportRepository.createReport(type, description, lat, lng);
+      await _reportRepository.createReport(type, description, lat, lng, severity);
       // Non serve ricaricare: lo stream _reportsSubscription vedrà il nuovo dato e aggiornerà la UI
       _isLoading = false;
       notifyListeners();
