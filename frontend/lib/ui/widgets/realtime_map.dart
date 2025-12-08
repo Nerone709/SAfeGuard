@@ -28,6 +28,8 @@ class _RealtimeMapState extends State<RealtimeMap> {
     'active_emergencies',
   );
 
+  final CollectionReference _safePointsRef = FirebaseFirestore.instance.collection('safe_points');
+
   // Coordinate di default (Salerno) usate finché il GPS non risponde
   LatLng _center = const LatLng(40.6824, 14.7681);
   final double _minZoom = 5.0;
@@ -111,6 +113,66 @@ class _RealtimeMapState extends State<RealtimeMap> {
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.safeguard.frontend',
+            ),
+
+            //STREAM BUILDER PER I PUNTI DI RACCOLTA
+            StreamBuilder<QuerySnapshot>(
+              stream: _safePointsRef.snapshots(),
+              builder: (context, snapshot) {
+                // Se non ci sono dati o c'è un errore, restituisce un layer vuoto
+                if (!snapshot.hasData || snapshot.hasError) {
+                  return const MarkerLayer(markers: []);
+                }
+
+                // Trasforma i documenti del DB in Marker
+                final markers = snapshot.data!.docs.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final double lat = data['lat'];
+                  final double lng = data['lng'];
+                  final String name = data['name'] ?? 'Punto Sicuro';
+
+                  return Marker(
+                    point: LatLng(lat, lng),
+                    width: 60,
+                    height: 60,
+                    child: GestureDetector(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("🟢 Punto di Raccolta: $name"),
+                            backgroundColor: Colors.green[700],
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                  blurRadius: 4,
+                                )
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.verified_user,
+                              size: 28,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList();
+
+                return MarkerLayer(markers: markers);
+              },
             ),
 
             // 2. StreamBuilder: Ascolta il database in tempo reale
