@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Lista dei widget/schermate visualizzati
   List<Widget> get _pages => [
     HomePageContent(
-      navbarKey: _navbarKey, // <--- PASSIAMO LA CHIAVE QUI
+      navbarKeys: _navbarItemKeys, // <--- PASSIAMO LA CHIAVE QUI
     ), // 0. HOME
     const ReportsScreen(), // 1. REPORT
     const MapScreen(), // 2. MAPPA
@@ -34,6 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Chiave per visualizzare la navBar nel tutorial
   final GlobalKey _navbarKey = GlobalKey();
+  // Lista di 5 chiavi, una per ogni tab della navbar
+  final List<GlobalKey> _navbarItemKeys = List.generate(5, (_) => GlobalKey());
 
   // Callback per aggiornare l'indice quando viene premuta un'icona
   void _onTabChange(int index) {
@@ -68,7 +70,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ? null
               : Container(
             key: _navbarKey,
-            child: CustomBottomNavBar(onIconTapped: _onTabChange),
+            child: CustomBottomNavBar(
+            onIconTapped: _onTabChange,
+            //Passa le chiavi dei singoli elementi della navbar
+            itemKeys: _navbarItemKeys,
+          ),
           ),
           // Usa una Row per affiancare la Sidebar (se c'è) al contenuto principale
           body: Row(

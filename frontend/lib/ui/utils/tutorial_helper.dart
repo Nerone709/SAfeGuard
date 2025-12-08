@@ -1,209 +1,270 @@
 import 'package:flutter/material.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
-import 'package:frontend/ui/style/color_palette.dart'; // Assumo tu abbia i colori qui
+import 'package:frontend/ui/style/color_palette.dart';
 
 class TutorialHelper {
-  // Metodo statico per avviare il tutorial
   static void showTutorial({
     required BuildContext context,
+    required bool isRescuer, // <--- Parametro fondamentale
     required GlobalKey keyMap,
-    required GlobalKey keyContacts,
-    required GlobalKey keySos,
-    required GlobalKey keyNavbar, // Se vuoi evidenziare la navbar
+    required GlobalKey keyContacts, // Solo Cittadino
+    required GlobalKey keySos,      // Solo Cittadino
+    GlobalKey? keyEmergencyInfo,    // Solo Soccorritore (Il box blu in alto)
+    List<GlobalKey>? navbarKeys,    // Lista chiavi per i singoli tab (0: Home, 1: Report, etc)
     required VoidCallback onFinish,
   }) {
-    // Per la responsività
     final screenSize = MediaQuery.of(context).size;
+
+    // Decidiamo quale lista di target creare in base al ruolo
+    List<TargetFocus> targets = isRescuer
+        ? _createRescuerTargets(
+      screenSize: screenSize,
+      keyMap: keyMap,
+      keyEmergencyInfo: keyEmergencyInfo,
+      navbarKeys: navbarKeys,
+    )
+        : _createCitizenTargets(
+      screenSize: screenSize,
+      keyMap: keyMap,
+      keyContacts: keyContacts,
+      keySos: keySos,
+      navbarKeys: navbarKeys,
+    );
+
     TutorialCoachMark(
-      targets: _createTargets(
-        screenSize: screenSize,
-        keyMap: keyMap,
-        keyContacts: keyContacts,
-        keySos: keySos,
-        keyNavbar: keyNavbar,
-      ),
-      colorShadow: Colors.black, // Colore sfondo scuro
+      targets: targets,
+      colorShadow: Colors.black,
       textSkip: "SALTA",
       paddingFocus: 10,
       opacityShadow: 0.8,
       onFinish: onFinish,
       onSkip: () {
-        onFinish(); // Segna come completato anche se salta
+        onFinish();
         return true;
       },
     ).show(context: context);
   }
 
-  static List<TargetFocus> _createTargets({
+  // --- LISTA TARGET CITTADINO (Quella che avevi già) ---
+  static List<TargetFocus> _createCitizenTargets({
     required Size screenSize,
     required GlobalKey keyMap,
     required GlobalKey keyContacts,
     required GlobalKey keySos,
-    required GlobalKey keyNavbar,
-  })
-  //Target differenziati per il soccorritore?
-  {
+    List<GlobalKey>? navbarKeys,
+  }) {
     List<TargetFocus> targets = [];
 
-    // Tappa 1: Benvenuto
-    targets.add(
-      TargetFocus(
-        identify: "intro",
-        targetPosition: TargetPosition(
-          const Size(0, 0),
-          const Offset(0, 0),
-        ),
-        enableOverlayTab: true,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom, // Il contenuto parte dall'alto e scende
-            builder: (context, controller) {
-              return Container(
-                height: screenSize.height - 100, // -100 per sicurezza su status bar/nav bar
-                width: screenSize.width,
-                alignment: Alignment.center, // <--- QUI avviene la magia del centraggio
-                child: Column(
-                  mainAxisSize: MainAxisSize.min, // Occupa solo lo spazio necessario al centro
-                  children: [
-                    SizedBox(
-                      height: 200,
-                      child: Image.asset("assets/cavalluccio.png"),
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      margin: const EdgeInsets.symmetric(horizontal: 20), // Margine laterale
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E3A5F),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
-                      ),
-                      child: const Text(
-                        "Ciao, sono Neptie!\nSarò il tuo assistente nell'uso di SafeGuard.\n\nRicorda: conoscere bene l'app è fondamentale.",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
+    // 1. Benvenuto
+    targets.add(_buildWelcomeTarget(screenSize,
+        "Ciao, sono Neptie!\nSarò il tuo assistente. Ricorda: conoscere l'app può salvarti la vita!",
+        "assets/cavalluccio.png"
+    ));
 
-    // Tappa 2: Mappa
-    targets.add(
-      _buildTarget(
-        identify: "map",
-        keyTarget: keyMap,
-        text: "La mappa mostra le zone con emergenze attive. Ogni informazione è aggiornata in tempo reale.",
-        imagePath: "assets/cavalluccio.png",
-        alignText: ContentAlign.bottom,
-        shape: ShapeLightFocus.RRect,// Forma rettangolare
-        radius: 20.0,
-      ),
-    );
+    // 2. Mappa
+    targets.add(_buildTarget(
+      identify: "map",
+      keyTarget: keyMap,
+      text: "La mappa mostra le zone con emergenze attive in tempo reale.",
+      imagePath: "assets/cavalluccio.png",
+      alignText: ContentAlign.bottom,
+    ));
 
-    // Tappa 3: Contatti Emergenza
-    targets.add(
-      _buildTarget(
-        identify: "contacts",
-        keyTarget: keyContacts,
-        text: "Qui puoi vedere gli ultimi eventi e i tuoi contatti di emergenza.",
-        imagePath: "assets/cavalluccio.png",
-        alignText: ContentAlign.top, // Testo sopra perché il bottone è in basso
-        shape: ShapeLightFocus.RRect,// Forma rettangolare
-        radius: 20.0,
-      ),
-    );
+    // 3. Contatti
+    targets.add(_buildTarget(
+      identify: "contacts",
+      keyTarget: keyContacts,
+      text: "Qui vedi gli ultimi eventi e i tuoi contatti di emergenza.",
+      imagePath: "assets/cavalluccio.png",
+      alignText: ContentAlign.top,
+    ));
 
-    // Tappa 4: SOS
-    targets.add(
-      _buildTarget(
-        identify: "sos",
-        keyTarget: keySos,
-        text: "Il pulsante SOS è essenziale: se sei in pericolo, premilo subito. Invierà un allarme silenzioso.",
-        imagePath: "assets/cavalluccio.png",
-        alignText: ContentAlign.top,
-        shape: ShapeLightFocus.Circle, // Importante: Cerchio per il bottone SOS
-      ),
-    );
-
-// Tappa 5: Navbar
-    targets.add(
-      _buildTarget(
-        identify: "navbar",
-        keyTarget: keyNavbar, // Questa chiave arriva dai parametri del metodo
-        text: "Usa la barra di navigazione per spostarti tra Home, Segnalazione specifica, \nMappa, Emergenze attive e Impostazioni profilo.",
-        imagePath: "assets/cavalluccio.png",
-        alignText: ContentAlign.top, // Testo sopra la navbar
-        shape: ShapeLightFocus.RRect,
-        radius: 30.0, // Bordo molto arrotondato per la navbar
-      ),
-    );
-
-    // Tappa 6: Saluti finali
-    targets.add(
-      TargetFocus(
-        identify: "saluti",
-        targetPosition: TargetPosition(
-          const Size(0, 0),
-          const Offset(0, 0),
-        ),
-        enableOverlayTab: true,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom, // Il contenuto parte dall'alto e scende
-            builder: (context, controller) {
-              return Container(
-                height: screenSize.height - 100, // -100 per sicurezza su status bar/nav bar
-                width: screenSize.width,
-                alignment: Alignment.center, // <--- QUI avviene la magia del centraggio
-                child: Column(
-                  mainAxisSize: MainAxisSize.min, // Occupa solo lo spazio necessario al centro
-                  children: [
-                    SizedBox(
-                      height: 200,
-                      child: Image.asset("assets/cavalluccio.png"),
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      margin: const EdgeInsets.symmetric(horizontal: 20), // Margine laterale
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E3A5F),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
-                      ),
-                      child: const Text(
-                        "Questo è tutto!\nArrivederci e ricorda:\n per qualunque emergenza, io sono qui!",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
+    // 4. SOS
+    targets.add(_buildTarget(
+      identify: "sos",
+      keyTarget: keySos,
+      text: "Il pulsante SOS è essenziale: se sei in pericolo, premilo subito!",
+      imagePath: "assets/cavalluccio.png",
+      alignText: ContentAlign.top,
+      shape: ShapeLightFocus.Circle,
+    ));
 
     return targets;
   }
 
-  // Helper per costruire il singolo step grafico
+  // --- LISTA TARGET SOCCORRITORE (Nuova) ---
+  static List<TargetFocus> _createRescuerTargets({
+    required Size screenSize,
+    required GlobalKey keyMap,
+    GlobalKey? keyEmergencyInfo,
+    List<GlobalKey>? navbarKeys,
+  }) {
+    List<TargetFocus> targets = [];
+
+    // 1. Intro Soccorritore (Tono più professionale)
+    targets.add(_buildWelcomeTarget(screenSize,
+        "Ciao Collega!\nSono qui per aiutarti a gestire gli interventi in modo rapido ed efficiente.",
+        "assets/cavalluccio.png" // Magari qui metti Neptie con l'elmetto se ce l'hai
+    ));
+
+    // 2. Info Emergenza Attiva (Il box blu in alto)
+    if (keyEmergencyInfo != null) {
+      targets.add(_buildTarget(
+        identify: "emergency_info",
+        keyTarget: keyEmergencyInfo,
+        text: "Qui vedi i dettagli dell'intervento assegnato: tipo, indirizzo e distanza.",
+        imagePath: "assets/cavalluccio.png",
+        alignText: ContentAlign.bottom,
+        radius: 15,
+      ));
+    }
+
+// Metodo helper per centrare il cavalluccio nella mappa nel tutorial lato soccorritore
+    TargetFocus buildMapTarget({
+      required GlobalKey keyTarget,
+      required Size screenSize,
+      required String text,
+      required String imagePath,
+    }) {
+      return TargetFocus(
+        identify: "map",
+        keyTarget: keyTarget,
+        shape: ShapeLightFocus.RRect,
+        radius: 10,
+        enableOverlayTab: true,
+        contents: [
+          TargetContent(
+            // 1. Usiamo 'custom' per sganciarci dalla posizione della mappa
+            align: ContentAlign.custom,
+            // 2. Definiamo un'area che copre tutto lo schermo
+            customPosition: CustomTargetContentPosition(
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0
+            ),
+            // 3. Nel builder usiamo un Container centrato
+            builder: (context, controller) {
+              return Container(
+                width: screenSize.width,
+                height: screenSize.height,
+                alignment: Alignment.center, // <-- MAGIA: Centra tutto sopra la mappa
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Mascotte
+                    SizedBox(
+                        height: 180,
+                        child: Image.asset(imagePath)
+                    ),
+                    const SizedBox(height: 20),
+                    // Testo
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      margin: const EdgeInsets.symmetric(horizontal: 40),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E3A5F),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black45)],
+                      ),
+                      child: Text(
+                          text,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold
+                          )
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      );
+    }
+
+    // 3. Mappa Operativa
+    targets.add(buildMapTarget(
+      keyTarget: keyMap,
+      screenSize: screenSize,
+      text: "La mappa mostra la tua posizione, il target e i colleghi vicini.",
+      imagePath: "assets/cavalluccio.png",
+    ));
+
+    // 4. Esempio Navbar Specifica: Tab Report (Indice 1)
+    if (navbarKeys != null && navbarKeys.length > 1) {
+      targets.add(_buildTarget(
+        identify: "nav_report",
+        keyTarget: navbarKeys[1], // Puntiamo al secondo elemento (Report)
+        text: "A fine intervento, usa la sezione Report per compilare il verbale.",
+        imagePath: "assets/cavalluccio.png",
+        alignText: ContentAlign.top,
+        shape: ShapeLightFocus.Circle, // Spesso le icone sono tonde o quadrate stondate
+        radius: 30, // Raggio largo per prendere l'icona
+      ));
+    }
+
+    // 5. Esempio Navbar Specifica: Tab Avvisi (Indice 3)
+    if (navbarKeys != null && navbarKeys.length > 3) {
+      targets.add(_buildTarget(
+        identify: "nav_alerts",
+        keyTarget: navbarKeys[3],
+        text: "Controlla qui le notifiche dalla centrale operativa.",
+        imagePath: "assets/cavalluccio.png",
+        alignText: ContentAlign.top,
+        shape: ShapeLightFocus.Circle,
+        radius: 30,
+      ));
+    }
+    return targets;
+  }
+
+  // --- HELPER CONDIVISI ---
+
+  static TargetFocus _buildWelcomeTarget(Size screenSize, String text, String imagePath) {
+    return TargetFocus(
+      identify: "intro",
+      targetPosition: TargetPosition(const Size(0, 0), const Offset(0, 0)),
+      enableOverlayTab: true,
+      contents: [
+        TargetContent(
+          align: ContentAlign.bottom,
+          builder: (context, controller) {
+            return Container(
+              height: screenSize.height - 100,
+              width: screenSize.width,
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: 200, child: Image.asset(imagePath)),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E3A5F),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
+                    ),
+                    child: Text(
+                      text,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   static TargetFocus _buildTarget({
     required String identify,
     required GlobalKey keyTarget,
@@ -211,7 +272,7 @@ class TutorialHelper {
     required String imagePath,
     ContentAlign alignText = ContentAlign.bottom,
     ShapeLightFocus shape = ShapeLightFocus.RRect,
-    double ?radius,
+    double radius = 10.0,
   }) {
     return TargetFocus(
       identify: identify,
@@ -224,36 +285,22 @@ class TutorialHelper {
           builder: (context, controller) {
             return Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end, // Allinea mascotte a destra
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Nuvoletta Testo
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: ColorPalette.backgroundDeepBlue, // Blu scuro come negli screenshot
+                    color: ColorPalette.backgroundDeepBlue,
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
                   ),
-                  child: Text(
-                    text,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
-                // Triangolino della nuvoletta (Opzionale, per estetica avanzata)
                 CustomPaint(
                   painter: TrianglePainter(strokeColor: ColorPalette.backgroundDeepBlue, paintingStyle: PaintingStyle.fill),
                   child: const SizedBox(height: 10, width: 20),
                 ),
-
-                // Mascotte
-                SizedBox(
-                  height: 150, // Dimensione mascotte
-                  child: Image.asset(imagePath), // Assicurati che l'immagine esista
-                ),
+                SizedBox(height: 150, child: Image.asset(imagePath)),
               ],
             );
           },

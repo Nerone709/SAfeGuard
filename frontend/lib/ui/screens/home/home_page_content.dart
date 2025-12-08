@@ -17,11 +17,9 @@ import 'package:frontend/ui/utils/tutorial_helper.dart';
 // Layout principale della schermata Home che adatta i contenuti al ruolo utente.
 class HomePageContent extends StatefulWidget {
   final Widget? landscapeNavbar;
-  // Riceviamo una chiave per la navbar, opzionale perche
-  // supporta fallback con una chiave dummy
-  final GlobalKey? navbarKey;
+  final List<GlobalKey>? navbarKeys;
 
-  const HomePageContent({super.key, this.landscapeNavbar, this.navbarKey});
+  const HomePageContent({super.key, this.landscapeNavbar, this.navbarKeys});
 
   @override
   State<HomePageContent> createState() => _HomePageContentState();
@@ -36,7 +34,7 @@ class _HomePageContentState extends State<HomePageContent> {
   final GlobalKey _keyMap = GlobalKey();
   final GlobalKey _keyContacts = GlobalKey();
   final GlobalKey _keySos = GlobalKey();
-  final GlobalKey _dummyKey = GlobalKey(); // Fallback se non trova navbarKey
+  final GlobalKey _keyEmergencyInfo = GlobalKey(); //La chiave per la notifica nel tutorial
 
   @override
   void initState() {
@@ -54,10 +52,12 @@ class _HomePageContentState extends State<HomePageContent> {
 
       TutorialHelper.showTutorial(
         context: context,
+        isRescuer: authProvider.isRescuer,
         keyMap: _keyMap,
         keyContacts: _keyContacts,
         keySos: _keySos,
-        keyNavbar: widget.navbarKey ?? _dummyKey, // Usa quella passata o dummy
+        keyEmergencyInfo: _keyEmergencyInfo,
+        navbarKeys: widget.navbarKeys,
         onFinish: () {
           // Aggiorna lo stato per non mostrare più il tutorial
           authProvider.completeOnboarding();
@@ -108,7 +108,10 @@ class _HomePageContentState extends State<HomePageContent> {
         // Notifica di Emergenza Attiva
           Padding(
             padding: const EdgeInsets.only(top: 8.0, bottom: 10.0),
-            child: _buildEmergencyNotification(),
+            child: Container(
+              key: _keyEmergencyInfo, // Assegna la chiave al box di notifica
+              child: _buildEmergencyNotification(),
+            ),
           ),
 
 
