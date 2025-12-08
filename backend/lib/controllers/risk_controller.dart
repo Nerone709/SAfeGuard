@@ -62,26 +62,18 @@ class RiskController {
   // Agisce come proxy: inoltra il payload al server Python e restituisce la sua risposta.
   Future<Response> handleRiskAnalysis(Request request) async {
     try {
-      final String body = await request.readAsString();
-      if (body.isEmpty) return _badRequest('Nessun dato inviato');
-
+      final body = await request.readAsString();
       final payload = jsonDecode(body);
-      _printFormattedJsonLog(payload);
+      if (body.isEmpty) return _badRequest('Nessun dato inviato');
 
       //final Map<String, dynamic> payload = jsonDecode(body);
       print('📤 Dart invia dati al server AI...');
 
-      if (body.length > 50) {
-        print('DART PROXY: IN USCITA (SNIPPET): ${body.substring(0, 50)}...');
-      } else {
-        _printFormattedJsonLog(payload);
-      }
-
       // Chiamata asincrona al microservizio Python
       final aiResponse = await http.post(
         Uri.parse(_aiServiceUrl),
-        headers: _headers,
-        body: body,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload), // Ritorna a jsonEncode(payload)
       );
 
       print('📥 Risposta ricevuta da Python: ${aiResponse.statusCode}');
