@@ -29,6 +29,7 @@ class _RealtimeMapState extends State<RealtimeMap> {
   );
 
   final CollectionReference _safePointsRef = FirebaseFirestore.instance.collection('safe_points');
+  final CollectionReference _hospitalsRef = FirebaseFirestore.instance.collection('hospitals');
 
   // Coordinate di default (Salerno) usate finché il GPS non risponde
   LatLng _center = const LatLng(40.6824, 14.7681);
@@ -133,8 +134,8 @@ class _RealtimeMapState extends State<RealtimeMap> {
 
                   return Marker(
                     point: LatLng(lat, lng),
-                    width: 60,
-                    height: 60,
+                    width: 50,
+                    height: 50,
                     child: GestureDetector(
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -163,6 +164,64 @@ class _RealtimeMapState extends State<RealtimeMap> {
                               Icons.verified_user,
                               size: 28,
                               color: Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList();
+
+                return MarkerLayer(markers: markers);
+              },
+            ),
+
+            // 2. LAYER OSPEDALI (HOSPITALS) - BLU [NUOVO]
+            StreamBuilder<QuerySnapshot>(
+              stream: _hospitalsRef.snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const MarkerLayer(markers: []);
+
+                final markers = snapshot.data!.docs.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final double lat = data['lat'];
+                  final double lng = data['lng'];
+                  final String name = data['name'] ?? 'Ospedale';
+
+                  return Marker(
+                    point: LatLng(lat, lng),
+                    width: 50, // Un po' più grandi per visibilità
+                    height: 50,
+                    child: GestureDetector(
+                      onTap: () {
+                        // Mostra nome ospedale
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("🏥 Pronto Soccorso: $name"),
+                            backgroundColor: Colors.blue[800],
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.blue, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                  blurRadius: 4,
+                                )
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.local_hospital,
+                              size: 26,
+                              color: Colors.blue,
                             ),
                           ),
                         ],
