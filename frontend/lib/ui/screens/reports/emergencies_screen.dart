@@ -4,8 +4,8 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/report_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 import 'package:frontend/ui/widgets/emergency_card.dart';
+import '../../widgets/emergency_detail_dialog.dart';
 
-// Schermata principale per la visualizzazione delle emergenze attive
 class EmergencyGridPage extends StatefulWidget {
   const EmergencyGridPage({super.key});
 
@@ -17,7 +17,6 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
   @override
   void initState() {
     super.initState();
-    //Carica i dati all'avvio
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ReportProvider>(context, listen: false).loadReports();
     });
@@ -32,7 +31,6 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
       backgroundColor: !isRescuer
           ? ColorPalette.backgroundDarkBlue
           : ColorPalette.primaryOrange,
-
       appBar: AppBar(
         title: const Text(
           "Emergenze Attive",
@@ -42,26 +40,20 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
         elevation: 0,
         centerTitle: true,
         actions: [
-          // Tasto refresh manuale
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
-            // Chiama loadReports per ricaricare i dati dal DB.
             onPressed: () => reportProvider.loadReports(),
           ),
         ],
       ),
-
-      // Contenuto Principale
       body: Builder(
         builder: (context) {
-          // 1. Stato di Caricamento
           if (reportProvider.isLoading) {
             return const Center(
               child: CircularProgressIndicator(color: Colors.white),
             );
           }
 
-          // 2. Lista vuota
           if (reportProvider.emergencies.isEmpty) {
             return const Center(
               child: Text(
@@ -71,26 +63,24 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
             );
           }
 
-          // 3. Griglia delle segnalazioni attive
+          // 1. Costruzione della griglia delle emergenze
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: GridView.builder(
               itemCount: reportProvider.emergencies.length,
-              // Definisce la struttura della griglia (2 colonne fisse).
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 0.8, // Regola l'altezza delle card
+                childAspectRatio: 0.8,
               ),
               itemBuilder: (context, index) {
                 final item = reportProvider.emergencies[index];
 
-                // Costruisce la singola Card per l'emergenza.
                 return EmergencyCard(
-                  data: item, // Passa i dati specifici dell'emergenza.
+                  data: item,
+                  // Gestione chiusura emergenza
                   onClose: () async {
-                    // Logica di chiusura chiamata dal bottone
                     bool confirm =
                         await showDialog(
                           context: context,
@@ -117,6 +107,15 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
                       await reportProvider.resolveReport(item['id']);
                     }
                   },
+                  // Apertura dettagli (Solo per soccorritori)
+                  onTap: () {
+                    if (isRescuer) {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => EmergencyDetailDialog(item: item),
+                      );
+                    }
+                  },
                 );
               },
             ),
@@ -126,3 +125,4 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
     );
   }
 }
+
