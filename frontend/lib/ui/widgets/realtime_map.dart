@@ -79,7 +79,9 @@ class _RealtimeMapState extends State<RealtimeMap> {
             setState(() {
               _center = LatLng(position.latitude, position.longitude);
             });
-            _mapController.move(_center, 15.0);
+            if (!widget.isSelectionMode) {
+              _mapController.move(_center, 15.0);
+            }
           }
         } catch (e) {
           debugPrint("Errore posizione: $e");
@@ -98,6 +100,34 @@ class _RealtimeMapState extends State<RealtimeMap> {
         widget.onLocationPicked!(point);
       }
     }
+  }
+
+  // Helper per costruire il pallino colorato (sostituisce il pin)
+  Widget _buildDotMarker(Color color, {bool pulse = false}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.6),
+            blurRadius: pulse ? 15 : 6,
+            spreadRadius: pulse ? 5 : 1,
+          )
+        ],
+      ),
+      child: Center(
+        child: Container(
+          width: 8,
+          height: 8,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -143,12 +173,9 @@ class _RealtimeMapState extends State<RealtimeMap> {
             StreamBuilder<QuerySnapshot>(
               stream: _safePointsRef.snapshots(),
               builder: (context, snapshot) {
-                // Se non ci sono dati o c'è un errore, restituisce un layer vuoto
                 if (!snapshot.hasData || snapshot.hasError) {
                   return const MarkerLayer(markers: []);
                 }
-
-                // Trasforma i documenti del DB in Marker
                 final markers = snapshot.data!.docs.map((doc) {
                   final data = doc.data() as Map<String, dynamic>;
                   final double lat = data['lat'];
@@ -194,12 +221,11 @@ class _RealtimeMapState extends State<RealtimeMap> {
                     ),
                   );
                 }).toList();
-
                 return MarkerLayer(markers: markers);
               },
             ),
 
-            // 2. LAYER OSPEDALI (HOSPITALS) - BLU [NUOVO]
+            // 2. LAYER OSPEDALI (HOSPITALS) - BLU
             StreamBuilder<QuerySnapshot>(
               stream: _hospitalsRef.snapshots(),
               builder: (context, snapshot) {
@@ -217,7 +243,6 @@ class _RealtimeMapState extends State<RealtimeMap> {
                     height: 50,
                     child: GestureDetector(
                       onTap: () {
-                        // Mostra nome ospedale
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text("🏥 Pronto Soccorso: $name"),
@@ -252,7 +277,6 @@ class _RealtimeMapState extends State<RealtimeMap> {
                     ),
                   );
                 }).toList();
-
                 return MarkerLayer(markers: markers);
               },
             ),
@@ -262,24 +286,61 @@ class _RealtimeMapState extends State<RealtimeMap> {
               stream: _firestore.snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const MarkerLayer(markers: []);
-                final List<Marker> markers = snapshot.data!.docs.map((doc) {
+
+                // Filtriamo e mappiamo i documenti
+                final List<Marker> markers = [];
+
+                for (var doc in snapshot.data!.docs) {
                   final data = doc.data() as Map<String, dynamic>;
-                  return Marker(
-                    point: LatLng(data['lat'] ?? 0, data['lng'] ?? 0),
-                    width: 50,
-                    height: 50,
-                    child: GestureDetector(
-                      onTap: () {
-                      },
-                      child: const Icon(
-                        Icons.location_on,
-                        size: 50,
-                        color: Colors.red,
-                        shadows: [Shadow(blurRadius: 10, color: Colors.black)],
+
+                  final double lat = (data['lat'] is num) ? (data['lat'] as num).toDouble() : 0.0;
+                  final double lng = (data['lng'] is num) ? (data['lng'] as num).toDouble() : 0.0;
+                  final String type = data['type']?.toString() ?? 'Generico';
+                  final int severity = (data['severity'] is int) ? data['severity'] : 1;
+
+                  // Recupero Timestamp per calcolare quanti secondi passano
+                  DateTime? timestamp;
+                  if (data['timestamp'] != null) {
+                    timestamp = DateTime.tryParse(data['timestamp'].toString());
+                  }
+
+                  // LOGICA DI SCADENZA PER "STO BENE"
+                  if (timestamp != null) {
+                    final difference = DateTime.now().difference(timestamp).inSeconds;
+                    // Se il dato è più vecchio di 60 secondi, lo nascondiamo.
+                    if (difference > 60) {
+                      continue;
+                    }
+                  }
+
+                  // --- LOGICA DI VISUALIZZAZIONE ---
+                  Widget markerWidget;
+
+                  if (type == 'SAFE') {
+                    markerWidget = _buildDotMarker(Colors.green, pulse: false);
+                  } else if (type.contains('SOS') || severity >= 5) {
+                    markerWidget = _buildDotMarker(Colors.red, pulse: true);
+                  } else {
+                    markerWidget = _buildDotMarker(Colors.orange, pulse: false);
+                  }
+
+                  markers.add(
+                    Marker(
+                      point: LatLng(lat, lng),
+                      width: 40,
+                      height: 40,
+                      child: GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("$type")),
+                          );
+                        },
+                        child: markerWidget,
                       ),
                     ),
                   );
-                }).toList();
+                }
+
                 return MarkerLayer(markers: markers);
               },
             ),

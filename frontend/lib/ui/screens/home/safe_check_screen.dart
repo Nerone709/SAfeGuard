@@ -3,17 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart'; // Necessario per calcolare le distanze
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/providers/report_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 import 'package:frontend/ui/widgets/realtime_map.dart';
 
 class SafeCheckScreen extends StatefulWidget {
   final String title;
-
   const SafeCheckScreen({
     super.key,
     this.title = "ALLERTA DI SICUREZZA",
   });
-
   @override
   State<SafeCheckScreen> createState() => _SafeCheckScreenState();
 }
@@ -22,7 +21,6 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
   static const Color backgroundRed = ColorPalette.primaryBrightRed;
   static const Color safeGreen = ColorPalette.safeGreen;
 
-  // Variabili di stato per i dati dinamici
   String _targetName = "Ricerca punto sicuro...";
   String _distanceText = "Calcolo distanza...";
   bool _isLoadingTarget = true;
@@ -30,31 +28,24 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
   @override
   void initState() {
     super.initState();
-    // Avvia il calcolo del punto più vicino appena si apre la pagina
     _findNearestSafePoint();
   }
 
-  // Logica per trovare il punto più vicino (Safe Point o Ospedale)
   Future<void> _findNearestSafePoint() async {
     try {
-      // 1. Ottieni la posizione attuale dell'utente
       Position userPos = await Geolocator.getCurrentPosition(
           locationSettings: const LocationSettings(
             accuracy: LocationAccuracy.high,
           )
       );
 
-      // 2. Recupera i punti sicuri da Firebase
-      // (Puoi cercare anche in 'hospitals' se preferisci)
       final safePointsSnapshot = await FirebaseFirestore.instance.collection('safe_points').get();
       final hospitalsSnapshot = await FirebaseFirestore.instance.collection('hospitals').get();
 
-      // Uniamo le liste per trovare il più vicino in assoluto tra i due
       final allPoints = [
         ...safePointsSnapshot.docs,
         ...hospitalsSnapshot.docs
       ];
-
       if (allPoints.isEmpty) {
         if (mounted) {
           setState(() {
@@ -69,28 +60,24 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
       double minDistance = double.infinity;
       String nearestName = "";
 
-      // 3. Calcola il più vicino
       for (var doc in allPoints) {
         final data = doc.data();
         final double lat = data['lat'];
         final double lng = data['lng'];
         final String name = data['name'] ?? "Punto Sicuro";
 
-        // Calcola distanza in metri
         double dist = Geolocator.distanceBetween(
           userPos.latitude,
           userPos.longitude,
           lat,
           lng,
         );
-
         if (dist < minDistance) {
           minDistance = dist;
           nearestName = name;
         }
       }
 
-      // 4. Formatta la distanza
       String formattedDistance;
       if (minDistance < 1000) {
         formattedDistance = "${minDistance.toStringAsFixed(0)} metri";
@@ -98,7 +85,6 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
         formattedDistance = "${(minDistance / 1000).toStringAsFixed(1)} km";
       }
 
-      // 5. Aggiorna la UI
       if (mounted) {
         setState(() {
           _targetName = nearestName;
@@ -119,9 +105,100 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
     }
   }
 
+  //LOGICA PULSANTE "STO BENE"
+  Future<void> _handleSafeCheck(BuildContext context) async {
+    try {
+      final authProvider = context.read<AuthProvider>();
+      final user = authProvider.currentUser;
+
+      if (user == null) {
+        Navigator.pop(context);
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Invio status in corso..."),
+          duration: Duration(milliseconds: 800),
+        ),
+      );
+
+      // Usa la nuova funzione con Tracking
+      bool success = await context.read<ReportProvider>().sendSafeStatusWithTracking();
+
+      if (!context.mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Grazie! Il tuo stato è visibile sulla mappa per 30 secondi."),
+            backgroundColor: safeGreen,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Errore nell'invio."),
+            backgroundColor: backgroundRed,
+          ),
+        );
+      }
+
+      Navigator.of(context).pop();
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Errore di connessione: $e"),
+          backgroundColor: backgroundRed,
+        ),
+      );
+    }
+  }
+
+  //LOGICA PULSANTE "HO BISOGNO DI AIUTO"
+  Future<void> _handleHelpRequest(BuildContext context) async {
+    try {
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.currentUser == null) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Invio richiesta di aiuto...")),
+      );
+
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+
+      // Invia report "SOS Generico" con Severity 5 -> La mappa lo renderizzerà ROSSO
+      await context.read<ReportProvider>().sendReport(
+        "SOS Generico",
+        "Richiesta di aiuto dalla schermata di controllo sicurezza.",
+        position.latitude,
+        position.longitude,
+        severity: 5,
+      );
+
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("RICHIESTA DI AIUTO INVIATA!"),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 4),
+        ),
+      );
+      Navigator.of(context).pop();
+
+    } catch (e) {
+      debugPrint("Errore help request: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Variabili per la responsività (stile confirm_emergency_screen.dart)
     final size = MediaQuery.of(context).size;
     final bool isWideScreen = size.width > 600;
 
@@ -141,7 +218,6 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
 
               const SizedBox(height: 10),
 
-              // 1. Titolo Allerta
               Text(
                 widget.title.toUpperCase(),
                 textAlign: TextAlign.center,
@@ -155,14 +231,12 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
 
               const SizedBox(height: 20),
 
-              // 2. Mappa
               Expanded(
                 child: _buildMapPlaceholder(isWideScreen),
               ),
 
               const SizedBox(height: 20),
 
-              // 3. ISTRUZIONI DINAMICHE
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -183,7 +257,6 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    // NOME PUNTO (es. Ospedale San Leonardo)
                     _isLoadingTarget
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
@@ -220,10 +293,8 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
 
               const SizedBox(height: 20),
 
-              // 4. Pulsanti Azione
               Column(
                 children: [
-                  // Pulsante SOS (Rosso con bordo nero)
                   SizedBox(
                     width: double.infinity,
                     height: 60,
@@ -237,9 +308,7 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
                         ),
                         elevation: 5,
                       ),
-                      onPressed: () {
-                        //TODO: Azione pulsante rosso
-                      },
+                      onPressed: () => _handleHelpRequest(context),
                       child: Text(
                         "HO BISOGNO DI AIUTO (SOS)",
                         style: TextStyle(
@@ -252,7 +321,6 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Pulsante STO BENE
                   SizedBox(
                     width: double.infinity,
                     height: 60,
@@ -284,7 +352,6 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
     );
   }
 
-  // Widget mappa
   Widget _buildMapPlaceholder(bool isWideScreen) {
     return Container(
       width: double.infinity,
@@ -304,57 +371,8 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
-        child: const RealtimeMap(), // <--- QUI C'È LA MAPPA VERA
+        child: const RealtimeMap(),
       ),
     );
-  }
-
-  // Logica per gestire il "Sto Bene"
-  Future<void> _handleSafeCheck(BuildContext context) async {
-    try {
-      final authProvider = context.read<AuthProvider>();
-      final user = authProvider.currentUser;
-
-      if (user == null) {
-        Navigator.pop(context); // Chiudi se non loggato
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Invio status in corso..."),
-          duration: Duration(milliseconds: 800),
-        ),
-      );
-
-      // Esempio di chiamata al provider (da implementare in EmergencyProvider)
-      /* await context.read<EmergencyProvider>().sendSafeStatus(
-            userId: user.id.toString(),
-            location: "lat,long", // Opzionale: prendere posizione GPS attuale
-          );
-      */
-
-      // Simulazione attesa rete
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (!context.mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Grazie! Abbiamo registrato che sei al sicuro."),
-          backgroundColor: safeGreen,
-        ),
-      );
-
-      Navigator.of(context).pop();
-
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Errore di connessione: $e"),
-          backgroundColor: backgroundRed,
-        ),
-      );
-    }
   }
 }

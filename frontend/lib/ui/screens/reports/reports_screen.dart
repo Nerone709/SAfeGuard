@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/report_provider.dart';
+import 'package:frontend/providers/emergency_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 import 'package:frontend/ui/widgets/realtime_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -29,15 +30,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
   int _calculateAutomaticSeverity(String type) {
     final t = type.toLowerCase();
 
-    // LIVELLO 5: Critico (Catastrofi)
-    if (t.contains('bomba') || t.contains('terremoto') || t.contains('tsunami')) {
-      return 5;
-    }
-    // LIVELLO 4: Alto (Incendi)
-    else if (t.contains('incendio')) {
+    // LIVELLO 4: Alto (Arancione) - Catastrofi e Incendi
+    if (t.contains('bomba') || t.contains('terremoto') || t.contains('tsunami') || t.contains('incendio')) {
       return 4;
     }
-    // LIVELLO 3: Medio (Meteo estremo)
+    // LIVELLO 3: Medio (Meteo)
     else if (t.contains('alluvione')) {
       return 3;
     }
@@ -196,24 +193,42 @@ class _ReportsScreenState extends State<ReportsScreen> {
       return;
     }
 
-    //CALCOLO AUTOMATICO DELLA SEVERITÀ
-    final int autoSeverity = _calculateAutomaticSeverity(_selectedEmergency!.label);
+    //INVIA REPORT SPECIFICO
+    int severity = _calculateAutomaticSeverity(_selectedEmergency!.label);
 
-    //INVIO AL PROVIDER
-    bool success = await reportProvider.sendReport(
+    bool reportSuccess = await reportProvider.sendReport(
       _selectedEmergency!.label,
       description,
       _selectedLocation!.latitude,
       _selectedLocation!.longitude,
-      severity: autoSeverity, // <--- Passaggio del parametro calcolato
+      severity: severity,
     );
 
-    // Gestione feedback post-invio
-    if (success && mounted) {
-      _showSnackBar(
-        content: 'Emergenza segnalata con successo',
-        color: Colors.green,
-      );
+    //SE "HO BISOGNO DI AIUTO", INVIA ANCHE SOS
+    // Questo crea il puntino rosso che si sposta con l'utente.
+    if (_needsHelp && reportSuccess) {
+      final user = context.read<AuthProvider>().currentUser;
+      if (user != null) {
+        // Usiamo EmergencyProvider per inviare un SOS tracciato
+        await context.read<EmergencyProvider>().sendInstantSos(
+          userId: user.id.toString(),
+          email: user.email,
+          phone: user.telefono,
+          type: "SOS Generico",
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("REPORT + SOS TRACCIATO INVIATI!"),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+
+    if (reportSuccess && mounted) {
+      _showSnackBar(content: 'Segnalazione inviata con successo', color: Colors.green);
       setState(() {
         _selectedEmergency = null;
         _descriptionController.clear();
@@ -452,14 +467,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  // Costruisce il menu a tendina per la selezione del tipo di emergenza.
   Widget _buildSpecificEmergency(BuildContext context, bool isWideScreen) {
     return SizedBox(
       width: isWideScreen ? 500 : double.infinity,
       child: EmergencyDropdownMenu(
         value: _selectedEmergency,
         hintText: "Segnala il tipo di emergenza",
-        // Definizione delle opzioni fisse.
         items: [
           EmergencyItem(label: "Terremoto", icon: Icons.waves),
           EmergencyItem(label: "Incendio", icon: Icons.local_fire_department),
@@ -486,7 +499,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  // Metodo helper per mostrare le SnackBar (messaggi di feedback).
   void _showSnackBar({required String content, required Color color}) {
     ScaffoldMessenger.of(
       context,

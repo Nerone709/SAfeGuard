@@ -69,6 +69,32 @@ class ReportRepository {
     }
   }
 
+  //Crea report su Firestore direttamente per ottenere subito l'ID e fare tracking
+  Future<String> createReportAndGetId(String type, String description, double lat, double lng, int severity) async {
+    DocumentReference docRef = FirebaseFirestore.instance.collection('active_emergencies').doc();
+
+    await docRef.set({
+      'type': type,
+      'description': description,
+      'lat': lat,
+      'lng': lng,
+      'severity': severity,
+      'timestamp': DateTime.now().toIso8601String(),
+      'status': 'active',
+    });
+
+    return docRef.id;
+  }
+
+  // --- NUOVO: Aggiorna la posizione di un report esistente ---
+  Future<void> updateReportLocation(String reportId, double lat, double lng) async {
+    await FirebaseFirestore.instance.collection('active_emergencies').doc(reportId).update({
+      'lat': lat,
+      'lng': lng,
+      'timestamp': DateTime.now().toIso8601String(), // Aggiorna timestamp per mantenere il pallino vivo
+    });
+  }
+
   // Recupera la lista delle segnalazioni
   Future<List<dynamic>> getReports() async {
     final token = await _getToken();

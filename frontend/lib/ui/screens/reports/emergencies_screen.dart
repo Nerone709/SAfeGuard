@@ -111,6 +111,11 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
     final isRescuer = context.watch<AuthProvider>().isRescuer;
     final reportProvider = context.watch<ReportProvider>();
 
+    // FILTRO: Nascondi le segnalazioni "SAFE" dalla lista delle emergenze attive
+    final activeEmergencies = reportProvider.emergencies
+        .where((e) => e['type'] != 'SAFE')
+        .toList();
+
     return Scaffold(
       backgroundColor: !isRescuer
           ? ColorPalette.backgroundDarkBlue
@@ -131,8 +136,9 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
               icon: const Icon(Icons.download, color: Colors.white),
               tooltip: "Scarica Log Completo (PDF)",
               onPressed: () {
-                if (reportProvider.emergencies.isNotEmpty) {
-                  _generateFullLogPdf(context, reportProvider.emergencies);
+                if (activeEmergencies.isNotEmpty) {
+                  // Passiamo la lista FILTRATA (senza SAFE)
+                  _generateFullLogPdf(context, activeEmergencies);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Nessuna emergenza da scaricare.")),
@@ -140,9 +146,7 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
                 }
               },
             ),
-          // ------------------------------------------------------------
 
-          // Pulsante Refresh
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: () => reportProvider.loadReports(),
@@ -159,7 +163,7 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
             );
           }
 
-          if (reportProvider.emergencies.isEmpty) {
+          if (activeEmergencies.isEmpty) {
             return const Center(
               child: Text(
                 "Nessuna segnalazione presente",
@@ -172,7 +176,7 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: GridView.builder(
-              itemCount: reportProvider.emergencies.length,
+              itemCount: activeEmergencies.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
@@ -180,7 +184,7 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
                 childAspectRatio: 0.8,
               ),
               itemBuilder: (context, index) {
-                final item = reportProvider.emergencies[index];
+                final item = activeEmergencies[index];
 
                 return EmergencyCard(
                   data: item,
