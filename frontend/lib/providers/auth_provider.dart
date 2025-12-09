@@ -67,6 +67,7 @@ class AuthProvider extends ChangeNotifier {
   UtenteGenerico? get currentUser => _currentUser;
   bool get isLogged => _authToken != null;
   bool get isNewlyRegistered => _newlyRegistered;
+  String? get token => _authToken;
 
   // Tenta il login automatico se trova i dati di sessione salvati
   Future<void> tryAutoLogin() async {

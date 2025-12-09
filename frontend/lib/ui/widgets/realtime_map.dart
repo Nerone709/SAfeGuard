@@ -4,6 +4,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/providers/risk_provider.dart';
 
 class RealtimeMap extends StatefulWidget {
   // Parametri per la modalità selezione
@@ -28,6 +30,9 @@ class _RealtimeMapState extends State<RealtimeMap> {
     'active_emergencies',
   );
 
+  final CollectionReference _safePointsRef = FirebaseFirestore.instance.collection('safe_points');
+  final CollectionReference _hospitalsRef = FirebaseFirestore.instance.collection('hospitals');
+
   // Coordinate di default (Salerno) usate finché il GPS non risponde
   LatLng _center = const LatLng(40.6824, 14.7681);
   final double _minZoom = 5.0;
@@ -40,6 +45,11 @@ class _RealtimeMapState extends State<RealtimeMap> {
   void initState() {
     super.initState();
     _initLocationService();
+
+    // Carica i dati di rischio all'avvio della mappa
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<RiskProvider>(context, listen: false).loadHotspots();
+    });
   }
 
   @override
@@ -92,6 +102,8 @@ class _RealtimeMapState extends State<RealtimeMap> {
 
   @override
   Widget build(BuildContext context) {
+    // Ottieni gli hotspot dal provider
+    final riskHotspots = context.watch<RiskProvider>().hotspots;
     return Stack(
       children: [
         FlutterMap(
@@ -111,6 +123,138 @@ class _RealtimeMapState extends State<RealtimeMap> {
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.safeguard.frontend',
+            ),
+
+            //NUOVO LAYER HOTSPOTS AI
+            CircleLayer(
+              circles: riskHotspots.map((hotspot) {
+                return CircleMarker(
+                  point: LatLng(hotspot.centerLat, hotspot.centerLng),
+                  color: Colors.red.withValues(alpha: 0.3),
+                  borderColor: Colors.red,
+                  borderStrokeWidth: 2,
+                  useRadiusInMeter: true,
+                  radius: hotspot.radiusKm * 1000, //Converte km in metri
+                );
+              }).toList(),
+            ),
+
+            //STREAM BUILDER PER I PUNTI DI RACCOLTA
+            StreamBuilder<QuerySnapshot>(
+              stream: _safePointsRef.snapshots(),
+              builder: (context, snapshot) {
+                // Se non ci sono dati o c'è un errore, restituisce un layer vuoto
+                if (!snapshot.hasData || snapshot.hasError) {
+                  return const MarkerLayer(markers: []);
+                }
+
+                // Trasforma i documenti del DB in Marker
+                final markers = snapshot.data!.docs.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final double lat = data['lat'];
+                  final double lng = data['lng'];
+                  final String name = data['name'] ?? 'Punto Sicuro';
+
+                  return Marker(
+                    point: LatLng(lat, lng),
+                    width: 50,
+                    height: 50,
+                    child: GestureDetector(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("🟢 Punto di Raccolta: $name"),
+                            backgroundColor: Colors.green[700],
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                  blurRadius: 4,
+                                )
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.verified_user,
+                              size: 28,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList();
+
+                return MarkerLayer(markers: markers);
+              },
+            ),
+
+            // 2. LAYER OSPEDALI (HOSPITALS) - BLU [NUOVO]
+            StreamBuilder<QuerySnapshot>(
+              stream: _hospitalsRef.snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const MarkerLayer(markers: []);
+
+                final markers = snapshot.data!.docs.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final double lat = data['lat'];
+                  final double lng = data['lng'];
+                  final String name = data['name'] ?? 'Ospedale';
+
+                  return Marker(
+                    point: LatLng(lat, lng),
+                    width: 50, // Un po' più grandi per visibilità
+                    height: 50,
+                    child: GestureDetector(
+                      onTap: () {
+                        // Mostra nome ospedale
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("🏥 Pronto Soccorso: $name"),
+                            backgroundColor: Colors.blue[800],
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.blue, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                  blurRadius: 4,
+                                )
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.local_hospital,
+                              size: 26,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList();
+
+                return MarkerLayer(markers: markers);
+              },
             ),
 
             // 2. StreamBuilder: Ascolta il database in tempo reale

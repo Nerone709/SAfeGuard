@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// --- IMPORTS ---
 import 'package:frontend/ui/screens/reports/emergencies_screen.dart';
 import 'package:frontend/ui/widgets/custom_bottom_nav_bar.dart';
 import 'package:frontend/ui/screens/home/home_page_content.dart';
-import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import '../profile/profile_settings_screen.dart';
 import 'package:frontend/ui/screens/map/map_screen.dart';
 import 'package:frontend/ui/screens/reports/reports_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
-// Schermata Principale
-// Gestisce la navigazione tra le sezioni dell'app, adattandosi al fattore di forma.
+// Importa il servizio per la posizione
+import 'package:frontend/services/user_location_service.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -20,6 +23,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  final UserLocationService _locationService = UserLocationService();
 
   // Lista dei widget/schermate visualizzati
   List<Widget> get _pages => [
@@ -36,6 +40,40 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _navbarKey = GlobalKey();
   // Lista di 5 chiavi, una per ogni tab della navbar
   final List<GlobalKey> _navbarItemKeys = List.generate(5, (_) => GlobalKey());
+    const EmergencyGridPage(), // 3. EMERGENZE
+    const ProfileSettingsScreen(), // 4. IMPOSTAZIONI
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Appena la Home viene costruita, eseguiamo il controllo
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndSendRescuerLocation();
+    });
+  }
+
+  // Logica per inviare la posizione SOLO se sei un soccorritore
+  Future<void> _checkAndSendRescuerLocation() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    // 1. Sei un soccorritore?
+    if (authProvider.isRescuer) {
+      // 2. Hai un token valido?
+      final String? token = authProvider.token;
+
+      if (token != null) {
+        print("🚑 Accesso Soccorritore rilevato: Invio posizione al server...");
+        await _locationService.sendLocationUpdate(token);
+      } else {
+        print("⚠️ Errore: Soccorritore loggato ma token mancante.");
+      }
+    } else {
+      // Se sei un cittadino, non facciamo nulla. La tua posizione serve solo in caso di SOS.
+      print("👤 Accesso Cittadino: Tracking passivo disabilitato.");
+    }
+  }
 
   // Callback per aggiornare l'indice quando viene premuta un'icona
   void _onTabChange(int index) {
