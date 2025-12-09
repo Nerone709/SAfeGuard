@@ -12,6 +12,7 @@ import 'package:frontend/providers/emergency_provider.dart';
 import 'package:frontend/providers/permission_provider.dart';
 import 'package:frontend/providers/notification_provider.dart';
 import 'package:frontend/providers/report_provider.dart';
+import 'package:frontend/providers/risk_provider.dart';
 import 'package:frontend/ui/screens/auth/loading_screen.dart';
 
 void main() async {
@@ -33,6 +34,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PermissionProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ReportProvider()),
+        ChangeNotifierProvider(create: (_) => ReportProvider()),
+        ChangeNotifierProvider(create: (_) => RiskProvider()),
       ],
       child: const SAfeGuard(),
     ),

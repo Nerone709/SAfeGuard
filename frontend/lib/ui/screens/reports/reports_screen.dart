@@ -22,8 +22,34 @@ class _ReportsScreenState extends State<ReportsScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   EmergencyItem? _selectedEmergency;
 
-  //Variabile per memorizzare la posizione scelta dall'utente sulla mappa
+  // Variabile per memorizzare la posizione scelta dall'utente sulla mappa
   LatLng? _selectedLocation;
+
+  //UNZIONE HELPER PER CALCOLO AUTOMATICO SEVERITÀ
+  int _calculateAutomaticSeverity(String type) {
+    final t = type.toLowerCase();
+
+    // LIVELLO 5: Critico (Catastrofi)
+    if (t.contains('bomba') || t.contains('terremoto') || t.contains('tsunami')) {
+      return 5;
+    }
+    // LIVELLO 4: Alto (Incendi)
+    else if (t.contains('incendio')) {
+      return 4;
+    }
+    // LIVELLO 3: Medio (Meteo estremo)
+    else if (t.contains('alluvione')) {
+      return 3;
+    }
+    // LIVELLO 2: Basso (Medico)
+    else if (t.contains('malessere')) {
+      return 2;
+    }
+
+    // LIVELLO 1: Default (SOS Generico o altro)
+    return 1;
+  }
+  // -------------------------------------------------------
 
   @override
   void dispose() {
@@ -31,7 +57,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     super.dispose();
   }
 
-  //Metodo per aprire il popup della mappa
+  // Metodo per aprire il popup della mappa
   void _openMapDialog(BuildContext context) {
     // Variabile locale per tenere traccia del punto selezionato.
     LatLng? tempPoint;
@@ -119,7 +145,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                 // Chiusura del dialog
                                 Navigator.of(context).pop();
 
-                                //Feedback
+                                // Feedback
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text("Posizione acquisita!"),
@@ -170,12 +196,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
       return;
     }
 
-    // Chiama il metodo sendReport sul provider per inviare i dati.
+    //CALCOLO AUTOMATICO DELLA SEVERITÀ
+    final int autoSeverity = _calculateAutomaticSeverity(_selectedEmergency!.label);
+
+    //INVIO AL PROVIDER
     bool success = await reportProvider.sendReport(
       _selectedEmergency!.label,
       description,
       _selectedLocation!.latitude,
       _selectedLocation!.longitude,
+      severity: autoSeverity, // <--- Passaggio del parametro calcolato
     );
 
     // Gestione feedback post-invio

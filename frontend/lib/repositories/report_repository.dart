@@ -39,7 +39,7 @@ class ReportRepository {
   }
 
   // Crea segnalazione
-  Future<void> createReport(String type, String description, double? lat, double? lng) async {
+  Future<void> createReport(String type, String description, double? lat, double? lng, int severity) async {
     final token = await _getToken();
     if (token == null) throw Exception("Utente non autenticato");
 
@@ -57,6 +57,7 @@ class ReportRepository {
           'description': description,
           'lat': lat,
           'lng': lng,
+          'severity': severity,
         }),
       );
 

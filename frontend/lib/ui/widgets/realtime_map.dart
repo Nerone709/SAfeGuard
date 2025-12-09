@@ -4,6 +4,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/providers/risk_provider.dart';
 
 class RealtimeMap extends StatefulWidget {
   // Parametri per la modalità selezione
@@ -43,6 +45,11 @@ class _RealtimeMapState extends State<RealtimeMap> {
   void initState() {
     super.initState();
     _initLocationService();
+
+    // Carica i dati di rischio all'avvio della mappa
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<RiskProvider>(context, listen: false).loadHotspots();
+    });
   }
 
   @override
@@ -95,6 +102,8 @@ class _RealtimeMapState extends State<RealtimeMap> {
 
   @override
   Widget build(BuildContext context) {
+    // Ottieni gli hotspot dal provider
+    final riskHotspots = context.watch<RiskProvider>().hotspots;
     return Stack(
       children: [
         FlutterMap(
@@ -114,6 +123,20 @@ class _RealtimeMapState extends State<RealtimeMap> {
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.safeguard.frontend',
+            ),
+
+            //NUOVO LAYER HOTSPOTS AI
+            CircleLayer(
+              circles: riskHotspots.map((hotspot) {
+                return CircleMarker(
+                  point: LatLng(hotspot.centerLat, hotspot.centerLng),
+                  color: Colors.red.withValues(alpha: 0.3),
+                  borderColor: Colors.red,
+                  borderStrokeWidth: 2,
+                  useRadiusInMeter: true,
+                  radius: hotspot.radiusKm * 1000, //Converte km in metri
+                );
+              }).toList(),
             ),
 
             //STREAM BUILDER PER I PUNTI DI RACCOLTA
