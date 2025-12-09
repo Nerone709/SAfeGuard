@@ -40,9 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _navbarKey = GlobalKey();
   // Lista di 5 chiavi, una per ogni tab della navbar
   final List<GlobalKey> _navbarItemKeys = List.generate(5, (_) => GlobalKey());
-    const EmergencyGridPage(), // 3. EMERGENZE
-    const ProfileSettingsScreen(), // 4. IMPOSTAZIONI
-  ];
 
   @override
   void initState() {
