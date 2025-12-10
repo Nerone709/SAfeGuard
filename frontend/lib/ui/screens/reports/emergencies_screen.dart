@@ -27,7 +27,10 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
   }
 
   //FUNZIONE PER GENERARE IL PDF DEL LOG COMPLETO
-  Future<void> _generateFullLogPdf(BuildContext context, List<Map<String, dynamic>> emergencies) async {
+  Future<void> _generateFullLogPdf(
+    BuildContext context,
+    List<Map<String, dynamic>> emergencies,
+  ) async {
     final pdf = pw.Document();
     final logoImage = await imageFromAssetBundle('assets/logo.png');
     final DateTime now = DateTime.now();
@@ -37,19 +40,29 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
         // Intestazione di ogni pagina
         header: (pw.Context context) {
           return pw.Container(
-              alignment: pw.Alignment.centerRight,
-              margin: const pw.EdgeInsets.only(bottom: 3.0 * PdfPageFormat.mm),
-              padding: const pw.EdgeInsets.only(bottom: 3.0 * PdfPageFormat.mm),
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(bottom: pw.BorderSide(width: 0.5, color: PdfColors.grey)),
+            alignment: pw.Alignment.centerRight,
+            margin: const pw.EdgeInsets.only(bottom: 3.0 * PdfPageFormat.mm),
+            padding: const pw.EdgeInsets.only(bottom: 3.0 * PdfPageFormat.mm),
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(
+                bottom: pw.BorderSide(width: 0.5, color: PdfColors.grey),
               ),
-              child: pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text('SafeGuard Log Interventi', style: pw.TextStyle(color: PdfColors.grey, fontWeight: pw.FontWeight.bold)),
-                  pw.Text('Generato il: ${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}'),
-                ],
-              )
+            ),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  'SafeGuard Log Interventi',
+                  style: pw.TextStyle(
+                    color: PdfColors.grey,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.Text(
+                  'Generato il: ${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}',
+                ),
+              ],
+            ),
           );
         },
         // Contenuto principale
@@ -64,19 +77,28 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
             pw.TableHelper.fromTextArray(
               context: context,
               border: pw.TableBorder.all(),
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+              headerStyle: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.white,
+              ),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.orange),
               cellAlignment: pw.Alignment.centerLeft,
-              headers: <String>['ID', 'Tipo', 'Descrizione', 'Data/Ora', 'Gravità'],
+              headers: <String>[
+                'ID',
+                'Tipo',
+                'Descrizione',
+                'Data/Ora',
+                'Gravità',
+              ],
               data: emergencies.map((item) {
                 // Formattazione Data
                 final dateRaw = item['timestamp']?.toString();
                 String dateFmt = "N/D";
-                if(dateRaw != null) {
+                if (dateRaw != null) {
                   try {
                     final dt = DateTime.parse(dateRaw);
                     dateFmt = "${dt.day}/${dt.month} ${dt.hour}:${dt.minute}";
-                  } catch(_) {}
+                  } catch (_) {}
                 }
 
                 // Costruzione riga tabella
@@ -92,14 +114,19 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
             pw.SizedBox(height: 20),
             pw.Align(
               alignment: pw.Alignment.centerRight,
-              child: pw.Text("Totale Emergenze: ${emergencies.length}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              child: pw.Text(
+                "Totale Emergenze: ${emergencies.length}",
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+              ),
             ),
           ];
         },
       ),
     );
     // Apre l'anteprima di stampa/salvataggio
-    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdf.save());
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
   }
   // ----------------------------------------------------
 
@@ -131,7 +158,8 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
 
       if (isPrivateSOS) {
         // Recupera l'ID del proprietario del report
-        final String? ownerId = e['user_id']?.toString() ?? e['rescuer_id']?.toString();
+        final String? ownerId =
+            e['user_id']?.toString() ?? e['rescuer_id']?.toString();
 
         return ownerId == currentUserId;
       }
@@ -165,7 +193,9 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
                   _generateFullLogPdf(context, activeEmergencies);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Nessuna emergenza da scaricare.")),
+                    const SnackBar(
+                      content: Text("Nessuna emergenza da scaricare."),
+                    ),
                   );
                 }
               },

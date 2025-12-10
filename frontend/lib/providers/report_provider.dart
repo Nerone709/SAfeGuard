@@ -39,22 +39,27 @@ class ReportProvider extends ChangeNotifier {
       distanceFilter: 10,
     );
 
-    _positionSubscription = Geolocator.getPositionStream(locationSettings: locationSettings)
-        .listen((Position position) {
-      _currentPosition = position;
-      _recalculateNearest(); // Ricalcola se l'utente si sposta
-    });
+    _positionSubscription =
+        Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+          (Position position) {
+            _currentPosition = position;
+            _recalculateNearest(); // Ricalcola se l'utente si sposta
+          },
+        );
 
-    _reportsSubscription = _reportRepository.getReportsStream().listen((dynamicData) {
-      _emergencies = _parseEmergencies(dynamicData);
-      _recalculateNearest();
-      _isLoading = false;
-      notifyListeners();
-    }, onError: (e) {
-      print("Errore stream report: $e");
-      _isLoading = false;
-      notifyListeners();
-    });
+    _reportsSubscription = _reportRepository.getReportsStream().listen(
+      (dynamicData) {
+        _emergencies = _parseEmergencies(dynamicData);
+        _recalculateNearest();
+        _isLoading = false;
+        notifyListeners();
+      },
+      onError: (e) {
+        print("Errore stream report: $e");
+        _isLoading = false;
+        notifyListeners();
+      },
+    );
   }
 
   void _recalculateNearest() {
@@ -111,11 +116,23 @@ class ReportProvider extends ChangeNotifier {
     startRealtimeMonitoring();
   }
 
-  Future<bool> sendReport(String type, String description, double? lat, double? lng, {required int severity}) async {
+  Future<bool> sendReport(
+    String type,
+    String description,
+    double? lat,
+    double? lng, {
+    required int severity,
+  }) async {
     _isLoading = true;
     notifyListeners();
     try {
-      await _reportRepository.createReport(type, description, lat, lng, severity);
+      await _reportRepository.createReport(
+        type,
+        description,
+        lat,
+        lng,
+        severity,
+      );
       _isLoading = false;
       notifyListeners();
       return true;
@@ -131,7 +148,9 @@ class ReportProvider extends ChangeNotifier {
   Future<bool> sendSafeStatusWithTracking() async {
     try {
       Position startPos = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(accuracy: LocationAccuracy.high)
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       String reportId = await _reportRepository.createReportAndGetId(
@@ -143,16 +162,22 @@ class ReportProvider extends ChangeNotifier {
       );
 
       const trackSettings = LocationSettings(
-          accuracy: LocationAccuracy.high,
-          distanceFilter: 5
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 5,
       );
 
       _safeTrackingSubscription?.cancel();
 
-      _safeTrackingSubscription = Geolocator.getPositionStream(locationSettings: trackSettings)
-          .listen((Position pos) {
-        _reportRepository.updateReportLocation(reportId, pos.latitude, pos.longitude);
-      });
+      _safeTrackingSubscription =
+          Geolocator.getPositionStream(locationSettings: trackSettings).listen((
+            Position pos,
+          ) {
+            _reportRepository.updateReportLocation(
+              reportId,
+              pos.latitude,
+              pos.longitude,
+            );
+          });
 
       // Ferma il tracking dopo 30 secondi
       Timer(const Duration(seconds: 30), () {

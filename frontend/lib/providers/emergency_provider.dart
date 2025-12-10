@@ -24,7 +24,7 @@ class EmergencyProvider extends ChangeNotifier {
     required String? email,
     required String? phone,
     String type = "Generico",
-    required String userId
+    required String userId,
   }) async {
     debugPrint("[Provider] Inizio procedura SOS...");
 
@@ -38,10 +38,14 @@ class EmergencyProvider extends ChangeNotifier {
       Position? lastKnown = await Geolocator.getLastKnownPosition();
 
       if (lastKnown != null) {
-        debugPrint("[Provider] Trovata ultima posizione nota. Invio Immediato.");
+        debugPrint(
+          "[Provider] Trovata ultima posizione nota. Invio Immediato.",
+        );
         position = lastKnown;
       } else {
-        debugPrint("[Provider] Nessuna posizione in memoria. Attendo fix preciso...");
+        debugPrint(
+          "[Provider] Nessuna posizione in memoria. Attendo fix preciso...",
+        );
         position = await Geolocator.getCurrentPosition(
           locationSettings: const LocationSettings(
             accuracy: LocationAccuracy.high,
@@ -49,7 +53,9 @@ class EmergencyProvider extends ChangeNotifier {
         );
       }
 
-      debugPrint("[Provider] Posizione invio iniziale: ${position.latitude}, ${position.longitude}");
+      debugPrint(
+        "[Provider] Posizione invio iniziale: ${position.latitude}, ${position.longitude}",
+      );
 
       // 2. Delega ad EmergencyRepository per interagire con il DB (POST)
       await _emergencyRepository.sendSos(
@@ -68,7 +74,6 @@ class EmergencyProvider extends ChangeNotifier {
       await Future.delayed(const Duration(milliseconds: 500));
 
       return true;
-
     } catch (e) {
       debugPrint("[Provider] Errore invio SOS: $e");
       _errorMessage = _cleanError(e);
@@ -108,14 +113,20 @@ class EmergencyProvider extends ChangeNotifier {
       distanceFilter: 10,
     );
 
-    _positionStreamSubscription = Geolocator.getPositionStream(
-        locationSettings: locationSettings
-    ).listen((Position position) {
-      debugPrint("MOVIMENTO RILEVATO: ${position.latitude}, ${position.longitude}");
+    _positionStreamSubscription =
+        Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+          (Position position) {
+            debugPrint(
+              "MOVIMENTO RILEVATO: ${position.latitude}, ${position.longitude}",
+            );
 
-      // Invia aggiornamento silenzioso al server
-      _emergencyRepository.updateLocation(position.latitude, position.longitude);
-    });
+            // Invia aggiornamento silenzioso al server
+            _emergencyRepository.updateLocation(
+              position.latitude,
+              position.longitude,
+            );
+          },
+        );
   }
 
   // Helper per pulire l'output di un errore

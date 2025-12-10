@@ -2,7 +2,7 @@
 // Gestisce lo stato e i dati di una richiesta di soccorso o SOS attiva nel sistema.
 
 class Emergenza {
-  final String id;          // ID univoco della segnalazione
+  final String id; // ID univoco della segnalazione
   final String userId;
   final String? email;
   final String? phone;
@@ -10,7 +10,7 @@ class Emergenza {
   final double lat;
   final double lng;
   final DateTime timestamp;
-  final String status;      // Stato corrente (attiva, risolta)
+  final String status; // Stato corrente (attiva, risolta)
 
   Emergenza({
     required this.id,

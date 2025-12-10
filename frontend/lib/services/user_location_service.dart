@@ -32,7 +32,7 @@ class UserLocationService {
 
       // 2. Prendi coordinate GPS
       Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high
+        desiredAccuracy: LocationAccuracy.high,
       );
       print("📍 GPS Preso: ${position.latitude}, ${position.longitude}");
 
@@ -52,11 +52,13 @@ class UserLocationService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $jwtToken', // Il token JWT dell'utente loggato
+          'Authorization':
+              'Bearer $jwtToken', // Il token JWT dell'utente loggato
         },
         body: jsonEncode({
           'lat': position.latitude,
-          'lng': position.longitude, // Attenzione: lng, non lon (dipende dal tuo backend)
+          'lng': position
+              .longitude, // Attenzione: lng, non lon (dipende dal tuo backend)
           'fcmToken': fcmToken,
         }),
       );
@@ -66,7 +68,6 @@ class UserLocationService {
       } else {
         print("❌ Errore Backend (${response.statusCode}): ${response.body}");
       }
-
     } catch (e) {
       print("🔥 Errore connessione servizio posizione: $e");
     }

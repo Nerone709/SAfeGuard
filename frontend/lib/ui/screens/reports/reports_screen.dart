@@ -31,7 +31,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final t = type.toLowerCase();
 
     // LIVELLO 4: Alto (Arancione) - Catastrofi e Incendi
-    if (t.contains('bomba') || t.contains('terremoto') || t.contains('tsunami') || t.contains('incendio')) {
+    if (t.contains('bomba') ||
+        t.contains('terremoto') ||
+        t.contains('tsunami') ||
+        t.contains('incendio')) {
       return 4;
     }
     // LIVELLO 3: Medio (Meteo)
@@ -228,7 +231,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
 
     if (reportSuccess && mounted) {
-      _showSnackBar(content: 'Segnalazione inviata con successo', color: Colors.green);
+      _showSnackBar(
+        content: 'Segnalazione inviata con successo',
+        color: Colors.green,
+      );
       setState(() {
         _selectedEmergency = null;
         _descriptionController.clear();
@@ -484,7 +490,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
         onSelected: (item) {
           // Callback quando un elemento è selezionato.
           setState(() {
-            _selectedEmergency = item;// Salva l'oggetto selezionato nello stato.
+            _selectedEmergency =
+                item; // Salva l'oggetto selezionato nello stato.
           });
           // Feedback rapido tramite SnackBar.
           ScaffoldMessenger.of(context).showSnackBar(

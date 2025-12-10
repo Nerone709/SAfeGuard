@@ -7,9 +7,18 @@ import 'package:data_models/risk_hotspot.dart';
 
 class RiskRepository {
   //Configurazione URL
-  static const String _envHost = String.fromEnvironment('SERVER_HOST', defaultValue: 'http://localhost');
-  static const String _envPort = String.fromEnvironment('SERVER_PORT', defaultValue: '8080');
-  static const String _envPrefix = String.fromEnvironment('API_PREFIX', defaultValue: '');
+  static const String _envHost = String.fromEnvironment(
+    'SERVER_HOST',
+    defaultValue: 'http://localhost',
+  );
+  static const String _envPort = String.fromEnvironment(
+    'SERVER_PORT',
+    defaultValue: '8080',
+  );
+  static const String _envPrefix = String.fromEnvironment(
+    'API_PREFIX',
+    defaultValue: '',
+  );
 
   String get _baseUrl {
     String host = _envHost;

@@ -8,9 +8,13 @@ import 'package:frontend/ui/style/color_palette.dart';
 class CustomBottomNavBar extends StatefulWidget {
   // Funzione di callback: comunica alla Home quale icona è stata premuta
   final Function(int) onIconTapped;
-// 1. NUOVO PARAMETRO: Lista di chiavi per ogni icona
+  // 1. NUOVO PARAMETRO: Lista di chiavi per ogni icona
   final List<GlobalKey>? itemKeys;
-  const CustomBottomNavBar({super.key, required this.onIconTapped, this.itemKeys,});
+  const CustomBottomNavBar({
+    super.key,
+    required this.onIconTapped,
+    this.itemKeys,
+  });
 
   @override
   State<CustomBottomNavBar> createState() => _CustomBottomNavBarState();

@@ -2,15 +2,20 @@ import 'package:firedart/firedart.dart';
 
 class ReportRepository {
   // 1. Collezione per i report ATTIVI (Dati grezzi visualizzati sulla mappa dell'App)
-  CollectionReference get _activeCollection => Firestore.instance.collection('active_emergencies');
+  CollectionReference get _activeCollection =>
+      Firestore.instance.collection('active_emergencies');
 
   // 2. Collezione per i report ANALIZZATI (Registro storico con i dati dell'AI)
-  CollectionReference get _analyzedCollection => Firestore.instance.collection('analyzed_reports');
+  CollectionReference get _analyzedCollection =>
+      Firestore.instance.collection('analyzed_reports');
 
   // --- GESTIONE EMERGENZE ATTIVE ---
 
   // Crea il report iniziale (senza dati AI)
-  Future<void> createReport(Map<String, dynamic> reportData, String customId) async {
+  Future<void> createReport(
+    Map<String, dynamic> reportData,
+    String customId,
+  ) async {
     await _activeCollection.document(customId).set(reportData);
   }
 

@@ -27,7 +27,10 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
     if (userId == null) return null;
 
     try {
-      var doc = await FirebaseFirestore.instance.collection('users').doc(userId.toString()).get();
+      var doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId.toString())
+          .get();
       if (doc.exists) return doc;
     } catch (e) {
       debugPrint("Errore fetch cittadino: $e");
@@ -38,12 +41,18 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
   // Costruisce l'icona
   IconData _getIconForType(String type) {
     switch (type.toUpperCase()) {
-      case 'INCENDIO': return Icons.local_fire_department;
-      case 'TSUNAMI': return Icons.water;
-      case 'ALLUVIONE': return Icons.flood;
-      case 'MALESSERE': return Icons.medical_services;
-      case 'BOMBA': return Icons.warning;
-      default: return Icons.warning_amber_rounded;
+      case 'INCENDIO':
+        return Icons.local_fire_department;
+      case 'TSUNAMI':
+        return Icons.water;
+      case 'ALLUVIONE':
+        return Icons.flood;
+      case 'MALESSERE':
+        return Icons.medical_services;
+      case 'BOMBA':
+        return Icons.warning;
+      default:
+        return Icons.warning_amber_rounded;
     }
   }
 
@@ -51,21 +60,29 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
   String _calculateAge(dynamic birthDateData) {
     if (birthDateData == null) return "N/D";
     DateTime date = DateTime.now();
-    if (birthDateData is Timestamp) date = birthDateData.toDate();
+    if (birthDateData is Timestamp)
+      date = birthDateData.toDate();
     else if (birthDateData is String) {
       final parsed = DateTime.tryParse(birthDateData);
       if (parsed != null) date = parsed;
     }
     final DateTime today = DateTime.now();
     int age = today.year - date.year;
-    if (today.month < date.month || (today.month == date.month && today.day < date.day)) age--;
+    if (today.month < date.month ||
+        (today.month == date.month && today.day < date.day))
+      age--;
     return "$age anni";
   }
 
   String _formatMedicalNotes(dynamic data) {
     if (data == null) return "Nessuna patologia segnalata";
-    if (data is List) return data.isEmpty ? "Nessuna patologia segnalata" : data.join(", ");
-    String text = data.toString().replaceAll('[', '').replaceAll(']', '').trim();
+    if (data is List)
+      return data.isEmpty ? "Nessuna patologia segnalata" : data.join(", ");
+    String text = data
+        .toString()
+        .replaceAll('[', '')
+        .replaceAll(']', '')
+        .trim();
     return text.isEmpty ? "Nessuna patologia segnalata" : text;
   }
 
@@ -90,7 +107,8 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
               Expanded(
                 child: PageView(
                   controller: _pageController,
-                  onPageChanged: (index) => setState(() => _currentPage = index),
+                  onPageChanged: (index) =>
+                      setState(() => _currentPage = index),
                   children: [
                     _buildEmergencyPage(eLat, eLng, icon),
                     _buildCitizenPage(),
@@ -109,14 +127,18 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
                     height: _currentPage == index ? 12 : 8,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _currentPage == index ? Colors.white : Colors.white38,
+                      color: _currentPage == index
+                          ? Colors.white
+                          : Colors.white38,
                     ),
                   );
                 }),
               ),
               const SizedBox(height: 10),
               Text(
-                _currentPage == 0 ? "Scorri per info cittadino >" : "< Torna ai dettagli",
+                _currentPage == 0
+                    ? "Scorri per info cittadino >"
+                    : "< Torna ai dettagli",
                 style: const TextStyle(color: Colors.white54, fontSize: 12),
               ),
             ],
@@ -141,7 +163,11 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
                 Flexible(
                   child: Text(
                     widget.item['type'].toString().toUpperCase(),
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -166,9 +192,15 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
             else
               Container(
                 height: 50,
-                decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(10)),
+                decoration: BoxDecoration(
+                  color: Colors.white10,
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 alignment: Alignment.center,
-                child: const Text("Posizione non disponibile", style: TextStyle(color: Colors.white70)),
+                child: const Text(
+                  "Posizione non disponibile",
+                  style: TextStyle(color: Colors.white70),
+                ),
               ),
           ],
         ),
@@ -182,7 +214,9 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
       future: _fetchCitizenProfile(widget.item['rescuer_id']),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: Colors.white));
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          );
         }
         // Caso di errore
         if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
@@ -199,7 +233,11 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
               children: const [
                 Text(
                   "Non sono disponibili dati anagrafici pubblici per questo utente.",
-                  style: TextStyle(color: Colors.white70, fontSize: 14, fontStyle: FontStyle.italic),
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
               ],
             ),
@@ -216,7 +254,14 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(isRescuer ? "Dettagli soccorritore" : "Dettagli Cittadino", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text(
+                  isRescuer ? "Dettagli soccorritore" : "Dettagli Cittadino",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
                 const SizedBox(height: 20),
 
                 Container(
@@ -231,28 +276,46 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildInfoRow("Nome:", "${userData['nome'] ?? 'N/D'}"),
-                      _buildInfoRow("Cognome:", "${userData['cognome'] ?? 'N/D'}"),
-                      if(!isRescuer)
-                        _buildInfoRow("Telefono:", "${userData['telefono'] ?? 'N/D'}"),
+                      _buildInfoRow(
+                        "Cognome:",
+                        "${userData['cognome'] ?? 'N/D'}",
+                      ),
+                      if (!isRescuer)
+                        _buildInfoRow(
+                          "Telefono:",
+                          "${userData['telefono'] ?? 'N/D'}",
+                        ),
                       if (userData['dataDiNascita'] != null)
-                        _buildInfoRow("Età:", _calculateAge(userData['dataDiNascita'])),
-
+                        _buildInfoRow(
+                          "Età:",
+                          _calculateAge(userData['dataDiNascita']),
+                        ),
 
                       if (!isRescuer) ...{
                         const Divider(color: Colors.white24, height: 20),
-                        const Text("Note Mediche / Allergie:", style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 14)),
+                        const Text(
+                          "Note Mediche / Allergie:",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
                         const SizedBox(height: 5),
                         Text(
                           _formatMedicalNotes(userData['allergie']),
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontStyle: FontStyle.italic),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontStyle: FontStyle.italic,
+                          ),
                         ),
-                      }
+                      },
                     ],
                   ),
                 ),
 
                 const SizedBox(height: 40),
-
               ],
             ),
           ),
@@ -268,8 +331,23 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 80, child: Text(label, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 14))),
-          Expanded(child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 15))),
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(color: Colors.white, fontSize: 15),
+            ),
+          ),
         ],
       ),
     );

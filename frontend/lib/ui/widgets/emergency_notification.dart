@@ -12,13 +12,15 @@ class EmergencyNotification extends StatefulWidget {
 }
 
 class _EmergencyNotification extends State<EmergencyNotification> {
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Questo avvia l'ascolto continuo
-      Provider.of<ReportProvider>(context, listen: false).startRealtimeMonitoring();
+      Provider.of<ReportProvider>(
+        context,
+        listen: false,
+      ).startRealtimeMonitoring();
     });
   }
 
@@ -39,7 +41,8 @@ class _EmergencyNotification extends State<EmergencyNotification> {
 
     // 3. Estrazione Dati Dinamici
     // Usa il tipo come Titolo (es. INCENDIO)
-    final String titolo = nearest['type']?.toString().toUpperCase() ?? "ALLERTA";
+    final String titolo =
+        nearest['type']?.toString().toUpperCase() ?? "ALLERTA";
 
     // Usa la descrizione o la distanza calcolata come sottotitolo
     final String descrizioneDB = nearest['description']?.toString() ?? "";
@@ -56,7 +59,8 @@ class _EmergencyNotification extends State<EmergencyNotification> {
         ? ColorPalette.electricBlue
         : ColorPalette.primaryBrightRed;
 
-    const emergencyIcon = Icons.warning_amber_rounded; // Icona più appropriata per allerta
+    const emergencyIcon =
+        Icons.warning_amber_rounded; // Icona più appropriata per allerta
 
     return Padding(
       padding: const EdgeInsetsGeometry.symmetric(
@@ -74,7 +78,7 @@ class _EmergencyNotification extends State<EmergencyNotification> {
               color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 8,
               offset: const Offset(0, 4),
-            )
+            ),
           ],
         ),
         child: Row(
@@ -106,9 +110,9 @@ class _EmergencyNotification extends State<EmergencyNotification> {
                   Text(
                     indirizzoInfo,
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.w500
+                      color: Colors.white,
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w500,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,

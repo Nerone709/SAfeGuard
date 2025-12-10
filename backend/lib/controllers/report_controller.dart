@@ -13,7 +13,9 @@ class ReportController {
     try {
       final userContext = request.context['user'] as Map<String, dynamic>?;
       if (userContext == null) {
-        return Response.forbidden(jsonEncode({'error': 'Utente non autenticato'}));
+        return Response.forbidden(
+          jsonEncode({'error': 'Utente non autenticato'}),
+        );
       }
 
       final int senderId = userContext['id'];
@@ -42,8 +44,8 @@ class ReportController {
 
       if (type == null || type.isEmpty) {
         return Response.badRequest(
-            body: jsonEncode({'error': 'Il tipo di emergenza è obbligatorio'}),
-            headers: _headers
+          body: jsonEncode({'error': 'Il tipo di emergenza è obbligatorio'}),
+          headers: _headers,
         );
       }
 
@@ -59,14 +61,17 @@ class ReportController {
       );
 
       return Response.ok(
-        jsonEncode({'success': true, 'message': 'Segnalazione creata con successo'}),
+        jsonEncode({
+          'success': true,
+          'message': 'Segnalazione creata con successo',
+        }),
         headers: _headers,
       );
     } catch (e) {
       print("Errore controller createReport: $e");
       return Response.internalServerError(
-          body: jsonEncode({'success': false, 'message': 'Errore server: $e'}),
-          headers: _headers
+        body: jsonEncode({'success': false, 'message': 'Errore server: $e'}),
+        headers: _headers,
       );
     }
   }
@@ -77,20 +82,22 @@ class ReportController {
       final list = await _reportService.getReports();
 
       return Response.ok(
-        jsonEncode(list, toEncodable: (item) {
-          if (item is DateTime) {
-            return item.toIso8601String();
-          }
-          return item;
-        }),
+        jsonEncode(
+          list,
+          toEncodable: (item) {
+            if (item is DateTime) {
+              return item.toIso8601String();
+            }
+            return item;
+          },
+        ),
         headers: _headers,
       );
-
     } catch (e) {
       print("Errore controller getAllReports: $e");
       return Response.internalServerError(
-          body: jsonEncode({'error': 'Impossibile recuperare le segnalazioni'}),
-          headers: _headers
+        body: jsonEncode({'error': 'Impossibile recuperare le segnalazioni'}),
+        headers: _headers,
       );
     }
   }
@@ -110,5 +117,5 @@ class ReportController {
         headers: _headers,
       );
     }
-    }
+  }
 }

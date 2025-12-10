@@ -79,10 +79,7 @@ class EmergencyRepository {
     final docRef = _emergenciesCollection.document(userId);
 
     if (await docRef.exists) {
-      await docRef.update({
-        'lat': lat,
-        'lng': lng,
-      });
+      await docRef.update({'lat': lat, 'lng': lng});
     }
   }
 }

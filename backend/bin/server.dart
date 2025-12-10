@@ -48,7 +48,8 @@ void main() async {
   final emergencyController = EmergencyController();
   final authGuard = AuthGuard();
 
-  final aiServiceUrl = env['AI_SERVICE_URL'] ?? 'http://127.0.0.1:8000/api/v1/analyze';
+  final aiServiceUrl =
+      env['AI_SERVICE_URL'] ?? 'http://127.0.0.1:8000/api/v1/analyze';
   final riskController = RiskController(aiServiceUrl);
 
   // 4. Rounting pubblico
@@ -84,7 +85,6 @@ void main() async {
   profileApi.put('/notifiche', profileController.updateNotifiche);
   profileApi.put('/password', profileController.updatePassword);
 
-
   // Aggiunta elementi a liste
   profileApi.post('/allergie', profileController.addAllergia);
   profileApi.post('/medicinali', profileController.addMedicinale);
@@ -117,13 +117,15 @@ void main() async {
   );
 
   app.mount(
-      '/api/reports',
-      Pipeline().addMiddleware(authGuard.middleware).addHandler(reportApi.call),
+    '/api/reports',
+    Pipeline().addMiddleware(authGuard.middleware).addHandler(reportApi.call),
   );
 
   app.mount(
     '/api/emergency',
-    Pipeline().addMiddleware(authGuard.middleware).addHandler(emergencyController.router.call),
+    Pipeline()
+        .addMiddleware(authGuard.middleware)
+        .addHandler(emergencyController.router.call),
   );
 
   // 7. Pipeline Server e Configurazione CORS

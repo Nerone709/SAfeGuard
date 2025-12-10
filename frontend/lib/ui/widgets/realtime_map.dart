@@ -28,8 +28,10 @@ class _RealtimeMapState extends State<RealtimeMap> {
   final CollectionReference _firestore = FirebaseFirestore.instance.collection(
     'active_emergencies',
   );
-  final CollectionReference _safePointsRef = FirebaseFirestore.instance.collection('safe_points');
-  final CollectionReference _hospitalsRef = FirebaseFirestore.instance.collection('hospitals');
+  final CollectionReference _safePointsRef = FirebaseFirestore.instance
+      .collection('safe_points');
+  final CollectionReference _hospitalsRef = FirebaseFirestore.instance
+      .collection('hospitals');
   // Coordinate di default (Salerno) usate finché il GPS non risponde
   LatLng _center = const LatLng(40.6824, 14.7681);
   final double _minZoom = 5.0;
@@ -110,7 +112,7 @@ class _RealtimeMapState extends State<RealtimeMap> {
             color: color.withValues(alpha: 0.6),
             blurRadius: pulse ? 15 : 6,
             spreadRadius: pulse ? 5 : 1,
-          )
+          ),
         ],
       ),
       child: Center(
@@ -161,18 +163,18 @@ class _RealtimeMapState extends State<RealtimeMap> {
 
             //NUOVO LAYER HOTSPOTS AI
             if (areHotspotsVisible)
-            CircleLayer(
-              circles: riskHotspots.map((hotspot) {
-                return CircleMarker(
-                  point: LatLng(hotspot.centerLat, hotspot.centerLng),
-                  color: Colors.red.withValues(alpha: 0.3),
-                  borderColor: Colors.red,
-                  borderStrokeWidth: 2,
-                  useRadiusInMeter: true,
-                  radius: hotspot.radiusKm * 1000, //Converte km in metri
-                );
-              }).toList(),
-            ),
+              CircleLayer(
+                circles: riskHotspots.map((hotspot) {
+                  return CircleMarker(
+                    point: LatLng(hotspot.centerLat, hotspot.centerLng),
+                    color: Colors.red.withValues(alpha: 0.3),
+                    borderColor: Colors.red,
+                    borderStrokeWidth: 2,
+                    useRadiusInMeter: true,
+                    radius: hotspot.radiusKm * 1000, //Converte km in metri
+                  );
+                }).toList(),
+              ),
 
             //STREAM BUILDER PER I PUNTI DI RACCOLTA
             StreamBuilder<QuerySnapshot>(
@@ -212,7 +214,7 @@ class _RealtimeMapState extends State<RealtimeMap> {
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.3),
                                   blurRadius: 4,
-                                )
+                                ),
                               ],
                             ),
                             child: const Icon(
@@ -268,7 +270,7 @@ class _RealtimeMapState extends State<RealtimeMap> {
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.3),
                                   blurRadius: 4,
-                                )
+                                ),
                               ],
                             ),
                             child: const Icon(
@@ -298,13 +300,21 @@ class _RealtimeMapState extends State<RealtimeMap> {
                 for (var doc in snapshot.data!.docs) {
                   final data = doc.data() as Map<String, dynamic>;
 
-                  final double lat = (data['lat'] is num) ? (data['lat'] as num).toDouble() : 0.0;
-                  final double lng = (data['lng'] is num) ? (data['lng'] as num).toDouble() : 0.0;
+                  final double lat = (data['lat'] is num)
+                      ? (data['lat'] as num).toDouble()
+                      : 0.0;
+                  final double lng = (data['lng'] is num)
+                      ? (data['lng'] as num).toDouble()
+                      : 0.0;
                   final String type = data['type']?.toString() ?? 'Generico';
-                  final int severity = (data['severity'] is int) ? data['severity'] : 1;
+                  final int severity = (data['severity'] is int)
+                      ? data['severity']
+                      : 1;
 
                   // Recupero ID proprietario (Supporta sia SOS che Report)
-                  final String? ownerId = data['user_id']?.toString() ?? data['rescuer_id']?.toString();
+                  final String? ownerId =
+                      data['user_id']?.toString() ??
+                      data['rescuer_id']?.toString();
 
                   // Recupero Timestamp per calcolare quanti secondi passano
                   DateTime? timestamp;
@@ -314,7 +324,9 @@ class _RealtimeMapState extends State<RealtimeMap> {
 
                   // LOGICA DI SCADENZA PER "STO BENE"
                   if (timestamp != null) {
-                    final difference = DateTime.now().difference(timestamp).inSeconds;
+                    final difference = DateTime.now()
+                        .difference(timestamp)
+                        .inSeconds;
                     // Se il dato è più vecchio di 60 secondi, lo nascondiamo.
                     if (difference > 60) {
                       continue;
@@ -340,7 +352,8 @@ class _RealtimeMapState extends State<RealtimeMap> {
                   if (!isRescuer) {
                     if (isCritical) {
                       // Controlla se è il proprietario
-                      bool isMine = (currentUserId != null && ownerId == currentUserId);
+                      bool isMine =
+                          (currentUserId != null && ownerId == currentUserId);
                       if (!isMine) {
                         continue;
                       }
@@ -354,9 +367,9 @@ class _RealtimeMapState extends State<RealtimeMap> {
                       height: 40,
                       child: GestureDetector(
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("$type")),
-                          );
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text("$type")));
                         },
                         child: markerWidget,
                       ),
@@ -418,7 +431,9 @@ class _RealtimeMapState extends State<RealtimeMap> {
                     final newC = LatLng(p.latitude, p.longitude);
                     setState(() => _center = newC);
                     _mapController.move(newC, 15.0);
-                  } catch(e) { print(e); }
+                  } catch (e) {
+                    print(e);
+                  }
                 },
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
@@ -429,7 +444,10 @@ class _RealtimeMapState extends State<RealtimeMap> {
                 heroTag: null,
                 onPressed: () {
                   if (_mapController.camera.zoom < _maxZoom) {
-                    _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 1);
+                    _mapController.move(
+                      _mapController.camera.center,
+                      _mapController.camera.zoom + 1,
+                    );
                   }
                 },
                 backgroundColor: Colors.white,
@@ -440,7 +458,10 @@ class _RealtimeMapState extends State<RealtimeMap> {
                 heroTag: null,
                 onPressed: () {
                   if (_mapController.camera.zoom > _minZoom) {
-                    _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 1);
+                    _mapController.move(
+                      _mapController.camera.center,
+                      _mapController.camera.zoom - 1,
+                    );
                   }
                 },
                 backgroundColor: Colors.white,

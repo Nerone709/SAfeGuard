@@ -63,8 +63,8 @@ class _SAfeGuardState extends State<SAfeGuard> {
 
   Future<void> _setupInteractedMessage() async {
     // 1. App aperta da stato TERMINATO
-    RemoteMessage? initialMessage =
-    await FirebaseMessaging.instance.getInitialMessage();
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance
+        .getInitialMessage();
     if (initialMessage != null) {
       _handleMessage(initialMessage);
     }
@@ -75,8 +75,8 @@ class _SAfeGuardState extends State<SAfeGuard> {
 
   void _handleMessage(RemoteMessage message) async {
     // Controlla se la notifica è di tipo "emergency_alert" o "safe_check"
-    if (message.data['type'] == 'emergency_alert' || message.data['type'] == 'safe_check') {
-
+    if (message.data['type'] == 'emergency_alert' ||
+        message.data['type'] == 'safe_check') {
       // --- CONTROLLO RUOLO UTENTE ---
       final prefs = await SharedPreferences.getInstance();
       final String? userDataString = prefs.getString('user_data');
@@ -85,7 +85,9 @@ class _SAfeGuardState extends State<SAfeGuard> {
         try {
           final Map<String, dynamic> userMap = jsonDecode(userDataString);
           if (userMap['isSoccorritore'] == true) {
-            debugPrint("⛔ Soccorritore ha cliccato notifica: Blocco apertura SafeCheckScreen.");
+            debugPrint(
+              "⛔ Soccorritore ha cliccato notifica: Blocco apertura SafeCheckScreen.",
+            );
             return; //Non navigare se è un soccorritore
           }
         } catch (e) {
@@ -95,15 +97,12 @@ class _SAfeGuardState extends State<SAfeGuard> {
       // -----------------------------
 
       // Estrai i dati dal payload della notifica (se presenti)
-      final String title = message.notification?.title ?? "ALLERTA DI SICUREZZA";
+      final String title =
+          message.notification?.title ?? "ALLERTA DI SICUREZZA";
 
       // Usa la navigatorKey per spingere la schermata
       navigatorKey.currentState?.push(
-        MaterialPageRoute(
-          builder: (_) => SafeCheckScreen(
-            title: title,
-          ),
-        ),
+        MaterialPageRoute(builder: (_) => SafeCheckScreen(title: title)),
       );
     }
   }

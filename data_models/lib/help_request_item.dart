@@ -16,5 +16,4 @@ class HelpRequestItem {
     required this.isComplete,
     required this.type,
   });
-
 }

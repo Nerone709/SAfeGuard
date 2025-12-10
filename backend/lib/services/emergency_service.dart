@@ -23,7 +23,14 @@ class EmergencyService {
     }
     if (userId.isEmpty) throw ArgumentError("ID Utente mancante");
 
-    const allowedTypes = ['Generico', 'Medico', 'Incendio', 'Polizia', 'Incidente', 'SOS Generico'];
+    const allowedTypes = [
+      'Generico',
+      'Medico',
+      'Incendio',
+      'Polizia',
+      'Incidente',
+      'SOS Generico',
+    ];
     final normalizedType = allowedTypes.contains(type) ? type : 'Generico';
 
     try {
@@ -38,7 +45,6 @@ class EmergencyService {
       );
 
       await _notifyRescuers(normalizedType, userId);
-
     } catch (e) {
       print("Errore critico Service SOS: $e");
       rethrow;
@@ -51,15 +57,19 @@ class EmergencyService {
       // Recupera i token di tutti i soccorritori
       final int? senderIdInt = int.tryParse(senderId);
 
-      List<String> tokens = await _userRepo.getRescuerTokens(excludedId: senderIdInt);
+      List<String> tokens = await _userRepo.getRescuerTokens(
+        excludedId: senderIdInt,
+      );
 
       if (tokens.isNotEmpty) {
         print("Invio notifica SOS a ${tokens.length} soccorritori...");
         await _notificationService.sendBroadcast(
           title: "SOS ATTIVO: $type",
-          body: "Richiesta di soccorso urgente! Clicca per vedere la posizione.",
+          body:
+              "Richiesta di soccorso urgente! Clicca per vedere la posizione.",
           tokens: tokens,
-          type: 'emergency_alert', // Questo triggera la navigazione nel frontend
+          type:
+              'emergency_alert', // Questo triggera la navigazione nel frontend
         );
       } else {
         print("⚠Nessun soccorritore disponibile per la notifica.");

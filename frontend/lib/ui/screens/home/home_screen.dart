@@ -28,11 +28,12 @@ class _HomeScreenState extends State<HomeScreen> {
   // Lista dei widget/schermate visualizzati
   List<Widget> get _pages => [
     HomePageContent(
-      navbarKeys: _navbarItemKeys, //Passaggio della chiave per gli elementi della navbar
+      navbarKeys:
+          _navbarItemKeys, //Passaggio della chiave per gli elementi della navbar
     ), // 0. HOME
     const ReportsScreen(), // 1. REPORT
     const MapScreen(), // 2. MAPPA
-    const EmergencyGridPage(),  // 3. EMERGENZE ATTIVE
+    const EmergencyGridPage(), // 3. EMERGENZE ATTIVE
     const ProfileSettingsScreen(), // 4. IMPOSTAZIONI
   ];
 
@@ -104,13 +105,13 @@ class _HomeScreenState extends State<HomeScreen> {
           bottomNavigationBar: isDesktop
               ? null
               : Container(
-            key: _navbarKey,
-            child: CustomBottomNavBar(
-            onIconTapped: _onTabChange,
-            //Passa le chiavi dei singoli elementi della navbar
-            itemKeys: _navbarItemKeys,
-          ),
-          ),
+                  key: _navbarKey,
+                  child: CustomBottomNavBar(
+                    onIconTapped: _onTabChange,
+                    //Passa le chiavi dei singoli elementi della navbar
+                    itemKeys: _navbarItemKeys,
+                  ),
+                ),
           // Usa una Row per affiancare la Sidebar (se c'è) al contenuto principale
           body: Row(
             children: [

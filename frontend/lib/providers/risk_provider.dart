@@ -27,6 +27,7 @@ class RiskProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
   //Metodo per cambiare la visibilità
   void toggleHotspotVisibility(bool value) {
     _showHotspots = value;

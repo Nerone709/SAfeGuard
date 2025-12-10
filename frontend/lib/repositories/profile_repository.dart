@@ -430,7 +430,6 @@ class ProfileRepository {
     }
   }
 
-
   // Invia il token FCM
   Future<void> sendFcmToken(String fcmToken) async {
     final token = await _getToken();
@@ -452,11 +451,12 @@ class ProfileRepository {
     }
   }
 
-
   // Elimina l'account
   Future<void> deleteAccount() async {
     final token = await _getToken();
-    final url = Uri.parse('$_baseUrl/api/profile/'); //endpoint presente nel controller backend
+    final url = Uri.parse(
+      '$_baseUrl/api/profile/',
+    ); //endpoint presente nel controller backend
 
     final response = await http.delete(
       url,

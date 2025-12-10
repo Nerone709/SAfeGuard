@@ -198,7 +198,7 @@ class _DeleteProfilePageState extends State<DeleteProfilePage> {
                                     vertical: 20,
                                   ),
                                   backgroundColor:
-                                  ColorPalette.emergencyButtonRed,
+                                      ColorPalette.emergencyButtonRed,
                                   foregroundColor: Colors.white,
                                   disabledBackgroundColor: ColorPalette
                                       .emergencyButtonRed
@@ -210,26 +210,25 @@ class _DeleteProfilePageState extends State<DeleteProfilePage> {
                                 ),
                                 child: _isLoading
                                     ? const SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 3,
-                                  ),
-                                )
+                                        height: 24,
+                                        width: 24,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 3,
+                                        ),
+                                      )
                                     : Text(
-                                  "Elimina Profilo",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: buttonFontSize,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                                        "Elimina Profilo",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: buttonFontSize,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                               ),
                             ),
 
                             const SizedBox(height: 20), // Spazio tra i bottoni
-
                             // BOTTONE ANNULLA (Nuovo)
                             SizedBox(
                               width: double.infinity,
@@ -243,8 +242,8 @@ class _DeleteProfilePageState extends State<DeleteProfilePage> {
                                     vertical: 20,
                                   ),
                                   side: const BorderSide(
-                                      color: Colors.white,
-                                      width: 2.5
+                                    color: Colors.white,
+                                    width: 2.5,
                                   ), // Bordo bianco
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(18),
@@ -265,7 +264,6 @@ class _DeleteProfilePageState extends State<DeleteProfilePage> {
 
                             // Spazio extra in fondo per scorrimento sicuro
                             const SizedBox(height: 40),
-
                           ],
                         ),
                       ),

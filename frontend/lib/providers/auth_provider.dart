@@ -13,7 +13,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 
-
 // L'URL base viene costruito come in UserApiService, usando le costanti di default
 // e sovrascrivendo per Android.
 String get _baseUrl {
@@ -23,7 +22,9 @@ String get _baseUrl {
   if (!kIsWeb && Platform.isAndroid && host.contains('127.0.0.1')) {
     // Sostituisce 'localhost' con l'IP speciale per l'emulatore
     host = 'http://10.0.2.2';
-  } else if (!kIsWeb && (Platform.isIOS || Platform.isMacOS) && host.contains('127.0.0.1')) {
+  } else if (!kIsWeb &&
+      (Platform.isIOS || Platform.isMacOS) &&
+      host.contains('127.0.0.1')) {
     // iOS / macOS usano localhost
     host = 'http://localhost';
   }
@@ -83,7 +84,7 @@ class AuthProvider extends ChangeNotifier {
         _currentUser = _parseUser(userMap);
 
         await _initializeNotifications();
-        
+
         notifyListeners();
       } catch (e) {
         await logout();
@@ -520,7 +521,6 @@ class AuthProvider extends ChangeNotifier {
     _timer?.cancel();
     super.dispose();
   }
-
 
   // Inizializza le notifiche una volta effettuato l accesso all app
   Future<void> _initializeNotifications() async {

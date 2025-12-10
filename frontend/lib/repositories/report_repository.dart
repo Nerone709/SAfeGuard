@@ -10,16 +10,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ReportRepository {
   // Costanti dall'ambiente di compilazione
   static const String _envHost = String.fromEnvironment(
-      'SERVER_HOST',
-      defaultValue: 'http://localhost',
+    'SERVER_HOST',
+    defaultValue: 'http://localhost',
   );
   static const String _envPort = String.fromEnvironment(
-      'SERVER_PORT',
-      defaultValue: '8080',
+    'SERVER_PORT',
+    defaultValue: '8080',
   );
   static const String _envPrefix = String.fromEnvironment(
-      'API_PREFIX',
-      defaultValue: '',
+    'API_PREFIX',
+    defaultValue: '',
   );
 
   // Metodo per determinare l'URL base del Backend in base alla piattaforma
@@ -39,7 +39,13 @@ class ReportRepository {
   }
 
   // Crea segnalazione
-  Future<void> createReport(String type, String description, double? lat, double? lng, int severity) async {
+  Future<void> createReport(
+    String type,
+    String description,
+    double? lat,
+    double? lng,
+    int severity,
+  ) async {
     final token = await _getToken();
     if (token == null) throw Exception("Utente non autenticato");
 
@@ -70,8 +76,16 @@ class ReportRepository {
   }
 
   //Crea report su Firestore direttamente per ottenere subito l'ID e fare tracking
-  Future<String> createReportAndGetId(String type, String description, double lat, double lng, int severity) async {
-    DocumentReference docRef = FirebaseFirestore.instance.collection('active_emergencies').doc();
+  Future<String> createReportAndGetId(
+    String type,
+    String description,
+    double lat,
+    double lng,
+    int severity,
+  ) async {
+    DocumentReference docRef = FirebaseFirestore.instance
+        .collection('active_emergencies')
+        .doc();
 
     await docRef.set({
       'type': type,
@@ -87,12 +101,20 @@ class ReportRepository {
   }
 
   // --- NUOVO: Aggiorna la posizione di un report esistente ---
-  Future<void> updateReportLocation(String reportId, double lat, double lng) async {
-    await FirebaseFirestore.instance.collection('active_emergencies').doc(reportId).update({
-      'lat': lat,
-      'lng': lng,
-      'timestamp': DateTime.now().toIso8601String(), // Aggiorna timestamp per mantenere il pallino vivo
-    });
+  Future<void> updateReportLocation(
+    String reportId,
+    double lat,
+    double lng,
+  ) async {
+    await FirebaseFirestore.instance
+        .collection('active_emergencies')
+        .doc(reportId)
+        .update({
+          'lat': lat,
+          'lng': lng,
+          'timestamp': DateTime.now()
+              .toIso8601String(), // Aggiorna timestamp per mantenere il pallino vivo
+        });
   }
 
   // Recupera la lista delle segnalazioni
@@ -140,11 +162,11 @@ class ReportRepository {
         .collection('active_emergencies')
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return data;
-      }).toList();
-    });
+          return snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            return data;
+          }).toList();
+        });
   }
 }

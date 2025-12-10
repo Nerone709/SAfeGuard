@@ -93,12 +93,7 @@ class EmergencyCard extends StatelessWidget {
                 "DESCRIZIONE:",
                 style: pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
               ),
-              pw.Text(
-                desc,
-                style: pw.TextStyle(
-                  fontSize: 22,
-                ),
-              ),
+              pw.Text(desc, style: pw.TextStyle(fontSize: 22)),
 
               pw.SizedBox(height: 40),
               pw.Divider(thickness: 0.5),
@@ -107,8 +102,17 @@ class EmergencyCard extends StatelessWidget {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text("DATA/ORA SEGNALAZIONE: $time", style: const pw.TextStyle(fontSize: 12)),
-                  pw.Text("Documento ufficiale SAfeGuard", style: pw.TextStyle(fontSize: 10, fontStyle: pw.FontStyle.italic)),
+                  pw.Text(
+                    "DATA/ORA SEGNALAZIONE: $time",
+                    style: const pw.TextStyle(fontSize: 12),
+                  ),
+                  pw.Text(
+                    "Documento ufficiale SAfeGuard",
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      fontStyle: pw.FontStyle.italic,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -117,7 +121,9 @@ class EmergencyCard extends StatelessWidget {
       ),
     );
 
-    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdf.save());
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
   }
 
   @override
@@ -131,7 +137,7 @@ class EmergencyCard extends StatelessWidget {
     final String description =
         data['description']?.toString() ?? 'Nessuna descrizione';
 
-    switch(data['type'].toString().toUpperCase()){
+    switch (data['type'].toString().toUpperCase()) {
       case 'INCENDIO':
         icon = Icons.local_fire_department;
         break;
@@ -156,7 +162,7 @@ class EmergencyCard extends StatelessWidget {
       try {
         DateTime dt = DateTime.parse(data['timestamp'].toString());
         timeString =
-        "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+            "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
       } catch (e) {
         timeString = '';
       }
@@ -178,59 +184,54 @@ class EmergencyCard extends StatelessWidget {
           ],
         ),
         child: Column(
-          mainAxisAlignment:
-          MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  icon,
-                  size: 32,
-                  color: Colors.white,
-                ),
+                Icon(icon, size: 32, color: Colors.white),
                 Row(
                   children: [
                     if (isRescuer) ...[
-                    InkWell(
-                      onTap: () => _generatePdf(context),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
+                      InkWell(
+                        onTap: () => _generatePdf(context),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
                             Icons.picture_as_pdf,
                             color: Colors.white,
-                            size: 16
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 8),
-
-                    if (timeString.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          timeString,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                            size: 16,
                           ),
                         ),
                       ),
+
+                      const SizedBox(width: 8),
+
+                      if (timeString.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            timeString,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                     ],
                   ],
                 ),
@@ -280,8 +281,7 @@ class EmergencyCard extends StatelessWidget {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    foregroundColor:
-                    ColorPalette.cardDarkOrange,
+                    foregroundColor: ColorPalette.cardDarkOrange,
                     elevation: 0,
                     padding: EdgeInsets.zero,
                     shape: RoundedRectangleBorder(
