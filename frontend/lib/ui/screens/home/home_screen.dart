@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// --- IMPORTS ---
+import 'package:frontend/ui/screens/reports/emergencies_screen.dart';
 import 'package:frontend/ui/widgets/custom_bottom_nav_bar.dart';
 import 'package:frontend/ui/screens/home/home_page_content.dart';
-import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import '../profile/profile_settings_screen.dart';
 import 'package:frontend/ui/screens/map/map_screen.dart';
 import 'package:frontend/ui/screens/reports/reports_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
-// Schermata Principale
-// Gestisce la navigazione tra le sezioni dell'app, adattandosi al fattore di forma.
+// Importa il servizio per la posizione
+import 'package:frontend/services/user_location_service.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -19,22 +23,57 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  final UserLocationService _locationService = UserLocationService();
 
   // Lista dei widget/schermate visualizzati
-  final List<Widget> _pages = [
-    const HomePageContent(), // 0. HOME
+  List<Widget> get _pages => [
+    HomePageContent(
+      navbarKeys:
+          _navbarItemKeys, //Passaggio della chiave per gli elementi della navbar
+    ), // 0. HOME
     const ReportsScreen(), // 1. REPORT
     const MapScreen(), // 2. MAPPA
-    const Center(
-      // 3. AVVISI
-      child: Text(
-        "Avvisi\n(In lavorazione)",
-        textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.white, fontSize: 24),
-      ),
-    ),
+    const EmergencyGridPage(), // 3. EMERGENZE ATTIVE
     const ProfileSettingsScreen(), // 4. IMPOSTAZIONI
   ];
+
+  // Chiave per visualizzare la navBar nel tutorial
+  final GlobalKey _navbarKey = GlobalKey();
+  // Lista di 5 chiavi, una per ogni tab della navbar
+  final List<GlobalKey> _navbarItemKeys = List.generate(5, (_) => GlobalKey());
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Appena la Home viene costruita, eseguiamo il controllo
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndSendRescuerLocation();
+    });
+  }
+
+  // Logica per inviare la posizione SOLO se sei un soccorritore
+  Future<void> _checkAndSendRescuerLocation() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    // 1. Sei un soccorritore?
+    if (authProvider.isRescuer) {
+      // 2. Hai un token valido?
+      final String? token = authProvider.token;
+
+      if (token != null) {
+        debugPrint(
+          "🚑 Accesso Soccorritore rilevato: Invio posizione al server...",
+        );
+        await _locationService.sendLocationUpdate(token);
+      } else {
+        debugPrint("⚠️ Errore: Soccorritore loggato ma token mancante.");
+      }
+    } else {
+      // Se sei un cittadino, non facciamo nulla. La tua posizione serve solo in caso di SOS.
+      debugPrint("👤 Accesso Cittadino: Tracking passivo disabilitato.");
+    }
+  }
 
   // Callback per aggiornare l'indice quando viene premuta un'icona
   void _onTabChange(int index) {
@@ -63,12 +102,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return Scaffold(
           backgroundColor: backgroundColor,
+          // Mostra la BottomNavBar solo se NON siamo su desktop
+          // e le aggiungiamo una chiave per il tutorial
           bottomNavigationBar: isDesktop
               ? null
-              : CustomBottomNavBar(onIconTapped: _onTabChange),
-
+              : Container(
+                  key: _navbarKey,
+                  child: CustomBottomNavBar(
+                    onIconTapped: _onTabChange,
+                    //Passa le chiavi dei singoli elementi della navbar
+                    itemKeys: _navbarItemKeys,
+                  ),
+                ),
+          // Usa una Row per affiancare la Sidebar (se c'è) al contenuto principale
           body: Row(
             children: [
+              // Barra di navigazione laterale (Visibile solo su Desktop)
               if (isDesktop)
                 NavigationRail(
                   backgroundColor: Colors.white,
@@ -120,11 +169,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Center(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        // Limita la larghezza massima del contenuto per schermi grandi,
-                        // tranne per la mappa che può occupare tutto lo spazio.
                         maxWidth: _currentIndex == 2 ? double.infinity : 1200,
                       ),
-                      // Mostra solo la pagina corrispondente all'indice selezionato
                       child: IndexedStack(
                         index: _currentIndex,
                         children: _pages,

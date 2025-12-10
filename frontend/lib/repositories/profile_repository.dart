@@ -11,7 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
-// ** Repository: ProfileRepository **
+// Repository: ProfileRepository
 // Classe che gestisce le chiamate API per la lettura e modifica del profilo utente.
 class ProfileRepository {
   // Costanti dall'ambiente di compilazione
@@ -427,6 +427,50 @@ class ProfileRepository {
       }
     } else {
       throw Exception('Impossibile ricaricare il profilo');
+    }
+  }
+
+  // Invia il token FCM
+  Future<void> sendFcmToken(String fcmToken) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/fcm-token');
+
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'token': fcmToken}),
+    );
+
+    if (response.statusCode != 200) {
+      debugPrint("Errore aggiornamento FCM: ${response.body}");
+      debugPrint("Errore aggiornamento FCM: ${response.body}");
+      // Lanciare un'eccezione se vuoi gestire l'errore nell'UI
+    }
+  }
+
+  // Elimina l'account
+  Future<void> deleteAccount() async {
+    final token = await _getToken();
+    final url = Uri.parse(
+      '$_baseUrl/api/profile/',
+    ); //endpoint presente nel controller backend
+
+    final response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      // L'utente viene identificato dal token nell'header Authorization.
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Errore durante l\'eliminazione dell\'account: ${response.body}',
+      );
     }
   }
 }

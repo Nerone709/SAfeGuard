@@ -16,7 +16,4 @@ class HelpRequestItem {
     required this.isComplete,
     required this.type,
   });
-
-  // Nota: In un modello di dati puramente visuale come questo, non sono necessari i metodi toJson/fromJson,
-  // poiché il dato grezzo verrebbe mappato in questo oggetto direttamente dal Controller/Service.
 }

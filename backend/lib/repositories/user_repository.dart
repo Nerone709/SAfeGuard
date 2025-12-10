@@ -115,11 +115,36 @@ class UserRepository {
   }
 
   // Elimina l'utente dal database tramite il suo ID interno
+  // Elimina l'utente dal database archiviandolo prima in 'deleted_users'
   Future<bool> deleteUser(int id) async {
     final docId = await _findDocIdByIntId(id);
+
     if (docId != null) {
-      await _usersCollection.document(docId).delete();
-      return true;
+      try {
+        // 1. Recupero i dati attuali dell'utente prima di eliminarlo
+        final docSnapshot = await _usersCollection.document(docId).get();
+        final userData = docSnapshot.map;
+
+        // 2. Preparo i dati per l'archiviazione
+        // Creo una copia modificabile della mappa
+        final archiveData = Map<String, dynamic>.from(userData);
+
+        // Aggiungo un timestamp per sapere quando è avvenuta l'eliminazione
+        archiveData['deletedAt'] = DateTime.now().toIso8601String();
+
+        // 3. Salvo nella collezione 'deleted_users'
+        // Uso .add() invece di .set() per generare un ID documento casuale.
+        // Questo permette di avere più record per lo stesso utente se si registra
+        // e si cancella più volte (duplicati ammessi).
+        await Firestore.instance.collection('deleted_users').add(archiveData);
+
+        // 4. Elimino il documento dalla collezione principale 'users'
+        await _usersCollection.document(docId).delete();
+
+        return true;
+      } catch (e) {
+        return false;
+      }
     }
     return false;
   }
@@ -196,6 +221,72 @@ class UserRepository {
         'isVerified': true,
         'attivo': true,
       });
+    }
+  }
+
+  // Recupera i token FCM di tutti gli utenti normali che hanno autorizzato le notifiche.
+  Future<List<String>> getCitizenTokens({int? excludedId}) async {
+    try {
+      final users = await _usersCollection
+          .where('isSoccorritore', isEqualTo: false)
+          .get();
+      List<String> validTokens = [];
+      final String excludeStr = excludedId?.toString() ?? "";
+
+      for (var doc in users) {
+        // Confronto robusto (Stringa vs Stringa)
+        if (excludeStr.isNotEmpty && doc.id == excludeStr) {
+          continue;
+        }
+
+        final data = doc.map;
+        final String? token = data['fcmToken'];
+        if (token == null || token.isEmpty) continue;
+
+        bool isPushEnabled = true;
+        if (data['notifiche'] != null && data['notifiche'] is Map) {
+          final prefs = data['notifiche'] as Map<String, dynamic>;
+          isPushEnabled = prefs['push'] ?? true;
+        }
+
+        if (isPushEnabled) {
+          validTokens.add(token);
+        }
+      }
+      return validTokens;
+    } catch (e) {
+      print("Errore recupero token cittadini: $e");
+      return [];
+    }
+  }
+
+  // Recupera i token FCM di tutti i soccorritori che hanno autorizzato le notifiche.
+  Future<List<String>> getRescuerTokens({int? excludedId}) async {
+    // <--- Aggiungi parametro
+    try {
+      final users = await _usersCollection
+          .where('isSoccorritore', isEqualTo: true)
+          .get();
+      List<String> validTokens = [];
+
+      final String excludeStr = excludedId?.toString() ?? "";
+
+      for (var doc in users) {
+        // Confronto robusto
+        if (excludeStr.isNotEmpty && doc.id == excludeStr) {
+          continue;
+        }
+
+        final data = doc.map;
+        final String? token = data['fcmToken'];
+        if (token != null && token.isNotEmpty) {
+          validTokens.add(token);
+        }
+      }
+      return validTokens;
+    } catch (e) {
+      print("Errore recupero token soccorritori: $e");
+      return [];
     }
   }
 }

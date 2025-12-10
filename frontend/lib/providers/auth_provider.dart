@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +8,8 @@ import 'package:data_models/utente_generico.dart';
 import 'package:data_models/utente.dart';
 import 'package:data_models/soccorritore.dart';
 import '../repositories/profile_repository.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 
 // Provider di Stato: AuthProvider
 // Gestisce l'autenticazione, usa ChangeNotifier per notificare la UI
@@ -35,6 +36,9 @@ class AuthProvider extends ChangeNotifier {
   int _secondsRemaining = 30;
   Timer? _timer;
 
+  //Variabile per far funzionare il tutorial
+  bool _newlyRegistered = false;
+
   // Getters che espongono lo stato alla UI
   bool get isLoading => _isLoading;
   bool get isRescuer => _isRescuer;
@@ -42,6 +46,8 @@ class AuthProvider extends ChangeNotifier {
   int get secondsRemaining => _secondsRemaining;
   UtenteGenerico? get currentUser => _currentUser;
   bool get isLogged => _authToken != null;
+  bool get isNewlyRegistered => _newlyRegistered;
+  String? get token => _authToken;
 
   // Tenta il login automatico se trova i dati di sessione salvati
   Future<void> tryAutoLogin() async {
@@ -55,6 +61,9 @@ class AuthProvider extends ChangeNotifier {
       try {
         final userMap = jsonDecode(userDataString);
         _currentUser = _parseUser(userMap);
+
+        await _initializeNotifications();
+
         notifyListeners();
       } catch (e) {
         await logout();
@@ -67,14 +76,15 @@ class AuthProvider extends ChangeNotifier {
     final token = response['token'];
     final userMap = response['user'];
 
-    // Salva su SharedPreferences per la persistenza
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
     await prefs.setString('user_data', jsonEncode(userMap));
 
-    // Aggiorna lo stato in memoria
     _authToken = token;
     _currentUser = _parseUser(userMap);
+
+    // Inizializza le notifiche dopo aver salvato la sessione
+    await _initializeNotifications();
   }
 
   // Metodo per convertire la Map JSON nell'oggetto Utente o Soccorritore
@@ -309,6 +319,23 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Eliminazione account
+  Future<void> deleteAccount() async {
+    _setLoading(true);
+    try {
+      // Chiamata al repository per comunicare al backend l'eliminazione
+      await _profileRepo.deleteAccount();
+      // Se l'operazione ha successo viene eseguito il logout locale per pulire la sessione
+      await logout();
+      _setLoading(false);
+    } catch (e) {
+      _errorMessage = _cleanError(e);
+      _setLoading(false);
+      // Rilancia l'errore affinché la UI (DeleteProfilePage) possa mostrare la SnackBar
+      rethrow;
+    }
+  }
+
   // Gestione Google
   Future<bool> signInWithGoogle() async {
     _setLoading(true);
@@ -472,5 +499,48 @@ class AuthProvider extends ChangeNotifier {
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  // Inizializza le notifiche una volta effettuato l accesso all app
+  Future<void> _initializeNotifications() async {
+    try {
+      // Richiedi permessi
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        // Ottieni il token
+        String? token = await messaging.getToken();
+        if (token != null) {
+          // Invia al backend tramite repository
+          await _profileRepo.sendFcmToken(token);
+
+          // Ascolta aggiornamenti del token
+          FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+            _profileRepo.sendFcmToken(newToken);
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Errore inizializzazione notifiche: $e");
+    }
+  }
+
+  //Metodo per far funzionare il tutorial
+  // Chiamato dopo la registrazione avvenuta con successo
+  void setRegistered() {
+    _newlyRegistered = true;
+    notifyListeners();
+  }
+
+  //Metodo per far funzionare il tutorial
+  // Chiamato alla fine del tutorial
+  void completeOnboarding() {
+    _newlyRegistered = false;
+    notifyListeners();
   }
 }
