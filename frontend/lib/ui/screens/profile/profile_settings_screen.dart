@@ -8,7 +8,7 @@ import 'package:frontend/ui/screens/medical/gestione_cartella_clinica_cittadino.
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/auth/login_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
-import 'package:frontend/providers/report_provider.dart'; //import per vedere le segnalazioni inviate
+import 'package:frontend/providers/report_provider.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -48,6 +48,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (context) => page));
   }
 
+  // METODO HELPER PER LE RIGHE DEL REPORT
   Widget _buildMiniReportItem({
     required IconData icon,
     required String title,
@@ -59,6 +60,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
+          // 1. Icona
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -68,6 +70,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             child: Icon(icon, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 15),
+
+          // 2. Dati Testuali
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,6 +92,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               ],
             ),
           ),
+
+          // 3. Badge Stato
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
@@ -275,136 +281,135 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                             ),
                           ),
                           const SizedBox(height: 30),
+                          // Ho rimosso l'if (!isRescuer) qui sotto
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: kCardColor,
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: Consumer<ReportProvider>(
+                              builder: (context, reportProvider, child) {
+                                // Filtra i report creati dall'utente loggato
+                                final myReports = reportProvider.emergencies.where((
+                                  e,
+                                ) {
+                                  // Gestisce sia rescuer_id (soccorritore) che user_id (cittadino)
+                                  final senderId =
+                                      e['rescuer_id'] ?? e['user_id'];
+                                  return senderId.toString() ==
+                                      user?.id.toString();
+                                }).toList();
 
-                          // LISTA SCORREVOLE RICHIESTE UTENTE
-                          if (!isRescuer)
-                            Container(
-                              padding: const EdgeInsets.all(20),
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: kCardColor,
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              child: Consumer<ReportProvider>(
-                                builder: (context, reportProvider, child) {
-                                  // 1. Filtra i report dell'utente corrente
-                                  final myReports = reportProvider.emergencies
-                                      .where((e) {
-                                        final senderId =
-                                            e['rescuer_id'] ?? e['user_id'];
-                                        return senderId.toString() ==
-                                            user?.id.toString();
-                                      })
-                                      .toList();
+                                // Ordina dal più recente
+                                myReports.sort((a, b) {
+                                  final tA =
+                                      DateTime.tryParse(
+                                        a['timestamp'].toString(),
+                                      ) ??
+                                      DateTime(0);
+                                  final tB =
+                                      DateTime.tryParse(
+                                        b['timestamp'].toString(),
+                                      ) ??
+                                      DateTime(0);
+                                  return tB.compareTo(tA);
+                                });
 
-                                  // 2. Ordina dal più recente
-                                  myReports.sort((a, b) {
-                                    final tA =
-                                        DateTime.tryParse(
-                                          a['timestamp'].toString(),
-                                        ) ??
-                                        DateTime(0);
-                                    final tB =
-                                        DateTime.tryParse(
-                                          b['timestamp'].toString(),
-                                        ) ??
-                                        DateTime(0);
-                                    return tB.compareTo(tA);
-                                  });
-                                  // Lista di tutte le segnalazioni create dall'utente in questione
-                                  return Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            "Le tue Segnalazioni",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: isWideScreen ? 22 : 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 10),
-                                      if (myReports.isEmpty)
-                                        const Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: 20.0,
-                                          ),
-                                          child: Text(
-                                            "Nessuna segnalazione attiva recente.",
-                                            style: TextStyle(
-                                              color: Colors.white54,
-                                              fontStyle: FontStyle.italic,
-                                            ),
-                                          ),
-                                        )
-                                      else
-                                        // Se ci sono più elementi, si attiverà lo scroll interno
-                                        Container(
-                                          constraints: const BoxConstraints(
-                                            maxHeight:
-                                                260, // Altezza sufficiente per circa 3 elementi e mezzo
-                                          ),
-                                          child: ListView.separated(
-                                            shrinkWrap:
-                                                true, // Si adatta al contenuto se è poco
-                                            physics:
-                                                const BouncingScrollPhysics(), // Scroll elastico
-                                            itemCount: myReports.length,
-                                            separatorBuilder:
-                                                (context, index) =>
-                                                    const Divider(
-                                                      color: Colors.white12,
-                                                    ),
-                                            itemBuilder: (context, index) {
-                                              final report = myReports[index];
-                                              // Parsing Dati
-                                              final dt =
-                                                  DateTime.tryParse(
-                                                    report['timestamp']
-                                                        .toString(),
-                                                  ) ??
-                                                  DateTime.now();
-                                              final dateStr =
-                                                  "${dt.day}/${dt.month} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
-                                              // Icona dinamica
-                                              IconData icon;
-                                              switch (report['type']
-                                                  .toString()
-                                                  .toUpperCase()) {
-                                                case 'INCENDIO':
-                                                  icon = Icons
-                                                      .local_fire_department;
-                                                  break;
-                                                case 'MALESSERE':
-                                                  icon = Icons.medical_services;
-                                                  break;
-                                                case 'ALLUVIONE':
-                                                  icon = Icons.flood;
-                                                  break;
-                                                default:
-                                                  icon = Icons
-                                                      .warning_amber_rounded;
-                                              }
-                                              return _buildMiniReportItem(
-                                                icon: icon,
-                                                title: report['type']
-                                                    .toString()
-                                                    .toUpperCase(),
-                                                date: dateStr,
-                                                status: "In corso",
-                                                statusColor: Colors.orange,
-                                              );
-                                            },
+                                // Lista di tutte le segnalazioni create dall'utente
+                                return Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "Le tue Segnalazioni",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: isWideScreen ? 22 : 18,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                    ],
-                                  );
-                                },
-                              ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10),
+                                    if (myReports.isEmpty)
+                                      const Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 20.0,
+                                        ),
+                                        child: Text(
+                                          "Nessuna segnalazione attiva recente.",
+                                          style: TextStyle(
+                                            color: Colors.white54,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                      )
+                                    else
+                                      // Container con altezza massima per scorrimento
+                                      Container(
+                                        constraints: const BoxConstraints(
+                                          maxHeight:
+                                              260, // Altezza per circa 3 elementi
+                                        ),
+                                        child: ListView.separated(
+                                          shrinkWrap:
+                                              true, // Si adatta se ci sono meno elementi
+                                          physics:
+                                              const BouncingScrollPhysics(),
+                                          itemCount: myReports.length,
+                                          separatorBuilder: (context, index) =>
+                                              const Divider(
+                                                color: Colors.white12,
+                                              ),
+                                          itemBuilder: (context, index) {
+                                            final report = myReports[index];
+                                            // Parsing Dati
+                                            final dt =
+                                                DateTime.tryParse(
+                                                  report['timestamp']
+                                                      .toString(),
+                                                ) ??
+                                                DateTime.now();
+                                            final dateStr =
+                                                "${dt.day}/${dt.month} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+                                            // Icona dinamica
+                                            IconData icon;
+                                            switch (report['type']
+                                                .toString()
+                                                .toUpperCase()) {
+                                              case 'INCENDIO':
+                                                icon =
+                                                    Icons.local_fire_department;
+                                                break;
+                                              case 'MALESSERE':
+                                                icon = Icons.medical_services;
+                                                break;
+                                              case 'ALLUVIONE':
+                                                icon = Icons.flood;
+                                                break;
+                                              default:
+                                                icon =
+                                                    Icons.warning_amber_rounded;
+                                            }
+                                            return _buildMiniReportItem(
+                                              icon: icon,
+                                              title: report['type']
+                                                  .toString()
+                                                  .toUpperCase(),
+                                              date: dateStr,
+                                              status: "In corso",
+                                              statusColor: Colors.orange,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              },
                             ),
+                          ),
                           const SizedBox(height: 80),
                         ],
                       ),
