@@ -248,7 +248,7 @@ class LoginScreen extends StatelessWidget {
                               iconSize,
                               isLandscape: false,
                             ),
-                            SizedBox(height: verticalSpacing * 2),
+                            SizedBox(height: verticalSpacing * 3.5),
                           ],
                         ),
                       ),
