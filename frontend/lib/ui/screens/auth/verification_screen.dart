@@ -199,7 +199,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                           ),
                                         );
                                         //Per far avviare il tutorial
-                                        context.read<AuthProvider>().setRegistered();
+                                        context
+                                            .read<AuthProvider>()
+                                            .setRegistered();
                                         // Naviga alla schermata di Login/Home e rimuove tutte le schermate precedenti
                                         navigator.pushAndRemoveUntil(
                                           MaterialPageRoute(

@@ -13,8 +13,9 @@ class ReportService {
   static final _env = DotEnv(includePlatformEnvironment: true)..load();
 
   String get _aiServiceUrl {
-
-    String url = _env['AI_SERVICE_URL'] ?? 'https://moduloai.onrender.com/api/v1/analyze';
+    String url =
+        _env['AI_SERVICE_URL'] ??
+        'https://moduloai.onrender.com/api/v1/analyze';
 
     if (url.endsWith('/')) {
       url = url.substring(0, url.length - 1);
@@ -65,7 +66,10 @@ class ReportService {
   }
 
   //Chiama AI -> Unisce i dati -> Salva SOLO in analyzed_reports
-  Future<void> _analyzeAndArchiveReport(String reportId, Map<String, dynamic> originalData) async {
+  Future<void> _analyzeAndArchiveReport(
+    String reportId,
+    Map<String, dynamic> originalData,
+  ) async {
     try {
       final url = _aiServiceUrl;
       print("🤖 [AI] Invio report $reportId a: $url");
@@ -78,9 +82,9 @@ class ReportService {
             "lon": originalData['lng'],
             "event_type": originalData['type'],
             "severity": originalData['severity'],
-            "timestamp": originalData['timestamp']
-          }
-        ]
+            "timestamp": originalData['timestamp'],
+          },
+        ],
       };
 
       final response = await http.post(
@@ -112,7 +116,9 @@ class ReportService {
           print("💾 [DB] Salvataggio in Analyzed Reports...");
           await _reportRepository.createAnalyzedReport(fullArchiveRecord);
 
-          print("✅ [AI] Processo completato: Attivo (Pulito) + Analizzato (Ricco) salvati.");
+          print(
+            "✅ [AI] Processo completato: Attivo (Pulito) + Analizzato (Ricco) salvati.",
+          );
         } else {
           print("⚠️ [AI] Risposta vuota dal servizio AI.");
         }
@@ -132,13 +138,20 @@ class ReportService {
     await _reportRepository.deleteReport(id);
   }
 
-  Future<void> _notifyRescuers(String type, String? description, int senderId) async {
+  Future<void> _notifyRescuers(
+    String type,
+    String? description,
+    int senderId,
+  ) async {
     try {
-      List<String> tokens = await _userRepo.getRescuerTokens(excludedId: senderId);
+      List<String> tokens = await _userRepo.getRescuerTokens(
+        excludedId: senderId,
+      );
       if (tokens.isNotEmpty) {
         await _notificationService.sendBroadcast(
           title: "ALLERTA CITTADINO: $type",
-          body: description ?? "Richiesta di intervento inviata da un cittadino.",
+          body:
+              description ?? "Richiesta di intervento inviata da un cittadino.",
           tokens: tokens,
           type: 'citizen_report',
         );
@@ -148,9 +161,15 @@ class ReportService {
     }
   }
 
-  Future<void> _notifyCitizens(String type, String? description, int senderId) async {
+  Future<void> _notifyCitizens(
+    String type,
+    String? description,
+    int senderId,
+  ) async {
     try {
-      List<String> tokens = await _userRepo.getCitizenTokens(excludedId: senderId);
+      List<String> tokens = await _userRepo.getCitizenTokens(
+        excludedId: senderId,
+      );
       if (tokens.isNotEmpty) {
         await _notificationService.sendBroadcast(
           title: "AVVISO PROTEZIONE CIVILE: $type",

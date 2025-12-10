@@ -46,11 +46,12 @@ class RiskController {
   }
   */
 
-  RiskController(this._aiServiceUrl)
-  {
+  RiskController(this._aiServiceUrl) {
     // Log utile per capire quale URL sta usando il server all'avvio
     if (_aiServiceUrl.contains('127.0.0.1')) {
-      print('RiskController: Variabile AI_SERVICE_URL non impostata o locale. Utilizzo: $_aiServiceUrl');
+      print(
+        'RiskController: Variabile AI_SERVICE_URL non impostata o locale. Utilizzo: $_aiServiceUrl',
+      );
     } else {
       print('RiskController: Utilizzo URL di produzione: $_aiServiceUrl');
     }
@@ -81,9 +82,6 @@ class RiskController {
       if (aiResponse.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(aiResponse.body);
 
-        // Log formattato per debug
-        //_printFormattedJsonLog(data);
-
         final Map<String, dynamic> cleanResponse = _extractCleanReports(data);
 
         return Response.ok(jsonEncode(cleanResponse), headers: _headers);
@@ -102,11 +100,12 @@ class RiskController {
 
   // Prende la risposta completa dell'AI e restituisce solo ciò che serve all'app.
   Map<String, dynamic> _extractCleanReports(Map<String, dynamic> aiData) {
-
     // 1. Isola i metadati per log interno
     final int historicalCount = aiData['historical_hotspots_count'] ?? 0;
     final int highRiskCount = aiData['high_risk_reports'] ?? 0;
-    print('INFO AI: Hotspot storici usati: $historicalCount | Report ad alto rischio: $highRiskCount');
+    print(
+      'INFO AI: Hotspot storici usati: $historicalCount | Report ad alto rischio: $highRiskCount',
+    );
 
     // 2. Estrae la lista dei report analizzati
     final List<dynamic> rawReports = aiData['analyzed_reports'] ?? [];
@@ -114,7 +113,8 @@ class RiskController {
     return {
       'success': true,
       'timestamp': DateTime.now().toIso8601String(),
-      'results': rawReports, // Qui ci sono solo i report singoli con ID, score, ecc.
+      'results':
+          rawReports, // Qui ci sono solo i report singoli con ID, score, ecc.
     };
   }
 
@@ -146,18 +146,5 @@ class RiskController {
       body: jsonEncode({'success': false, 'message': message}),
       headers: _headers,
     );
-  }
-
-  // Helper per stampare JSON lunghi nel terminale in modo leggibile.
-  void _printFormattedJsonLog(dynamic data) {
-    final jsonString = jsonEncode(data);
-    print('----------------------------------------------------');
-    print('DATA AI START');
-
-    final pattern = RegExp('.{1,800}');
-    pattern.allMatches(jsonString).forEach((match) => print(match.group(0)));
-
-    print('DATA AI END');
-    print('----------------------------------------------------');
   }
 }

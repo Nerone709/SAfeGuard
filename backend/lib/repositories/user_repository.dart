@@ -64,9 +64,9 @@ class UserRepository {
 
   // Crea utente usato specificamente per flussi esterni (Google/Apple Login)
   Future<Map<String, dynamic>> createUser(
-      Map<String, dynamic> userData, {
-        String collection = 'users',
-      }) async {
+    Map<String, dynamic> userData, {
+    String collection = 'users',
+  }) async {
     // Assicura che l'ID interno sia presente
     if (userData['id'] == null || userData['id'] == 0) {
       userData['id'] = DateTime.now().millisecondsSinceEpoch;
@@ -162,10 +162,10 @@ class UserRepository {
 
   // Rimuove un elemento specifico da un campo array
   Future<void> removeFromArrayField(
-      int id,
-      String fieldName,
-      dynamic item,
-      ) async {
+    int id,
+    String fieldName,
+    dynamic item,
+  ) async {
     final docId = await _findDocIdByIntId(id);
     if (docId == null) return;
 
@@ -227,7 +227,9 @@ class UserRepository {
   // Recupera i token FCM di tutti gli utenti normali che hanno autorizzato le notifiche.
   Future<List<String>> getCitizenTokens({int? excludedId}) async {
     try {
-      final users = await _usersCollection.where('isSoccorritore', isEqualTo: false).get();
+      final users = await _usersCollection
+          .where('isSoccorritore', isEqualTo: false)
+          .get();
       List<String> validTokens = [];
       final String excludeStr = excludedId?.toString() ?? "";
 
@@ -259,9 +261,12 @@ class UserRepository {
   }
 
   // Recupera i token FCM di tutti i soccorritori che hanno autorizzato le notifiche.
-  Future<List<String>> getRescuerTokens({int? excludedId}) async { // <--- Aggiungi parametro
+  Future<List<String>> getRescuerTokens({int? excludedId}) async {
+    // <--- Aggiungi parametro
     try {
-      final users = await _usersCollection.where('isSoccorritore', isEqualTo: true).get();
+      final users = await _usersCollection
+          .where('isSoccorritore', isEqualTo: true)
+          .get();
       List<String> validTokens = [];
 
       final String excludeStr = excludedId?.toString() ?? "";

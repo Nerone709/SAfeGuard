@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:frontend/main.dart';
@@ -21,17 +20,19 @@ class NotificationHandler {
   factory NotificationHandler() => _instance;
   NotificationHandler._internal();
 
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
 
   // Configurazione del canale Android
-  static const AndroidNotificationChannel _androidChannel = AndroidNotificationChannel(
-    'emergency_channel_v3', // ID univoco
-    'Allerte di Emergenza',
-    description: 'Notifiche critiche per le emergenze',
-    importance: Importance.max,
-    playSound: true,
-    enableVibration: true,
-  );
+  static const AndroidNotificationChannel _androidChannel =
+      AndroidNotificationChannel(
+        'emergency_channel_v3', // ID univoco
+        'Allerte di Emergenza',
+        description: 'Notifiche critiche per le emergenze',
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      );
 
   // Inizializza tutto il sistema di notifiche
   Future<void> initialize() async {
@@ -39,7 +40,9 @@ class NotificationHandler {
     await _requestPermissions();
 
     // 2. Setup Notifiche Locali
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings();
 
     await _localNotifications.initialize(
@@ -71,8 +74,10 @@ class NotificationHandler {
   }
 
   Future<void> _setupAndroidChannel() async {
-    final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _localNotifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
 
     if (androidPlugin != null) {
       // Pulizia vecchi canali
@@ -117,8 +122,8 @@ class NotificationHandler {
 
     //LOGICA AUTOMATICA: APERTURA PAGINA
     // Controlla se è un alert critico
-    if (message.data['type'] == 'emergency_alert' || message.data['type'] == 'safe_check') {
-
+    if (message.data['type'] == 'emergency_alert' ||
+        message.data['type'] == 'safe_check') {
       final prefs = await SharedPreferences.getInstance();
       final String? userDataString = prefs.getString('user_data');
 
@@ -134,15 +139,12 @@ class NotificationHandler {
       }
 
       // Estrae i dati dal messaggio (se il backend li manda, altrimenti usa default)
-      final String title = message.notification?.title ?? "ALLERTA DI SICUREZZA";
+      final String title =
+          message.notification?.title ?? "ALLERTA DI SICUREZZA";
 
       // Usa la navigatorKey per "spingere" la pagina sopra a tutto
       navigatorKey.currentState?.push(
-        MaterialPageRoute(
-          builder: (_) => SafeCheckScreen(
-            title: title,
-          ),
-        ),
+        MaterialPageRoute(builder: (_) => SafeCheckScreen(title: title)),
       );
     }
   }

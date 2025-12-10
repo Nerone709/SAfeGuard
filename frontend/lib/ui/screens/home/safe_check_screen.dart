@@ -9,10 +9,7 @@ import 'package:frontend/ui/widgets/realtime_map.dart';
 
 class SafeCheckScreen extends StatefulWidget {
   final String title;
-  const SafeCheckScreen({
-    super.key,
-    this.title = "ALLERTA DI SICUREZZA",
-  });
+  const SafeCheckScreen({super.key, this.title = "ALLERTA DI SICUREZZA"});
   @override
   State<SafeCheckScreen> createState() => _SafeCheckScreenState();
 }
@@ -34,18 +31,19 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
   Future<void> _findNearestSafePoint() async {
     try {
       Position userPos = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.high,
-          )
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
-      final safePointsSnapshot = await FirebaseFirestore.instance.collection('safe_points').get();
-      final hospitalsSnapshot = await FirebaseFirestore.instance.collection('hospitals').get();
+      final safePointsSnapshot = await FirebaseFirestore.instance
+          .collection('safe_points')
+          .get();
+      final hospitalsSnapshot = await FirebaseFirestore.instance
+          .collection('hospitals')
+          .get();
 
-      final allPoints = [
-        ...safePointsSnapshot.docs,
-        ...hospitalsSnapshot.docs
-      ];
+      final allPoints = [...safePointsSnapshot.docs, ...hospitalsSnapshot.docs];
       if (allPoints.isEmpty) {
         if (mounted) {
           setState(() {
@@ -92,7 +90,6 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
           _isLoadingTarget = false;
         });
       }
-
     } catch (e) {
       debugPrint("Errore calcolo safe point: $e");
       if (mounted) {
@@ -124,14 +121,18 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
       );
 
       // Usa la nuova funzione con Tracking
-      bool success = await context.read<ReportProvider>().sendSafeStatusWithTracking();
+      bool success = await context
+          .read<ReportProvider>()
+          .sendSafeStatusWithTracking();
 
       if (!context.mounted) return;
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Grazie! Il tuo stato è visibile sulla mappa per 30 secondi."),
+            content: Text(
+              "Grazie! Il tuo stato è visibile sulla mappa per 30 secondi.",
+            ),
             backgroundColor: safeGreen,
           ),
         );
@@ -145,7 +146,6 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
       }
 
       Navigator.of(context).pop();
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -172,6 +172,8 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
         ),
       );
 
+      if (!context.mounted) return;
+
       // Invia report "SOS Generico" con Severity 5 -> La mappa lo renderizzerà ROSSO
       await context.read<ReportProvider>().sendReport(
         "SOS Generico",
@@ -191,7 +193,6 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
         ),
       );
       Navigator.of(context).pop();
-
     } catch (e) {
       debugPrint("Errore help request: $e");
     }
@@ -215,7 +216,6 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-
               const SizedBox(height: 10),
 
               Text(
@@ -231,9 +231,7 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
 
               const SizedBox(height: 20),
 
-              Expanded(
-                child: _buildMapPlaceholder(isWideScreen),
-              ),
+              Expanded(child: _buildMapPlaceholder(isWideScreen)),
 
               const SizedBox(height: 20),
 
@@ -260,14 +258,14 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
                     _isLoadingTarget
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                      _targetName,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: bodySize * 1.3, // Molto grande
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+                            _targetName,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: bodySize * 1.3, // Molto grande
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
 
                     const SizedBox(height: 5),
 
@@ -275,7 +273,11 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.directions_walk, color: Colors.white, size: 24),
+                          const Icon(
+                            Icons.directions_walk,
+                            color: Colors.white,
+                            size: 24,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             _distanceText,
@@ -304,7 +306,10 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30.0),
-                          side: const BorderSide(color: Colors.black, width: 2.0),
+                          side: const BorderSide(
+                            color: Colors.black,
+                            width: 2.0,
+                          ),
                         ),
                         elevation: 5,
                       ),

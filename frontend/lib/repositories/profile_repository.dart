@@ -430,7 +430,6 @@ class ProfileRepository {
     }
   }
 
-
   // Invia il token FCM
   Future<void> sendFcmToken(String fcmToken) async {
     final token = await _getToken();
@@ -447,16 +446,17 @@ class ProfileRepository {
 
     if (response.statusCode != 200) {
       debugPrint("Errore aggiornamento FCM: ${response.body}");
-      print("Errore aggiornamento FCM: ${response.body}");
+      debugPrint("Errore aggiornamento FCM: ${response.body}");
       // Lanciare un'eccezione se vuoi gestire l'errore nell'UI
     }
   }
 
-
   // Elimina l'account
   Future<void> deleteAccount() async {
     final token = await _getToken();
-    final url = Uri.parse('$_baseUrl/api/profile/'); //endpoint presente nel controller backend
+    final url = Uri.parse(
+      '$_baseUrl/api/profile/',
+    ); //endpoint presente nel controller backend
 
     final response = await http.delete(
       url,

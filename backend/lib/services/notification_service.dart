@@ -11,7 +11,8 @@ class NotificationService {
 
   // Percorso del file credenziali
   String get _serviceAccountPath =>
-      Platform.environment['GOOGLE_APPLICATION_CREDENTIALS'] ?? 'safeguard-service-account.json';
+      Platform.environment['GOOGLE_APPLICATION_CREDENTIALS'] ??
+      'safeguard-service-account.json';
 
   // Inizializza e autentica il client Google
   Future<void> _ensureAuth() async {
@@ -56,19 +57,22 @@ class NotificationService {
     }
   }
 
-  Future<void> _sendSingle(String title, String body, String token, String type) async {
+  Future<void> _sendSingle(
+    String title,
+    String body,
+    String token,
+    String type,
+  ) async {
     if (_client == null) return;
 
     final uri = Uri.parse(
-        'https://fcm.googleapis.com/v1/projects/$_projectId/messages:send');
+      'https://fcm.googleapis.com/v1/projects/$_projectId/messages:send',
+    );
 
     final message = {
       'message': {
         'token': token,
-        'notification': {
-          'title': title,
-          'body': body,
-        },
+        'notification': {'title': title, 'body': body},
         'data': {
           'type': type,
           'click_action': 'FLUTTER_NOTIFICATION_CLICK',
@@ -82,18 +86,15 @@ class NotificationService {
             'notification_priority': 'PRIORITY_MAX',
             'default_sound': true,
             'visibility': 'public',
-          }
+          },
         },
         // Configurazione iOS
         'apns': {
           'payload': {
-            'aps': {
-              'sound': 'default',
-              'content-available': 1,
-            }
-          }
-        }
-      }
+            'aps': {'sound': 'default', 'content-available': 1},
+          },
+        },
+      },
     };
 
     try {
@@ -106,7 +107,9 @@ class NotificationService {
       if (response.statusCode != 200) {
         print("FCM Error (${response.statusCode}): ${response.body}");
       } else {
-        print("Notifica inviata con successo a: ...${token.substring(token.length - 6)}");
+        print(
+          "Notifica inviata con successo a: ...${token.substring(token.length - 6)}",
+        );
       }
     } catch (e) {
       print("Errore rete FCM: $e");

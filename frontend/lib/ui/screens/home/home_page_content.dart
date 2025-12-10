@@ -34,7 +34,8 @@ class _HomePageContentState extends State<HomePageContent> {
   final GlobalKey _keyMap = GlobalKey();
   final GlobalKey _keyContacts = GlobalKey();
   final GlobalKey _keySos = GlobalKey();
-  final GlobalKey _keyEmergencyInfo = GlobalKey(); //La chiave per la notifica nel tutorial
+  final GlobalKey _keyEmergencyInfo =
+      GlobalKey(); //La chiave per la notifica nel tutorial
 
   @override
   void initState() {
@@ -49,7 +50,6 @@ class _HomePageContentState extends State<HomePageContent> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     if (authProvider.isNewlyRegistered) {
-
       TutorialHelper.showTutorial(
         context: context,
         isRescuer: authProvider.isRescuer,
@@ -77,7 +77,8 @@ class _HomePageContentState extends State<HomePageContent> {
     final bool isWideScreen = screenWidth > 600;
 
     // Rileva orientamento
-    final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     final double horizontalPadding = isWideScreen ? screenWidth * 0.08 : 15.0;
 
@@ -89,30 +90,40 @@ class _HomePageContentState extends State<HomePageContent> {
         isLandscape ? 0 : 10.0,
       ),
       child: isLandscape
-          ? _buildLandscapeLayout(context, isRescuer, hasActiveAlert, isWideScreen)
-          : _buildPortraitLayout(context, isRescuer, hasActiveAlert, isWideScreen),
+          ? _buildLandscapeLayout(
+              context,
+              isRescuer,
+              hasActiveAlert,
+              isWideScreen,
+            )
+          : _buildPortraitLayout(
+              context,
+              isRescuer,
+              hasActiveAlert,
+              isWideScreen,
+            ),
     );
   }
 
   // Gestione layout verticale
   Widget _buildPortraitLayout(
-      BuildContext context,
-      bool isRescuer,
-      bool hasActiveAlert,
-      bool isWideScreen,
-      ) {
+    BuildContext context,
+    bool isRescuer,
+    bool hasActiveAlert,
+    bool isWideScreen,
+  ) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Notifica di Emergenza Attiva
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, bottom: 10.0),
-            child: Container(
-              key: _keyEmergencyInfo, // Assegna la chiave al box di notifica
-              child: _buildEmergencyNotification(),
-            ),
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0, bottom: 10.0),
+          child: Container(
+            key: _keyEmergencyInfo, // Assegna la chiave al box di notifica
+            child: _buildEmergencyNotification(),
           ),
+        ),
 
         // 2. Mappa
         Expanded(
@@ -132,9 +143,7 @@ class _HomePageContentState extends State<HomePageContent> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               //Switch Zone Rischio (Sempre presente)
-              Expanded(
-                child: _buildRiskToggle(),
-              ),
+              Expanded(child: _buildRiskToggle()),
 
               //Pulsante Contatti (Solo se cittadino)
               if (!isRescuer) ...[
@@ -175,11 +184,11 @@ class _HomePageContentState extends State<HomePageContent> {
 
   // Gestione layout orizzontale
   Widget _buildLandscapeLayout(
-      BuildContext context,
-      bool isRescuer,
-      bool hasActiveAlert,
-      bool isWideScreen,
-      ) {
+    BuildContext context,
+    bool isRescuer,
+    bool hasActiveAlert,
+    bool isWideScreen,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -187,12 +196,13 @@ class _HomePageContentState extends State<HomePageContent> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(bottom: 10.0),
-            child: Column( // Avvolgo la mappa in una colonna per mettere lo switch sotto
+            child: Column(
+              // Avvolgo la mappa in una colonna per mettere lo switch sotto
               children: [
                 Expanded(
                   child: Container(
-                      key: _keyMap,
-                      child: _buildMapPlaceholder(isWideScreen)
+                    key: _keyMap,
+                    child: _buildMapPlaceholder(isWideScreen),
                   ),
                 ),
                 // --- SWITCH ZONE RISCHIO LANDSCAPE ---
@@ -217,8 +227,8 @@ class _HomePageContentState extends State<HomePageContent> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                      _buildEmergencyNotification(),
-                      const SizedBox(height: 10),
+                    _buildEmergencyNotification(),
+                    const SizedBox(height: 10),
 
                     if (!isRescuer) ...[
                       _buildEmergencyContactsButton(context, isWideScreen),
@@ -248,7 +258,7 @@ class _HomePageContentState extends State<HomePageContent> {
               if (widget.landscapeNavbar != null) ...[
                 const SizedBox(height: 10),
                 widget.landscapeNavbar!,
-              ]
+              ],
             ],
           ),
         ),
@@ -283,7 +293,10 @@ class _HomePageContentState extends State<HomePageContent> {
   }
 
   // Pulsante "Contatti di Emergenza" o "Registrati"
-  Widget _buildEmergencyContactsButton(BuildContext context, bool isWideScreen) {
+  Widget _buildEmergencyContactsButton(
+    BuildContext context,
+    bool isWideScreen,
+  ) {
     final isLogged = context.watch<AuthProvider>().isLogged;
 
     // Stile del pulsante
@@ -309,7 +322,9 @@ class _HomePageContentState extends State<HomePageContent> {
         onPressed: () {
           // Naviga a Contatti Emergenza se loggato, altrimenti a Registrazione
           final route = isLogged
-              ? MaterialPageRoute(builder: (_) => const ContattiEmergenzaScreen())
+              ? MaterialPageRoute(
+                  builder: (_) => const ContattiEmergenzaScreen(),
+                )
               : MaterialPageRoute(builder: (_) => const RegistrationScreen());
           Navigator.push(context, route);
         },
@@ -319,7 +334,11 @@ class _HomePageContentState extends State<HomePageContent> {
           children: [
             // Icona mostrata solo se loggato
             if (isLogged)
-              Icon(Icons.person_pin_circle, color: darkBlue, size: isWideScreen ? 34 : 24),
+              Icon(
+                Icons.person_pin_circle,
+                color: darkBlue,
+                size: isWideScreen ? 34 : 24,
+              ),
             if (isLogged) const SizedBox(width: 8),
             // Testo che cambia in base allo stato di login
             Text(
@@ -420,9 +439,9 @@ class _HomePageContentState extends State<HomePageContent> {
             child: const Text(
               "Zone Rischio AI",
               style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: ColorPalette.backgroundDarkBlue,
-                  fontSize: 14 // Font leggermente ridotto per sicurezza
+                fontWeight: FontWeight.bold,
+                color: ColorPalette.backgroundDarkBlue,
+                fontSize: 14, // Font leggermente ridotto per sicurezza
               ),
               overflow: TextOverflow.ellipsis,
             ),

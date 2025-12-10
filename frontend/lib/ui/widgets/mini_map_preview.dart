@@ -8,11 +8,7 @@ class MiniMapPreview extends StatefulWidget {
   final double lat;
   final double lng;
 
-  const MiniMapPreview({
-    super.key,
-    required this.lat,
-    required this.lng,
-  });
+  const MiniMapPreview({super.key, required this.lat, required this.lng});
 
   @override
   State<MiniMapPreview> createState() => _MiniMapPreviewState();
@@ -90,10 +86,15 @@ class _MiniMapPreviewState extends State<MiniMapPreview> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
-                  boxShadow: const [BoxShadow(blurRadius: 4, color: Colors.black26)],
+                  boxShadow: const [
+                    BoxShadow(blurRadius: 4, color: Colors.black26),
+                  ],
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.location_on, color: ColorPalette.electricBlue),
+                  icon: const Icon(
+                    Icons.location_on,
+                    color: ColorPalette.electricBlue,
+                  ),
                   onPressed: _recenter,
                   tooltip: "Ricentra posizione emergenza",
                 ),
@@ -105,7 +106,9 @@ class _MiniMapPreviewState extends State<MiniMapPreview> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
-                  boxShadow: const [BoxShadow(blurRadius: 4, color: Colors.black26)],
+                  boxShadow: const [
+                    BoxShadow(blurRadius: 4, color: Colors.black26),
+                  ],
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.add, color: Colors.black87),
@@ -120,7 +123,9 @@ class _MiniMapPreviewState extends State<MiniMapPreview> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
-                  boxShadow: const [BoxShadow(blurRadius: 4, color: Colors.black26)],
+                  boxShadow: const [
+                    BoxShadow(blurRadius: 4, color: Colors.black26),
+                  ],
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.remove, color: Colors.black87),

@@ -9,9 +9,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Gestisce la comunicazione HTTP verso il Backend per le operazioni di emergenza.
 class EmergencyRepository {
   // Recupera host e porta dalle variabili d'ambiente o usa i default.
-  static const String _envHost = String.fromEnvironment('SERVER_HOST', defaultValue: 'http://localhost');
-  static const String _envPort = String.fromEnvironment('SERVER_PORT', defaultValue: '8080');
-  static const String _envPrefix = String.fromEnvironment('API_PREFIX', defaultValue: '');
+  static const String _envHost = String.fromEnvironment(
+    'SERVER_HOST',
+    defaultValue: 'http://localhost',
+  );
+  static const String _envPort = String.fromEnvironment(
+    'SERVER_PORT',
+    defaultValue: '8080',
+  );
+  static const String _envPrefix = String.fromEnvironment(
+    'API_PREFIX',
+    defaultValue: '',
+  );
 
   // Costruisce l'URL base corretto, gestendo la differenza tra localhost e 10.0.2.2 per Android.
   String get _baseUrl {
@@ -46,7 +55,10 @@ class EmergencyRepository {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({
           'type': type,
           'lat': lat,
@@ -75,7 +87,10 @@ class EmergencyRepository {
 
     final response = await http.delete(
       url,
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
 
     if (response.statusCode != 200) {
