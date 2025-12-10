@@ -368,7 +368,7 @@ class RegistrationScreen extends StatelessWidget {
     VoidCallback? onTap,
     required double fontSize,
   }) {
-    final double buttonHeight = fontSize * 3.0;
+    final double buttonHeight = fontSize * 3.5;
 
     return SizedBox(
       width: double.infinity,

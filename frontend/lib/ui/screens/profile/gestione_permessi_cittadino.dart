@@ -41,30 +41,28 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
         ? ColorPalette.backgroundMidBlue
         : ColorPalette.primaryOrange;
 
-    final double titleSize = isWideScreen ? 40 : 30;
-    final double headerIconSize = isWideScreen ? 50 : 40;
+    // Dimensioni adattate allo stile di "Modifica Profilo" e "Gestione Notifiche"
+    final double titleSize = isWideScreen ? 50 : 28;
+    final double iconSize = isWideScreen ? 60 : 40;
+    final double switchLabelSize = isWideScreen ? 26 : 16;
 
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
+            constraints: const BoxConstraints(maxWidth: 900),
             child: Column(
               children: [
-                // Header con bottone indietro e titolo
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 20.0,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.arrow_back_ios_new,
                           color: Colors.white,
-                          size: 28,
+                          size: isWideScreen ? 36 : 28,
                         ),
                         onPressed: () => Navigator.pop(context),
                       ),
@@ -72,11 +70,12 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                       Icon(
                         Icons.verified_user,
                         color: Colors.blueAccent,
-                        size: headerIconSize,
+                        size: iconSize,
                       ),
                       const SizedBox(width: 15),
+                      // Titolo ora su una riga singola
                       Text(
-                        "Gestione\nPermessi",
+                        "Gestione Permessi",
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: titleSize,
@@ -88,25 +87,26 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                   ),
                 ),
 
-                // Lista switch per la gestione dei permessi
+                // --- LISTA SWITCH ---
                 Expanded(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 10.0,
+                    ),
                     decoration: BoxDecoration(
                       color: cardColor,
                       borderRadius: BorderRadius.circular(25.0),
-                      boxShadow: isWideScreen
-                          ? [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              ),
-                            ]
-                          : [],
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(isWideScreen ? 40.0 : 20.0),
                       // Consumer: Ascolta i cambiamenti nel PermissionProvider
                       child: Consumer<PermissionProvider>(
                         builder: (context, provider, child) {
@@ -127,13 +127,11 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                             );
                           }
 
-                          final permessi =
-                              provider.permessi; // Oggetto Permessi corrente
+                          final permessi = provider.permessi;
 
                           return ListView(
                             physics: const BouncingScrollPhysics(),
                             children: [
-                              // Switch 1: Accesso alla Posizione
                               _buildSwitchItem(
                                 "Accesso alla posizione",
                                 permessi.posizione,
@@ -144,10 +142,12 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                                 },
                                 activeColor,
                                 isWideScreen,
+                                switchLabelSize,
                               ),
-                              const SizedBox(height: 20),
+                              const SizedBox(
+                                height: 30,
+                              ), // Spaziatura aumentata
 
-                              // Switch 2: Accesso ai Contatti
                               _buildSwitchItem(
                                 "Accesso ai contatti",
                                 permessi.contatti,
@@ -158,10 +158,10 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                                 },
                                 activeColor,
                                 isWideScreen,
+                                switchLabelSize,
                               ),
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 30),
 
-                              // Switch 3: Notifiche di Sistema
                               _buildSwitchItem(
                                 "Notifiche di sistema",
                                 permessi.notificheSistema,
@@ -172,10 +172,10 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                                 },
                                 activeColor,
                                 isWideScreen,
+                                switchLabelSize,
                               ),
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 30),
 
-                              // Switch 4: Accesso al Bluetooth
                               _buildSwitchItem(
                                 "Accesso al Bluetooth",
                                 permessi.bluetooth,
@@ -186,6 +186,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                                 },
                                 activeColor,
                                 isWideScreen,
+                                switchLabelSize,
                               ),
                             ],
                           );
@@ -210,9 +211,8 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
     Function(bool) onChanged,
     Color activeColor,
     bool isWideScreen,
+    double labelSize,
   ) {
-    final double labelSize = isWideScreen ? 22 : 18;
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -230,7 +230,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
           scale: isWideScreen ? 1.3 : 1.1,
           child: Switch(
             value: value,
-            onChanged: onChanged, // Callback che aggiorna il provider
+            onChanged: onChanged,
             activeThumbColor: activeColor,
             activeTrackColor: Colors.white.withValues(alpha: 0.3),
             inactiveThumbColor: Colors.grey.shade300,

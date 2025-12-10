@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:frontend/providers/medical_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
-// Schermata Gestione Allergie
-// Consente all'utente di visualizzare, aggiungere e rimuovere le proprie allergie.
 class AllergieScreen extends StatefulWidget {
   const AllergieScreen({super.key});
 
@@ -13,13 +11,11 @@ class AllergieScreen extends StatefulWidget {
 }
 
 class _AllergieScreenState extends State<AllergieScreen> {
-  // Controller per gestire l'input di testo nel dialog di aggiunta
   final TextEditingController _textController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Dopo che il frame è stato costruito, avvia il caricamento delle allergie
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MedicalProvider>(context, listen: false).loadAllergies();
     });
@@ -35,7 +31,6 @@ class _AllergieScreenState extends State<AllergieScreen> {
   Widget build(BuildContext context) {
     const Color bgColor = ColorPalette.backgroundMidBlue;
     const Color cardColor = ColorPalette.backgroundDarkBlue;
-    const Color deleteColor = ColorPalette.deleteRed;
     const Color addBtnColor = ColorPalette.accentControlBlue;
 
     return Scaffold(
@@ -44,14 +39,15 @@ class _AllergieScreenState extends State<AllergieScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header con bottone indietro
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
                 vertical: 10.0,
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // Bottone Indietro
                   IconButton(
                     icon: const Icon(
                       Icons.arrow_back_ios_new,
@@ -60,12 +56,45 @@ class _AllergieScreenState extends State<AllergieScreen> {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
+
+                  const SizedBox(width: 10),
+
+                  // Icona
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: const BoxDecoration(
+                      color: ColorPalette.accentMediumOrange,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons
+                          .coronavirus_outlined, // O un'icona simile per le allergie
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+
+                  const SizedBox(width: 15),
+
+                  // Titolo
+                  const Expanded(
+                    child: Text(
+                      "Allergie",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 30),
 
-            // Contenitore principale della lista
+            const SizedBox(height: 10),
+
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -78,15 +107,11 @@ class _AllergieScreenState extends State<AllergieScreen> {
                     vertical: 10.0,
                     horizontal: 5.0,
                   ),
-
-                  // Consumer: Ascolta i cambiamenti nel MedicalProvider
                   child: Consumer<MedicalProvider>(
                     builder: (context, provider, child) {
-                      // Stato di caricamento
                       if (provider.isLoading) {
                         return const Center(child: CircularProgressIndicator());
                       }
-                      // Lista vuota
                       if (provider.allergie.isEmpty) {
                         return const Center(
                           child: Text(
@@ -96,7 +121,6 @@ class _AllergieScreenState extends State<AllergieScreen> {
                         );
                       }
 
-                      // Lista delle allergie
                       return ListView.separated(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 15.0,
@@ -108,17 +132,11 @@ class _AllergieScreenState extends State<AllergieScreen> {
                           thickness: 1,
                         ),
                         itemBuilder: (context, index) {
-                          return _buildItem(
+                          return _AllergyTile(
                             text: provider.allergie[index].name,
-                            onEdit: () {
-                              // Modifica disabilitata
-                              _openDialog(isEdit: false);
-                            },
                             onDelete: () async {
-                              // Chiama il provider per rimuovere l'elemento
                               await provider.removeAllergia(index);
                             },
-                            deleteColor: deleteColor,
                           );
                         },
                       );
@@ -129,7 +147,6 @@ class _AllergieScreenState extends State<AllergieScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Bottone "Aggiungi un'allergia"
             Padding(
               padding: const EdgeInsets.only(
                 left: 20.0,
@@ -137,8 +154,7 @@ class _AllergieScreenState extends State<AllergieScreen> {
                 bottom: 30.0,
               ),
               child: InkWell(
-                onTap: () =>
-                    _openDialog(isEdit: false), // Apre il dialog per l'aggiunta
+                onTap: () => _openDialog(),
                 child: Container(
                   height: 60,
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -173,47 +189,9 @@ class _AllergieScreenState extends State<AllergieScreen> {
     );
   }
 
-  // Widget per il singolo elemento della lista
-  Widget _buildItem({
-    required String text,
-    required VoidCallback onEdit,
-    required VoidCallback onDelete,
-    required Color deleteColor,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          Row(
-            children: [
-              // Pulsante Elimina
-              IconButton(
-                icon: Icon(Icons.delete_outline, color: deleteColor, size: 28),
-                onPressed: onDelete,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Dialog per l'aggiunta di un allergia
-  void _openDialog({required bool isEdit}) {
-    // Pulisce il campo di testo prima di aprire il dialog
+  // Dialog Helper
+  void _openDialog() {
     _textController.clear();
-
     showDialog(
       context: context,
       builder: (context) {
@@ -238,7 +216,6 @@ class _AllergieScreenState extends State<AllergieScreen> {
             ),
           ),
           actions: [
-            // Pulsante Annulla
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text(
@@ -246,18 +223,15 @@ class _AllergieScreenState extends State<AllergieScreen> {
                 style: TextStyle(color: Colors.white70),
               ),
             ),
-            // Pulsante Salva
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
               onPressed: () async {
                 if (_textController.text.isNotEmpty) {
-                  // Chiama il provider per aggiungere la nuova allergia
                   final success = await Provider.of<MedicalProvider>(
                     context,
                     listen: false,
                   ).addAllergia(_textController.text);
 
-                  // Se l'operazione ha successo e il contesto è ancora valido, chiude il dialog
                   if (success && context.mounted) {
                     Navigator.pop(context);
                   }
@@ -268,6 +242,45 @@ class _AllergieScreenState extends State<AllergieScreen> {
           ],
         );
       },
+    );
+  }
+}
+
+// Widget estratto per la Tile dell'allergia
+class _AllergyTile extends StatelessWidget {
+  final String text;
+  final VoidCallback onDelete;
+
+  const _AllergyTile({required this.text, required this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.delete_outline,
+              color: ColorPalette.deleteRed,
+              size: 28,
+            ),
+            onPressed: onDelete,
+          ),
+        ],
+      ),
     );
   }
 }
