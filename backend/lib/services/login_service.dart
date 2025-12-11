@@ -12,9 +12,15 @@ import '../repositories/user_repository.dart';
 import 'jwt_service.dart';
 
 class LoginService {
-  // Dipendenze: Repository per il DB e Service per la verifica
-  final UserRepository _userRepository = UserRepository();
-  final JWTService _jwtService = JWTService();
+// Dipendenze
+  final UserRepository _userRepository;
+  final JWTService _jwtService;
+
+  // Costruttore che accetta le dipendenze (Dependency Injection)
+  // Se non vengono passate (es. in produzione), usa quelle di default.
+  LoginService({UserRepository? userRepository, JWTService? jwtService})
+      : _userRepository = userRepository ?? UserRepository(),
+        _jwtService = jwtService ?? JWTService();
 
   // Funzione privata per generare l'hash
   String _hashPassword(String password) {
