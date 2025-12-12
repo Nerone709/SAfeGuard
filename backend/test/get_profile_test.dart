@@ -30,8 +30,6 @@ void main() {
       final rawData = {
         'id': soccorritoreId,
         'email': emailSoccorritore,
-        'nome': 'Mario',
-        'cognome': 'Rossi',
       };
 
       when(mockRepository.findUserById(soccorritoreId))
@@ -57,8 +55,6 @@ void main() {
       final rawData = {
         'id': userId,
         'email': emailCittadino,
-        'nome': 'Luca',
-        'cognome': 'Bianchi',
       };
 
       when(mockRepository.findUserById(userId))
