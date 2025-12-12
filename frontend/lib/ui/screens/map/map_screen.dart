@@ -16,6 +16,8 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  Position? _lastCalculatedPosition; // Variabile per il throttle del GPS
+
   // Dati grezzi scaricati dal DB
   List<Map<String, dynamic>> _allRawPoints = [];
 
@@ -43,13 +45,20 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _initTracking() async {
-    // PRELEVA IL PROVIDER PRIMA DI QUALSIASI AWAIT LUNGO
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     try {
-      // 1. Controllo Permessi
+      // 1. Reset per garantire il primo calcolo
+      _lastCalculatedPosition = null;
+
+      // 2. Controllo Permessi
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) throw Exception("GPS disabilitato");
+      if (!serviceEnabled) {
+        // Tenta di aprire le impostazioni
+        await Geolocator.openLocationSettings();
+        serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) throw Exception("GPS disabilitato");
+      }
 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
@@ -59,7 +68,6 @@ class _MapScreenState extends State<MapScreen> {
         }
       }
 
-      // 2. Controllo Mounted prima di usare il Provider o setState dopo gli Await
       if (!mounted) return;
 
       // 3. Caricamento Dati in base al Ruolo
@@ -73,7 +81,7 @@ class _MapScreenState extends State<MapScreen> {
       // 4. Avvio Tracking Posizione
       const locationSettings = LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 1,
+        distanceFilter: 10, //modificato a 10 metri per prestazioni
       );
 
       _positionStream =
@@ -97,37 +105,48 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  //Carica Safe Points e Ospedali
+  // Carica Safe Points e Ospedali
   Future<void> _fetchSafePointsFromDB() async {
+    // Controllo Cache
+    if (_allRawPoints.isNotEmpty) {
+      if (mounted) setState(() => _isLoadingList = false);
+      return;
+    }
+
     try {
-      final safePointsSnap = await FirebaseFirestore.instance
-          .collection('safe_points')
-          .get();
-      final hospitalsSnap = await FirebaseFirestore.instance
-          .collection('hospitals')
-          .get();
+      // Recupero dei punti sicuri e degli ospedali in parallelo
+      final results = await Future.wait([
+        FirebaseFirestore.instance.collection('safe_points').get(),
+        FirebaseFirestore.instance.collection('hospitals').get(),
+      ]);
+
+      final safePointsSnap = results[0];
+      final hospitalsSnap = results[1];
 
       List<Map<String, dynamic>> loadedPoints = [];
 
       void extract(QuerySnapshot snap, String type) {
         for (var doc in snap.docs) {
           final data = doc.data() as Map<String, dynamic>;
-          final double? lat = (data['lat'] as num?)?.toDouble();
-          final double? lng = (data['lng'] as num?)?.toDouble();
-          final String name =
-              data['name'] ??
-              (type == 'hospital' ? 'Ospedale' : 'Punto Sicuro');
+          final double? lat = (data['lat'] is num)
+              ? (data['lat'] as num).toDouble()
+              : null;
+          final double? lng = (data['lng'] is num)
+              ? (data['lng'] as num).toDouble()
+              : null;
 
           if (lat != null && lng != null) {
             loadedPoints.add({
-              'title': name,
+              'title':
+                  data['name'] ??
+                  (type == 'hospital' ? 'Ospedale' : 'Punto Sicuro'),
               'subtitle': type == 'hospital'
                   ? "Pronto Soccorso"
                   : "Punto di Raccolta",
-              'type': type, // 'hospital' o 'safe_point'
+              'type': type,
               'lat': lat,
               'lng': lng,
-              'distance': 0.0,
+              'distance': double.infinity,
             });
           }
         }
@@ -137,13 +156,28 @@ class _MapScreenState extends State<MapScreen> {
       extract(hospitalsSnap, 'hospital');
 
       _allRawPoints = loadedPoints;
+      // Forza il ricalcolo delle distanze immediato appena i dati sono disponibili,
+      // senza attendere il prossimo update dello stream GPS
+      if (_lastCalculatedPosition != null) {
+        _updateDistances(_lastCalculatedPosition!);
+      } else {
+        // Tentativo di recupero posizione immediato se lo stream tarda
+        Geolocator.getCurrentPosition()
+            .then((pos) => _updateDistances(pos))
+            .catchError((_) {});
+      }
     } catch (e) {
       debugPrint("Errore fetch SafePoints: $e");
     }
   }
 
-  //Carica Emergenze Attive
+  // Carica Emergenze Attive
   Future<void> _fetchEmergenciesFromDB() async {
+    if (_allRawPoints.isNotEmpty) {
+      if (mounted) setState(() => _isLoadingList = false);
+      return;
+    }
+
     try {
       final emergenciesSnap = await FirebaseFirestore.instance
           .collection('active_emergencies')
@@ -153,53 +187,86 @@ class _MapScreenState extends State<MapScreen> {
 
       for (var doc in emergenciesSnap.docs) {
         final data = doc.data();
-        final double? lat = (data['lat'] as num?)?.toDouble();
-        final double? lng = (data['lng'] as num?)?.toDouble();
         final String type = data['type']?.toString() ?? "Emergenza";
-        final String desc = data['description']?.toString() ?? "";
 
-        // Escludiamo i report "SAFE" (Persone che stanno bene) dalla lista interventi
         if (type == 'SAFE') continue;
+
+        final double? lat = (data['lat'] is num)
+            ? (data['lat'] as num).toDouble()
+            : null;
+        final double? lng = (data['lng'] is num)
+            ? (data['lng'] as num).toDouble()
+            : null;
 
         if (lat != null && lng != null) {
           loadedPoints.add({
             'title': type.toUpperCase(),
-            'subtitle': desc.isNotEmpty ? desc : "Nessuna descrizione",
+            'subtitle':
+                data['description']?.toString() ?? "Nessuna descrizione",
             'type': 'emergency',
             'severity': data['severity'] ?? 1,
             'lat': lat,
             'lng': lng,
-            'distance': 0.0,
+            'distance': double.infinity,
           });
         }
       }
+
       _allRawPoints = loadedPoints;
+      // Forza il ricalcolo delle distanze immediato appena i dati sono disponibili,
+      // senza attendere il prossimo update dello stream GPS
+      if (_lastCalculatedPosition != null) {
+        _updateDistances(_lastCalculatedPosition!);
+      } else {
+        // Tentativo di recupero posizione immediato se lo stream tarda
+        Geolocator.getCurrentPosition()
+            .then((pos) => _updateDistances(pos))
+            .catchError((_) {});
+      }
     } catch (e) {
       debugPrint("Errore fetch Emergenze: $e");
+      if (mounted) {
+        setState(() {
+          _errorList = e.toString();
+          _isLoadingList = false;
+        });
+      }
     }
   }
 
   // Ricalcolo Distanze e Ordinamento
   void _updateDistances(Position userPos) {
     if (_allRawPoints.isEmpty) {
-      if (mounted) setState(() => _isLoadingList = false);
+      if (mounted && _isLoadingList) setState(() => _isLoadingList = false);
       return;
     }
 
-    List<Map<String, dynamic>> updatedList = List.from(_allRawPoints);
+    // OTTIMIZZAZIONE: Throttle 50 metri
+    if (_lastCalculatedPosition != null) {
+      double movement = Geolocator.distanceBetween(
+        userPos.latitude,
+        userPos.longitude,
+        _lastCalculatedPosition!.latitude,
+        _lastCalculatedPosition!.longitude,
+      );
+      if (movement < 50) return;
+    }
 
-    for (var point in updatedList) {
-      double dist = Geolocator.distanceBetween(
+    _lastCalculatedPosition = userPos;
+
+    // Crea una copia leggera per il sort
+    List<Map<String, dynamic>> tempPoints = List.from(_allRawPoints);
+
+    for (var point in tempPoints) {
+      point['distance'] = Geolocator.distanceBetween(
         userPos.latitude,
         userPos.longitude,
         point['lat'],
         point['lng'],
       );
-      point['distance'] = dist;
     }
 
-    // Ordina dal più vicino
-    updatedList.sort(
+    tempPoints.sort(
       (a, b) => (a['distance'] as double).compareTo(b['distance'] as double),
     );
 
@@ -215,7 +282,6 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
-    // Colori e Testi dinamici in base al ruolo
     final Color panelColor = isRescuer
         ? ColorPalette.primaryOrange
         : ColorPalette.backgroundDarkBlue;
