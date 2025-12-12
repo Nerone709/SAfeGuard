@@ -83,17 +83,34 @@ void main() {
       expect(result, isNull);
     });
 
-    // Scenario 4: gestione eccezioni
-    test('Deve restituire null e non crashare', () async {
+    // Scenario 4: restituzione corretta dei dati
+    test('Deve restituire i dati giusti (nome e cognome)', () async {
       // 1. ARRANGE
-      when(mockRepository.findUserById(any))
-          .thenThrow(Exception("Connessione persa"));
+      final int soccorritoreId = 10;
+
+      final emailSoccorritore = 'mario@crocerossa.it';
+
+      final rawData = {
+        'id': soccorritoreId,
+        'email': emailSoccorritore,
+        'nome': 'Mario',
+        'cognome': 'Rossi',
+      };
+
+      when(mockRepository.findUserById(soccorritoreId))
+          .thenAnswer((_) async => Map<String, dynamic>.from(rawData));
 
       // 2. ACT
-      final result = await service.getProfile(1);
+      final result = await service.getProfile(soccorritoreId);
 
       // 3. ASSERT
-      expect(result, isNull);
+      expect(result, isNotNull);
+      expect(result?.nome, 'Mario');
+      expect(result?.cognome, 'Rossi');
+      expect(result, isA<Soccorritore>());
+      expect(result?.email, emailSoccorritore);
+
+      verify(mockRepository.findUserById(soccorritoreId)).called(1);
     });
   });
 }
