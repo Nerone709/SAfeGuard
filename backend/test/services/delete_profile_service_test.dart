@@ -9,7 +9,7 @@ import 'package:backend/repositories/user_repository.dart';
 @GenerateNiceMocks([
   MockSpec<UserRepository>(),
 ])
-import 'profile_service_test.mocks.dart';
+import 'delete_profile_service_test.mocks.dart';
 
 void main() {
   late ProfileService profileService;
