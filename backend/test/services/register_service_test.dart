@@ -5,12 +5,14 @@ import 'package:backend/services/register_service.dart';
 import 'package:backend/repositories/user_repository.dart';
 import 'package:backend/services/verification_service.dart';
 import 'package:data_models/utente_generico.dart';
-import 'register_service_test.mocks.dart';
 
 @GenerateNiceMocks([
   MockSpec<UserRepository>(),
   MockSpec<VerificationService>(),
 ])
+
+import 'register_service_test.mocks.dart';
+
 void main() {
   late RegisterService registerService;
   late MockUserRepository mockUserRepository;
